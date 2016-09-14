@@ -461,7 +461,7 @@ class GroupTemplate(TemplateElement):
         instantiate_dict(context, self, r.interfaces, self.interfaces)
         instantiate_dict(context, self, r.policies, self.policies)
         for member_node_template_name in self.member_node_template_names:
-            r.member_node_ids.extend(context.deployment.plan.get_node_ids(member_node_template_name))
+            r.member_node_ids += context.deployment.plan.get_node_ids(member_node_template_name)
         return r
 
     def validate(self, context):

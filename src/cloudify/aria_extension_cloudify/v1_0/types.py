@@ -158,7 +158,7 @@ class RelationshipType(Presentation):
 @dsl_specification('policy-types', 'cloudify-1.1')
 @dsl_specification('policy-types', 'cloudify-1.2')
 @dsl_specification('policy-types', 'cloudify-1.3')
-class PolicyType(Presentation):
+class GroupPolicyType(Presentation):
     """
     :code:`policies` provide a way of analyzing a stream of events that correspond to a group of nodes (and their instances).
     
@@ -198,7 +198,7 @@ class PolicyType(Presentation):
         return self.properties
 
     def _validate(self, context):
-        super(PolicyType, self)._validate(context)
+        super(GroupPolicyType, self)._validate(context)
         self._get_properties(context)
 
 @has_fields
@@ -206,7 +206,7 @@ class PolicyType(Presentation):
 @dsl_specification('policy-triggers', 'cloudify-1.1')
 @dsl_specification('policy-triggers', 'cloudify-1.2')
 @dsl_specification('policy-triggers', 'cloudify-1.3')
-class PolicyTrigger(Presentation):
+class GroupPolicyTrigger(Presentation):
     """
     :code:`policy_triggers` specify the implementation of actions invoked by policies and declare the properties that define the trigger's behavior.
     

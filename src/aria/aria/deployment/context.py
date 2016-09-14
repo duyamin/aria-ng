@@ -49,6 +49,7 @@ class DeploymentContext(object):
     * :code:`capability_types`: The generated hierarchy of capability types
     * :code:`relationship_types`: The generated hierarchy of relationship types
     * :code:`policy_types`: The generated hierarchy of policy types
+    * :code:`group_policy_types`: The generated hierarchy of group policy types
     * :code:`artifact_types`: The generated hierarchy of artifact types
     * :code:`interface_types`: The generated hierarchy of interface types
     """
@@ -66,6 +67,7 @@ class DeploymentContext(object):
         self.capability_types = TypeHierarchy()
         self.relationship_types = TypeHierarchy()
         self.policy_types = TypeHierarchy()
+        self.group_policy_types = TypeHierarchy()
         self.artifact_types = TypeHierarchy()
         self.interface_types = TypeHierarchy()
         
@@ -111,6 +113,9 @@ class DeploymentContext(object):
         if self.policy_types.children:
             puts('Policy types:')
             self.policy_types.dump(context)
+        if self.group_policy_types.children:
+            puts('Group policy types:')
+            self.group_policy_types.dump(context)
         if self.artifact_types.children:
             puts('Artifact types:')
             self.artifact_types.dump(context)

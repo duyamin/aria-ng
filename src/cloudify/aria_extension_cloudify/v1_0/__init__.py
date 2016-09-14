@@ -19,7 +19,7 @@ from .assignments import PropertyAssignment, TriggerAssignment, PolicyAssignment
 from .definitions import PropertyDefinition, OperationDefinition, InterfaceDefinition, WorkflowDefinition
 from .misc import Description, Output, Plugin, Instances
 from .templates import RelationshipTemplate, NodeTemplate, GroupDefinition, ServiceTemplate
-from .types import NodeType, RelationshipType, PolicyType, PolicyTrigger
+from .types import NodeType, RelationshipType, GroupPolicyType, GroupPolicyTrigger
 from .functions import GetInput, GetProperty, GetAttribute
 
 __all__ = (
@@ -43,8 +43,8 @@ __all__ = (
     'ServiceTemplate',
     'NodeType',
     'RelationshipType',
-    'PolicyType',
-    'PolicyTrigger',
+    'GroupPolicyType',
+    'GroupPolicyTrigger',
     'GetInput',
     'GetProperty',
     'GetAttribute')

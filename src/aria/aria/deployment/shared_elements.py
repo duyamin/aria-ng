@@ -333,15 +333,19 @@ class GroupPolicy(TemplateElement):
     Properties:
     
     * :code:`name`: Name
+    * :code:`type_name`: Must be represented in the :class:`DeploymentContext`
     * :code:`properties`: Dict of :class:`Parameter`
     * :code:`triggers`: Dict of :class:`GroupPolicyTrigger`
     """
     
-    def __init__(self, name):
+    def __init__(self, name, type_name):
         if not isinstance(name, basestring):
             raise ValueError('must set name (string)')
+        if not isinstance(type_name, basestring):
+            raise ValueError('must set type_name (string)')
 
         self.name = name
+        self.type_name = type_name
         self.properties = StrictDict(key_class=basestring, value_class=Parameter)
         self.triggers = StrictDict(key_class=basestring, value_class=GroupPolicyTrigger)
 
@@ -349,16 +353,20 @@ class GroupPolicy(TemplateElement):
     def as_raw(self):
         return OrderedDict((
             ('name', self.name),
+            ('type_name', self.type_name),
             ('properties', {k: v.as_raw for k, v in self.properties.iteritems()}),
             ('triggers', [v.as_raw for v in self.triggers.itervalues()])))
 
     def instantiate(self, context, container):
-        r = GroupPolicy(self.name)
+        r = GroupPolicy(self.name, self.type_name)
         instantiate_dict(context, container, r.properties, self.properties)
         instantiate_dict(context, container, r.triggers, self.triggers)
         return r
 
     def validate(self, context):
+        if context.deployment.group_policy_types.get_descendant(self.type_name) is None:
+            context.validation.report('group policy "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
+
         validate_dict_values(context, self.properties)
         validate_dict_values(context, self.triggers)
 
@@ -369,6 +377,7 @@ class GroupPolicy(TemplateElement):
     def dump(self, context):
         puts(context.style.node(self.name))
         with context.style.indent:
+            puts('Group policy type: %s' % context.style.type(self.type_name))
             dump_properties(context, self.properties)
             dump_dict_values(context, self.triggers, 'Triggers')
 

@@ -127,7 +127,13 @@ def convert_node_template(context, node_template, plugins):
 def convert_group_template(context, group_template):
     return OrderedDict((
         ('members', group_template.member_node_template_names),
-        ('policies', []))) # TODO
+        ('policies', OrderedDict(
+            (k, convert_group_policy(context, v)) for k, v in group_template.policies.iteritems()))))
+
+def convert_group_policy(context, group_policy):
+    return OrderedDict((
+        ('type', group_policy.type_name),
+        ('properties', convert_properties(context, group_policy.properties))))
 
 def convert_relationship_template(context, requirement):
     relationship_template = requirement.relationship_template
