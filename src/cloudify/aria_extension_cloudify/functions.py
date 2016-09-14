@@ -42,8 +42,8 @@ class GetProperty(object):
         self.nested_property_name_or_index = value[1:]
 
     def evaluate(self, context):
-        _, node_template = get_classic_node(context, self.modelable_entity_name, 'get_property')
-        return get_classic_property(node_template['properties'], self.nested_property_name_or_index, 'get_property')
+        _, node_template = get_node(context, self.modelable_entity_name, 'get_property')
+        return get_property(node_template['properties'], self.nested_property_name_or_index, 'get_property')
 
 class GetAttribute(object):
     def __init__(self, value):
@@ -51,12 +51,12 @@ class GetAttribute(object):
         self.nested_property_name_or_index = value[1:]
 
     def evaluate(self, context):
-        node, node_template = get_classic_node(context, self.modelable_entity_name, 'get_attribute')
+        node, node_template = get_node(context, self.modelable_entity_name, 'get_attribute')
 
         try:
-            return get_classic_property(node['runtime_properties'], self.nested_property_name_or_index, 'get_attribute')
+            return get_property(node['runtime_properties'], self.nested_property_name_or_index, 'get_attribute')
         except InvalidValueError:
-            return get_classic_property(node_template['properties'], self.nested_property_name_or_index, 'get_attribute')
+            return get_property(node_template['properties'], self.nested_property_name_or_index, 'get_attribute')
 
 class Concat(object):
     def __init__(self, value):
@@ -80,7 +80,7 @@ def get_function(value):
 
 # Utils
 
-def get_classic_node(classic_context, modelable_entity_name, function_name):
+def get_node(classic_context, modelable_entity_name, function_name):
     node = None
     
     def get_node(node_id):
@@ -106,7 +106,7 @@ def get_classic_node(classic_context, modelable_entity_name, function_name):
     
     return node, node_template
 
-def get_classic_property(value, nested_property_name_or_index, function_name):
+def get_property(value, nested_property_name_or_index, function_name):
     for name_or_index in nested_property_name_or_index:
         try:
             value = value[name_or_index]

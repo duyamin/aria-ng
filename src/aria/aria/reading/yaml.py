@@ -40,6 +40,14 @@ class YamlLocator(Locator):
                 self.children[key.value] = locator
                 locator.parse(yaml_loader, n, location)
 
+def construct_yaml_map(self, node):
+    data = OrderedDict()
+    yield data
+    value = self.construct_mapping(node)
+    data.update(value)
+
+yaml.constructor.SafeConstructor.add_constructor(u'tag:yaml.org,2002:map', construct_yaml_map)
+
 class YamlReader(Reader):
     """
     ARIA YAML reader.
@@ -49,19 +57,21 @@ class YamlReader(Reader):
         data = self.load()
         try:
             data = unicode(data)
-            yaml_loader = yaml.RoundTripLoader(data)
-            node = yaml_loader.get_single_node()
-            locator = YamlLocator(self.loader.location, 0, 0)
-            if node is None:
-                raw = OrderedDict()
-            else:
-                locator.parse(yaml_loader, node, self.loader.location)
-                raw = yaml_loader.construct_document(node)
-            #locator.dump()
-            setattr(raw, '_locator', locator)
-            return raw
-            
-            #return yaml.load(data, yaml.RoundTripLoader)
+            #yaml_loader = yaml.RoundTripLoader(data) # Bug: https://bitbucket.org/ruamel/yaml/issues/60/roundtriploader-does-not-handle-anchors
+            yaml_loader = yaml.SafeLoader(data)
+            try:
+                node = yaml_loader.get_single_node()
+                locator = YamlLocator(self.loader.location, 0, 0)
+                if node is None:
+                    raw = OrderedDict()
+                else:
+                    locator.parse(yaml_loader, node, self.loader.location)
+                    raw = yaml_loader.construct_document(node)
+                #locator.dump()
+                setattr(raw, '_locator', locator)
+                return raw
+            finally:
+                yaml_loader.dispose()
         except Exception as e:
             if isinstance(e, yaml.parser.MarkedYAMLError):
                 context = e.context or 'while parsing'

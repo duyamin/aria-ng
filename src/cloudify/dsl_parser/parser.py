@@ -32,6 +32,7 @@ def parse(dsl_string, resources_base_url=None, validate_version=True, **legacy):
 
 def _parse(location, search_paths=None, validate=True):
     context = ConsumptionContext()
+    context.presentation.print_exceptions = True # Developers, developers, developers, developers
     context.presentation.location = location
     
     if search_paths:
@@ -42,7 +43,7 @@ def _parse(location, search_paths=None, validate=True):
     else:
         consumer = ConsumerChain(context, (Read,))
 
-    consumer.consume()    
+    consumer.consume()
     context.validation.dump_issues()
     
     return context
