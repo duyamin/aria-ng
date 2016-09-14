@@ -70,17 +70,16 @@ def get_assigned_and_defined_property_values(context, presentation, field_name='
         for name, value in assignments.iteritems():
             if (definitions is not None) and (name in definitions):
                 definition = definitions[name]
-                if value.value is not None:
-                    v = value.value
+                v = value.value
 
-                    # For data type values, merge into the default value (note: this is Cloudify behavior; in TOSCA these values are always replaced)
-                    default = definition.default
-                    if (default is not None) and (context.presentation.presenter.data_types is not None) and (definition.type in context.presentation.presenter.data_types):
-                        t = deepcopy_with_locators(default)
-                        merge(t, v)
-                        v = t
+                # For data type values, merge into the default value (note: this is Cloudify behavior; in TOSCA these values are always replaced)
+                default = definition.default
+                if (default is not None) and (context.presentation.presenter.data_types is not None) and (definition.type in context.presentation.presenter.data_types):
+                    t = deepcopy_with_locators(default)
+                    merge(t, v)
+                    v = t
 
-                    values[name] = coerce_property_value(context, value, definition, v)
+                values[name] = coerce_property_value(context, value, definition, v)
             else:
                 context.validation.report('assignment to undefined property "%s" in "%s"' % (name, presentation._fullname), locator=value._locator, level=Issue.BETWEEN_TYPES)
 
@@ -154,12 +153,11 @@ def merge_property_definitions(context, presentation, property_definitions, our_
 def coerce_property_value(context, presentation, definition, value, aspect=None): # works on properties, inputs, and parameters
     the_type = definition._get_type(context) if hasattr(definition, '_get_type') else None
     value = coerce_value(context, presentation, the_type, value, aspect)
-    return Value(getattr(definition, 'type', None), value) if value is not None else None
+    return Value(getattr(definition, 'type', None), value)
 
 def convert_property_definitions_to_values(context, presentation, definitions):
     values = OrderedDict()
     for name, definition in definitions.iteritems():
         default = definition.default
-        if default is not None:
-            values[name] = coerce_property_value(context, presentation, definition, default)
+        values[name] = coerce_property_value(context, presentation, definition, default)
     return values

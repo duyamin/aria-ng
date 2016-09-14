@@ -364,7 +364,7 @@ class GroupPolicy(TemplateElement):
         return r
 
     def validate(self, context):
-        if context.deployment.group_policy_types.get_descendant(self.type_name) is None:
+        if context.deployment.policy_types.get_descendant(self.type_name) is None:
             context.validation.report('group policy "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)

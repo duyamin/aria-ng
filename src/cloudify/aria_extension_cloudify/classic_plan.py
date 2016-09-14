@@ -16,7 +16,7 @@
 
 from aria.consumption import Consumer
 from aria.deployment import Parameter, Function
-from aria.utils import JsonAsRawEncoder, deepcopy_with_locators, prune
+from aria.utils import JsonAsRawEncoder, deepcopy_with_locators
 from collections import OrderedDict
 import json
 
@@ -275,10 +275,10 @@ def convert_parameters(context, parameters):
         (key, convert_parameter(context, value)) for key, value in parameters.iteritems()))
 
 def convert_parameter(context, parameter):
-    return prune(OrderedDict((
+    return OrderedDict((
         ('type', parameter.type_name),
         ('default', as_raw(parameter.value)),
-        ('description', parameter.description))))
+        ('description', parameter.description)))
 
 def convert_type_hierarchy(context, the_type, hierarchy):
     type_hierarchy = []

@@ -39,11 +39,6 @@ class CloudifyPresenter1_0(Presenter):
             'get_property': GetProperty,
             'get_attribute': GetAttribute}
 
-    @property
-    @cachedmethod
-    def group_policy_types(self):
-        return self.service_template.policy_types
-
     # Presentation
 
     def _dump(self, context):
@@ -138,7 +133,7 @@ class CloudifyPresenter1_0(Presenter):
     @property
     @cachedmethod
     def policy_types(self):
-        return None
+        return self.service_template.policy_types
     
     @property
     @cachedmethod

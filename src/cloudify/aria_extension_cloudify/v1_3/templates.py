@@ -19,7 +19,7 @@ from ..v1_2 import ServiceTemplate as ServiceTemplate1_2
 from .assignments import CapabilityAssignment
 from .utils.node_templates import get_node_template_scalable
 from aria import dsl_specification
-from aria.presentation import Presentation, has_fields, primitive_field, primitive_list_field, object_dict_field, field_validator, list_type_validator
+from aria.presentation import Presentation, has_fields, primitive_field, primitive_list_field, object_dict_field, field_validator, list_type_validator, type_validator
 from aria.utils import ReadOnlyList, cachedmethod
 
 @has_fields
@@ -46,6 +46,7 @@ class PolicyDefinition(Presentation):
     See the `Cloudify DSL v1.3 specification <http://docs.getcloudify.org/3.4.0/blueprints/spec-policies/>`__.    
     """
     
+    @field_validator(type_validator('policy type', 'policy_types'))
     @primitive_field(str, required=True)
     def type(self):
         """
@@ -70,6 +71,10 @@ class PolicyDefinition(Presentation):
         
         :rtype: list of str
         """
+    
+    @cachedmethod
+    def _get_type(self, context):
+        return context.presentation.presenter.policy_types.get(self.type) if context.presentation.presenter.policy_types is not None else None
 
     @cachedmethod
     def _get_targets(self, context):

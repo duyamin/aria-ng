@@ -16,7 +16,6 @@
 
 from .properties import get_inherited_property_definitions, get_assigned_and_defined_property_values
 from aria.validation import Issue
-from aria.presentation import Value
 
 #
 # RelationshipType

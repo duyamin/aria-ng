@@ -24,7 +24,7 @@ def get_deployment_template(context, presenter):
     normalize_types(context, context.deployment.node_types, presenter.node_types)
     normalize_types(context, context.deployment.group_types, presenter.group_types)
     normalize_types(context, context.deployment.relationship_types, presenter.relationship_types, normalize_relationship_type)
-    normalize_types(context, context.deployment.group_policy_types, presenter.group_policy_types)
+    normalize_types(context, context.deployment.policy_types, presenter.policy_types)
     
     # This policy type is built-in
     context.deployment.policy_types.children.append(Type('cloudify.policies.scaling'))

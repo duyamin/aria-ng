@@ -70,8 +70,7 @@ def get_assigned_and_defined_property_values(context, presentation):
         for name, value in assignments.iteritems():
             if (definitions is not None) and (name in definitions):
                 definition = definitions[name]
-                if value.value is not None:
-                    values[name] = coerce_property_value(context, value, definition, value.value)
+                values[name] = coerce_property_value(context, value, definition, value.value)
             else:
                 context.validation.report('assignment to undefined property "%s" in "%s"' % (name, presentation._fullname), locator=value._locator, level=Issue.BETWEEN_TYPES)
     
@@ -155,12 +154,11 @@ def coerce_property_value(context, presentation, definition, value, aspect=None)
     entry_schema = definition.entry_schema if definition is not None else None
     constraints = definition._get_constraints(context) if definition is not None else None
     value = coerce_value(context, presentation, the_type, entry_schema, constraints, value, aspect)
-    return Value(definition.type, value) if value is not None else None
+    return Value(definition.type, value)
 
 def convert_property_definitions_to_values(context, presentation, definitions):
     values = OrderedDict()
     for name, definition in definitions.iteritems():
         default = definition.default
-        if default is not None:
-            values[name] = coerce_property_value(context, presentation, definition, default)
+        values[name] = coerce_property_value(context, presentation, definition, default)
     return values

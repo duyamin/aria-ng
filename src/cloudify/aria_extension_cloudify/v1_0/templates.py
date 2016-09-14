@@ -16,7 +16,7 @@
 
 from .definitions import PropertyDefinition, WorkflowDefinition
 from .assignments import PropertyAssignment, InterfaceAssignment, PolicyAssignment
-from .types import NodeType, RelationshipType, GroupPolicyType, GroupPolicyTrigger
+from .types import NodeType, RelationshipType, PolicyType, GroupPolicyTrigger
 from .misc import Description, Output, Plugin, Instances
 from .field_validators import node_templates_or_groups_validator
 from .utils.properties import get_assigned_and_defined_property_values, get_parameter_values
@@ -324,7 +324,7 @@ class ServiceTemplate(Presentation):
         :rtype: dict of str, :class:`GroupDefinition`
         """
 
-    @object_dict_field(GroupPolicyType)
+    @object_dict_field(PolicyType)
     def policy_types(self):
         """
         :rtype: dict of str, :class:`GroupPolicyType`

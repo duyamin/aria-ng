@@ -90,7 +90,7 @@ def coerce_data_type_value(context, presentation, data_type, entry_schema, const
                     context.validation.report('required property "%s" in type "%s" is not assigned a value in "%s"' % (name, data_type._fullname, presentation._fullname), locator=presentation._get_child_locator('definitions'), level=Issue.BETWEEN_TYPES)
             
             value = r
-        else:
+        elif value is not None:
             context.validation.report('value of type "%s" is not a dict in "%s"' % (data_type._fullname, presentation._fullname), locator=value._locator, level=Issue.BETWEEN_TYPES)
             value = None
     
