@@ -16,7 +16,7 @@
 
 from aria.consumption import Consumer
 from aria.deployment import Parameter, Function
-from aria.utils import JsonAsRawEncoder, deepcopy_with_locators
+from aria.utils import JsonAsRawEncoder, deepcopy_with_locators, prune
 from collections import OrderedDict
 import json
 
@@ -254,7 +254,7 @@ def convert_relationship_type(context, relationship_type):
         ('name', relationship_type.name),
         ('derived_from', get_type_parent_name(relationship_type, context.deployment.relationship_types)),
         ('type_hierarchy', convert_type_hierarchy(context, relationship_type, context.deployment.relationship_types)),
-        ('properties', convert_properties(context, relationship_type.properties)),
+        ('properties', convert_property_definitions(context, relationship_type.properties)),
         ('source_interfaces', convert_interfaces(context, relationship_type.source_interfaces)),
         ('target_interfaces', convert_interfaces(context, relationship_type.target_interfaces))))
     
@@ -271,6 +271,16 @@ def convert_policy_type(context, policy_type):
 def convert_properties(context, properties):
     return OrderedDict((
         (k, as_raw(v.value)) for k, v in properties.iteritems()))
+
+def convert_property_definitions(context, properties):
+    return OrderedDict((
+        (k, convert_property_definition(context, v)) for k, v in properties.iteritems()))
+
+def convert_property_definition(context, prop):
+    return prune(OrderedDict((
+        ('type', prop.type_name),
+        ('description', prop.description),
+        ('default', prop.value))))
 
 def convert_inputs(context, inputs):
     return OrderedDict((
