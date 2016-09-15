@@ -14,11 +14,17 @@
 # under the License.
 #
 
+from .locator import LocatableString, LocatableInt, LocatableFloat
 from .reader import Reader
 from .exceptions import ReaderSyntaxError
 from .locator import Locator
 from collections import OrderedDict
 from ruamel import yaml # @UnresolvedImport
+
+# Add our types to ruamel.yaml (for round trips)
+yaml.representer.RoundTripRepresenter.add_representer(LocatableString, yaml.representer.RoundTripRepresenter.represent_unicode)
+yaml.representer.RoundTripRepresenter.add_representer(LocatableInt, yaml.representer.RoundTripRepresenter.represent_int)
+yaml.representer.RoundTripRepresenter.add_representer(LocatableFloat, yaml.representer.RoundTripRepresenter.represent_float)
 
 class YamlLocator(Locator):
     """
@@ -26,27 +32,26 @@ class YamlLocator(Locator):
     """
     
     def parse(self, yaml_loader, node, location):
+        def child(n, key=None):
+            locator = YamlLocator(location, n.start_mark.line + 1, n.start_mark.column + 1)
+            if key is not None:
+                self.children[key] = locator
+            else:
+                self.children.append(locator)
+            locator.parse(yaml_loader, n, location)
+        
         if isinstance(node, yaml.SequenceNode):
             self.children = []
             for n in node.value:
-                locator = YamlLocator(location, n.start_mark.line + 1, n.start_mark.column + 1)
-                self.children.append(locator)
-                locator.parse(yaml_loader, n, location)
+                child(n)
         elif isinstance(node, yaml.MappingNode):
-            yaml_loader.flatten_mapping(node)
             self.children = {}
-            for key, n in node.value:
-                locator = YamlLocator(location, key.start_mark.line + 1, key.start_mark.column + 1)
-                self.children[key.value] = locator
-                locator.parse(yaml_loader, n, location)
-
-def construct_yaml_map(self, node):
-    data = OrderedDict()
-    yield data
-    value = self.construct_mapping(node)
-    data.update(value)
-
-yaml.constructor.SafeConstructor.add_constructor(u'tag:yaml.org,2002:map', construct_yaml_map)
+            for k, n in node.value:
+                if k.tag == u'tag:yaml.org,2002:merge':
+                    for merge_k, merge_n in n.value:
+                        child(merge_n, merge_k.value)
+                else:
+                    child(n, k.value)
 
 class YamlReader(Reader):
     """
@@ -57,16 +62,15 @@ class YamlReader(Reader):
         data = self.load()
         try:
             data = unicode(data)
-            #yaml_loader = yaml.RoundTripLoader(data) # Bug: https://bitbucket.org/ruamel/yaml/issues/60/roundtriploader-does-not-handle-anchors
-            yaml_loader = yaml.SafeLoader(data)
+            yaml_loader = yaml.RoundTripLoader(data)
             try:
                 node = yaml_loader.get_single_node()
                 locator = YamlLocator(self.loader.location, 0, 0)
-                if node is None:
-                    raw = OrderedDict()
-                else:
+                if node is not None:
                     locator.parse(yaml_loader, node, self.loader.location)
                     raw = yaml_loader.construct_document(node)
+                else:
+                    raw = OrderedDict()
                 #locator.dump()
                 setattr(raw, '_locator', locator)
                 return raw

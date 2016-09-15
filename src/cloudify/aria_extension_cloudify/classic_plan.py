@@ -16,9 +16,13 @@
 
 from aria.consumption import Consumer
 from aria.deployment import Parameter, Function
-from aria.utils import JsonAsRawEncoder, deepcopy_with_locators, prune
+from aria.utils import JsonAsRawEncoder, deepcopy_with_locators
 from collections import OrderedDict
 import json
+
+COMPUTE_NODE_NAME = 'cloudify.nodes.Compute'
+CONTAINED_IN_RELATIONSHIP_NAME = 'cloudify.relationships.contained_in'
+SCALING_POLICY_NAME = 'cloudify.policies.scaling'
 
 class ClassicPlan(Consumer):
     """
@@ -277,10 +281,10 @@ def convert_property_definitions(context, properties):
         (k, convert_property_definition(context, v)) for k, v in properties.iteritems()))
 
 def convert_property_definition(context, prop):
-    return prune(OrderedDict((
+    return OrderedDict((
         ('type', prop.type_name),
         ('description', prop.description),
-        ('default', prop.value))))
+        ('default', prop.value)))
 
 def convert_inputs(context, inputs):
     return OrderedDict((
@@ -373,24 +377,24 @@ def get_type_parent_name(the_type, hierarchy):
     return the_type.name if the_type is not None else None
 
 def find_host_node_template(context, node_template):
-    if context.deployment.node_types.is_descendant('cloudify.nodes.Compute', node_template.type_name):
+    if context.deployment.node_types.is_descendant(COMPUTE_NODE_NAME, node_template.type_name):
         return node_template
     
     for requirement in node_template.requirements:
         relationship_template = requirement.relationship_template
         if relationship_template is not None:
-            if context.deployment.relationship_types.is_descendant('cloudify.relationships.contained_in', relationship_template.type_name):
+            if context.deployment.relationship_types.is_descendant(CONTAINED_IN_RELATIONSHIP_NAME, relationship_template.type_name):
                 return find_host_node_template(context, context.deployment.template.node_templates.get(requirement.target_node_template_name))
 
     return None
 
 def find_host_node(context, node):
     node_template = context.deployment.template.node_templates.get(node.template_name)
-    if context.deployment.node_types.is_descendant('cloudify.nodes.Compute', node_template.type_name):
+    if context.deployment.node_types.is_descendant(COMPUTE_NODE_NAME, node_template.type_name):
         return node
     
     for relationship in node.relationships:
-        if context.deployment.relationship_types.is_descendant('cloudify.relationships.contained_in', relationship.type_name):
+        if context.deployment.relationship_types.is_descendant(CONTAINED_IN_RELATIONSHIP_NAME, relationship.type_name):
             return find_host_node(context, context.deployment.plan.nodes.get(relationship.target_node_id))
 
     return None
@@ -404,7 +408,7 @@ def find_groups(context, node):
 
 def iter_scaling_groups(context):
     for policy_template in context.deployment.template.policy_templates.itervalues():
-        if policy_template.type_name == 'cloudify.policies.scaling':
+        if policy_template.type_name == SCALING_POLICY_NAME:
             for group_template_name in policy_template.target_group_template_names:
                 group_template = context.deployment.template.group_templates[group_template_name]
                 yield group_template_name, group_template

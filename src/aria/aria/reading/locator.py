@@ -15,7 +15,6 @@
 #
 
 from ..utils import puts, colored, indent
-from ruamel import yaml # @UnresolvedImport
 
 # We are inheriting the primitive types in order to add the ability to set an attribute (_locator) on them.
 
@@ -36,11 +35,6 @@ def wrap(value):
     elif isinstance(value, float):
         return True, LocatableFloat(value)
     return False, value
-
-# Add our types to ruamel.yaml (for round trips)
-yaml.representer.RoundTripRepresenter.add_representer(LocatableString, yaml.representer.RoundTripRepresenter.represent_unicode)
-yaml.representer.RoundTripRepresenter.add_representer(LocatableInt, yaml.representer.RoundTripRepresenter.represent_int)
-yaml.representer.RoundTripRepresenter.add_representer(LocatableFloat, yaml.representer.RoundTripRepresenter.represent_float)
 
 class Locator(object):
     """
