@@ -32,10 +32,14 @@ class YamlLocator(Locator):
     """
     
     def parse(self, yaml_loader, node, location):
-        def child(n, key=None):
+        def child(n, k=None):
             locator = YamlLocator(location, n.start_mark.line + 1, n.start_mark.column + 1)
-            if key is not None:
-                self.children[key] = locator
+            if k is not None:
+                if k.tag == u'tag:yaml.org,2002:merge':
+                    for merge_k, merge_n in n.value:
+                        child(merge_n, merge_k)
+                else:
+                    self.children[k.value] = locator
             else:
                 self.children.append(locator)
             locator.parse(yaml_loader, n, location)
@@ -47,11 +51,15 @@ class YamlLocator(Locator):
         elif isinstance(node, yaml.MappingNode):
             self.children = {}
             for k, n in node.value:
-                if k.tag == u'tag:yaml.org,2002:merge':
-                    for merge_k, merge_n in n.value:
-                        child(merge_n, merge_k.value)
-                else:
-                    child(n, k.value)
+                child(n, k)
+
+def construct_yaml_map(self, node):
+    data = OrderedDict()
+    yield data
+    value = self.construct_mapping(node)
+    data.update(value)
+
+yaml.constructor.SafeConstructor.add_constructor(u'tag:yaml.org,2002:map', construct_yaml_map)
 
 class YamlReader(Reader):
     """
@@ -62,7 +70,8 @@ class YamlReader(Reader):
         data = self.load()
         try:
             data = unicode(data)
-            yaml_loader = yaml.RoundTripLoader(data)
+            #yaml_loader = yaml.RoundTripLoader(data) # Issue: https://bitbucket.org/ruamel/yaml/issues/61/roundtriploader-causes-exceptions-with
+            yaml_loader = yaml.SafeLoader(data)
             try:
                 node = yaml_loader.get_single_node()
                 locator = YamlLocator(self.loader.location, 0, 0)

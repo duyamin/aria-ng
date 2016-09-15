@@ -78,7 +78,7 @@ setup(
       
     # Please make sure this is in sync with src/aria/requirements.txt
     install_requires=[
-        'ruamel.yaml==0.12.12',
+        'ruamel.yaml==0.12.13',
         'clint==0.5.1',
         'Jinja2==2.8',
         'requests==2.11.1',
