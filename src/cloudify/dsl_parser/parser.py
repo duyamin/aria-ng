@@ -18,6 +18,7 @@ from aria import install_aria_extensions
 from aria.consumption import ConsumptionContext, ConsumerChain, Read, Validate, Template, Plan
 from aria.loading import UriLocation, LiteralLocation
 from aria_extension_cloudify import ClassicPlan
+from aria_extension_cloudify.v1_3 import CloudifyPresenter1_3
 
 install_aria_extensions()
 
@@ -30,19 +31,18 @@ def parse(dsl_string, resources_base_url=None, validate_version=True, **legacy):
     paths = [resources_base_url] if resources_base_url is not None else []
     return _parse(LiteralLocation(dsl_string), paths, validate_version)
 
-def _parse(location, search_paths=None, validate=True):
+def _parse(location, search_paths=None, validate_version=True):
     context = ConsumptionContext()
     context.presentation.print_exceptions = True # Developers, developers, developers, developers
     context.presentation.location = location
+
+    if not validate_version:
+        context.presentation.presenter_class = CloudifyPresenter1_3
     
     if search_paths:
         context.loading.search_paths += search_paths
     
-    if validate:
-        consumer = ConsumerChain(context, (Read, Validate, Template, Plan, ClassicPlan))
-    else:
-        consumer = ConsumerChain(context, (Read,))
-
+    consumer = ConsumerChain(context, (Read, Validate, Template, Plan, ClassicPlan))
     consumer.consume()
     context.validation.dump_issues()
     

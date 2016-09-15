@@ -16,7 +16,7 @@
 
 from aria.consumption import Consumer
 from aria.deployment import Parameter, Function
-from aria.utils import JsonAsRawEncoder, deepcopy_with_locators
+from aria.utils import JsonAsRawEncoder, deepcopy_with_locators, make_agnostic
 from collections import OrderedDict
 import json
 
@@ -35,7 +35,8 @@ class ClassicPlan(Consumer):
             return
 
         classic_plan = convert_plan(self.context)
-        setattr(self.context.deployment, 'classic_plan', classic_plan)
+        setattr(self.context.deployment, 'classic_plan_ordered', classic_plan)
+        setattr(self.context.deployment, 'classic_plan', make_agnostic(classic_plan))
     
     def dump(self):
         self.context.out.write(json.dumps(self.context.deployment.classic_plan, indent=2, cls=JsonAsRawEncoder))
@@ -270,7 +271,7 @@ def convert_relationship_type(context, relationship_type):
 def convert_policy_type(context, policy_type):
     return OrderedDict((
         ('source', policy_type.implementation),
-        ('properties', convert_properties(context, policy_type.properties))))
+        ('properties', convert_property_definitions(context, policy_type.properties))))
 
 def convert_properties(context, properties):
     return OrderedDict((
@@ -281,10 +282,17 @@ def convert_property_definitions(context, properties):
         (k, convert_property_definition(context, v)) for k, v in properties.iteritems()))
 
 def convert_property_definition(context, prop):
-    return OrderedDict((
+    r = OrderedDict((
         ('type', prop.type_name),
         ('description', prop.description),
         ('default', prop.value)))
+
+    if r['type'] is None:
+        del r['type']
+    if r['description'] is None:
+        del r['description']
+        
+    return r
 
 def convert_inputs(context, inputs):
     return OrderedDict((

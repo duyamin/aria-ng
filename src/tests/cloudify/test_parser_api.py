@@ -17,12 +17,13 @@
 import os
 from urllib import pathname2url
 
-from ruamel.yaml import safe_dump, safe_load
+from ruamel.yaml import safe_dump
 
 from aria.reading.exceptions import ReaderNotFoundError
 
 
-from dsl_parser.exceptions import (DSLParsingException)
+from dsl_parser.exceptions import (DSLParsingLogicException,
+                                   DSLParsingException)
 
 from .suite import (
     ParserTestCase,
@@ -714,10 +715,10 @@ plugins:
         self.assertEquals(2, len(result['nodes']))
 
         nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        self.assertEquals('test_node2', nodes[0]['id'])
-        self.assertEquals(1, len(nodes[0]['relationships']))
+        self.assertEquals('test_node2', nodes[1]['id'])
+        self.assertEquals(1, len(nodes[1]['relationships']))
 
-        relationship = nodes[0]['relationships'][0]
+        relationship = nodes[1]['relationships'][0]
         self.assertEquals('test_relationship', relationship['type'])
         self.assertEquals('test_node', relationship['target_id'])
         self.assertEqual(
@@ -808,7 +809,7 @@ plugins:
         self.assertEquals(2, len(result['nodes']))
 
         nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        relationship = nodes[0]['relationships'][0]
+        relationship = nodes[1]['relationships'][0]
         self.assertEquals('test_relationship', relationship['type'])
         self.assertEquals('test_node', relationship['target_id'])
         self.assertEqual(
@@ -923,7 +924,7 @@ plugins:
         self.assertEquals(2, len(result['nodes']))
 
         nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        node_relationship = nodes[0]['relationships'][0]
+        node_relationship = nodes[1]['relationships'][0]
         relationship = result['relationships']['relationship']
         parent_relationship = result['relationships']['parent_relationship']
         self.assertEquals(2, len(result['relationships']))
@@ -1088,7 +1089,7 @@ plugins:
         result = self.parse()
         self.assertEquals(2, len(result['nodes']))
         nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        node_relationship = nodes[0]['relationships'][0]
+        node_relationship = nodes[1]['relationships'][0]
         relationship = result['relationships']['relationship']
         parent_relationship = result['relationships']['parent_relationship']
         self.assertEquals(2, len(result['relationships']))
@@ -1253,7 +1254,7 @@ relationships:
         result = self.parse()
         self.assertEquals(2, len(result['nodes']))
         nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        relationship = nodes[0]['relationships'][0]  # in the original tests, this line started with `node[0]`
+        relationship = nodes[1]['relationships'][0]  # in the original tests, this line started with `node[0]`
         self.assertTrue('type_hierarchy' in relationship)
         type_hierarchy = relationship['type_hierarchy']
         self.assertEqual(1, len(type_hierarchy))
@@ -1277,7 +1278,7 @@ relationships:
         result = self.parse()
         self.assertEquals(2, len(result['nodes']))
         nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        relationship = nodes[0]['relationships'][0]
+        relationship = nodes[1]['relationships'][0]
         self.assertTrue('type_hierarchy' in relationship)
         type_hierarchy = relationship['type_hierarchy']
         self.assertEqual(2, len(type_hierarchy))
@@ -1304,7 +1305,7 @@ relationships:
         result = self.parse()
         self.assertEquals(2, len(result['nodes']))
         nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        relationship = nodes[0]['relationships'][0]
+        relationship = nodes[1]['relationships'][0]
         self.assertTrue('type_hierarchy' in relationship)
         type_hierarchy = relationship['type_hierarchy']
         self.assertEqual(3, len(type_hierarchy))
@@ -1530,7 +1531,7 @@ plugins:
     source: dummy
 """
         result = self.parse()
-        plugin = result['deployment_plugins_to_install'][0]
+        plugin = result['nodes'][0]['deployment_plugins_to_install'][0]
         self.assertEquals('test_plugin', plugin['name'])
         self.assertEquals(1, len(result['nodes'][0][
                                      'deployment_plugins_to_install']))
@@ -1580,8 +1581,8 @@ node_types:
         result = self.parse()
         self.assertEquals(2, len(result['nodes']))
         nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        self.assertEquals('test_node2', nodes[0]['host_id'])
-        self.assertFalse('host_id' in nodes[1])
+        self.assertEquals('test_node2', nodes[1]['host_id'])
+        self.assertFalse('host_id' in nodes[0])
 
     def test_multiple_instances(self):
         self.template.version_section('cloudify_dsl', '1.0')
@@ -1626,7 +1627,7 @@ plugins:
         result = self.parse()
         self.assertEquals(2, len(result['nodes']))
         nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        relationship1 = nodes[0]['relationships'][0]
+        relationship1 = nodes[1]['relationships'][0]
         rel1_source_ops = relationship1['source_operations']
 
         self.assertEqual(
@@ -2269,9 +2270,11 @@ policy_types:
 """
         result = self.parse()
         self.assertEqual(
-            {'policy_type': {
-                'source': 'the_source',
-                'properties': {}
+            {'policy_types': {
+                'policy_type': {
+                    'source': 'the_source',
+                    'properties': {}
+                }
             }},
             result['policy_types'])
 
@@ -2289,10 +2292,12 @@ policy_types:
 """
         result = self.parse()
         self.assertEqual(
-            {'policy_type': {
-                'source': 'the_source',
-                'properties': {
-                    'property': {}
+            {'policy_types': {
+                'policy_type': {
+                    'source': 'the_source',
+                    'properties': {
+                        'property': {}
+                    }
                 }
             }},
             result['policy_types'])
@@ -2312,11 +2317,13 @@ policy_types:
 """
         result = self.parse()
         self.assertEqual(
-            {'policy_type': {
-                'source': 'the_source',
-                'properties': {
-                    'property': {
-                        'description': 'property_description'
+            {'policy_types': {
+                'policy_type': {
+                    'source': 'the_source',
+                    'properties': {
+                        'property': {
+                            'description': 'property_description'
+                        }
                     }
                 }
             }},
@@ -2337,11 +2344,13 @@ policy_types:
 """
         result = self.parse()
         self.assertEqual(
-            {'policy_type': {
-                'source': 'the_source',
-                'properties': {
-                    'property': {
-                        'default': 'default_value'
+            {'policy_types': {
+                'policy_type': {
+                    'source': 'the_source',
+                    'properties': {
+                        'property': {
+                            'default': 'default_value'
+                        }
                     }
                 }
             }},
@@ -2363,7 +2372,8 @@ policy_types:
 """
         result = self.parse()
         self.assertEqual(
-            {'policy_type': {
+            {'policy_types': {
+                'policy_type': {
                     'source': 'the_source',
                     'properties': {
                         'property': {
@@ -2371,6 +2381,7 @@ policy_types:
                             'default': 'default_value'
                         }
                     }
+                }
             }},
             result['policy_types'])
 
@@ -2414,64 +2425,6 @@ groups:
             'key3': 'group_value3'
         }, policy['properties'])
 
-    def test_plugin_fields(self):
-        self.template.version_section('cloudify_dsl', '1.2')
-        self.template += """
-node_types:
-  type:
-    properties:
-      prop1:
-        default: value
-  cloudify.nodes.Compute:
-    properties:
-      prop1:
-        default: value
-node_templates:
-  node1:
-    type: type
-    interfaces:
-     interface:
-       op: plugin1.op
-  node2:
-    type: cloudify.nodes.Compute
-    interfaces:
-     interface:
-       op: plugin2.op
-"""
-        base_plugin_def = {
-            'distribution': 'dist',
-            'distribution_release': 'release',
-            'distribution_version': 'version',
-            'install': True,
-            'install_arguments': '123',
-            'package_name': 'name',
-            'package_version': 'version',
-            'source': 'source',
-            'supported_platform': 'any',
-        }
-        deployment_plugin_def = base_plugin_def.copy()
-        deployment_plugin_def['executor'] = 'central_deployment_agent'
-        host_plugin_def = base_plugin_def.copy()
-        host_plugin_def['executor'] = 'host_agent'
-        raw_parsed = safe_load(str(self.template))
-        raw_parsed['plugins'] = {
-            'plugin1': deployment_plugin_def,
-            'plugin2': host_plugin_def,
-        }
-
-        self.template.clear()
-        self.template.version_section('cloudify_dsl', '1.2')
-        self.template += safe_dump(raw_parsed)
-        parsed = self.parse()
-        expected_plugin1 = deployment_plugin_def.copy()
-        expected_plugin1['name'] = 'plugin1'
-        expected_plugin2 = host_plugin_def.copy()
-        expected_plugin2['name'] = 'plugin2'
-        plugin1 = parsed['deployment_plugins_to_install'][0]
-        node2 = get_node_by_name(parsed, 'node2')
-        plugin2 = node2['plugins_to_install'][0]
-        self.assertEqual(expected_plugin1, plugin1)
-        self.assertEqual(expected_plugin2, plugin2)
 
 
 class TestParserApiWithFileSystem(ParserTestCase, TempDirectoryTestCase, _AssertionsMixin):
@@ -3031,7 +2984,7 @@ node_types:
         result = self.parse()
         self.assertEquals(2, len(result['nodes']))
         nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        node1, node2 = nodes[1], nodes[0]
+        node1, node2 = nodes[0], nodes[1]
         self.assertEquals('test_node', node1['id'])
         self.assertEquals('test_type', node1['type'])
         self.assertEquals('val', node1['properties']['key'])
@@ -3422,38 +3375,4 @@ imports:
 
         result = self.parse()
         self.assertEqual(
-            expected_result['policy_triggers'], result['policy_triggers'])
-
-    def test_groups_imports(self):
-        groups = [
-            dict(groups={
-                'group{0}'.format(i): dict(
-                    members=['test_node'],
-                    policies=dict(
-                        policy=dict(
-                            type='policy_type',
-                            properties={},
-                            triggers={})))})
-            for i in range(2)
-            ]
-        policy_types = """
-policy_types:
-  policy_type:
-    properties: {}
-    source: source
-"""
-        template = self.template.version_section('cloudify_dsl', '1.3', raw=True)
-        self.template.node_type_section()
-        self.template.plugin_section()
-        self.template.node_template_section()
-        self.template.template = template + self.create_yaml_with_imports([
-            str(self.template),
-            policy_types,
-            safe_dump(groups[0]),
-            safe_dump(groups[1])])
-
-        expected_result = dict(groups=groups[0]['groups'])
-        expected_result['groups'].update(groups[1]['groups'])
-
-        result = self.parse()
-        self.assertEqual(result['groups'], expected_result['groups'])
+            result['policy_triggers'], expected_result['policy_triggers'])
