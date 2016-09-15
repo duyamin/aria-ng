@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from aria.deployment import Type, RelationshipType, DeploymentTemplate, NodeTemplate, RelationshipTemplate, CapabilityTemplate, GroupTemplate, PolicyTemplate, SubstitutionTemplate, MappingTemplate, Interface, Operation, Artifact, Requirement, Metadata, Parameter
+from aria.deployment import Type, RelationshipType, PolicyType, DeploymentTemplate, NodeTemplate, RelationshipTemplate, CapabilityTemplate, GroupTemplate, PolicyTemplate, SubstitutionTemplate, MappingTemplate, Interface, Operation, Artifact, Requirement, Metadata, Parameter
 from .data_types import coerce_value
 import re
 
@@ -39,7 +39,7 @@ def get_deployment_template(context, presenter):
     normalize_types(context, context.deployment.group_types, presenter.group_types)
     normalize_types(context, context.deployment.capability_types, presenter.capability_types)
     normalize_types(context, context.deployment.relationship_types, presenter.relationship_types, normalize_relationship_type)
-    normalize_types(context, context.deployment.policy_types, presenter.policy_types)
+    normalize_types(context, context.deployment.policy_types, presenter.policy_types, normalize_policy_type)
     normalize_types(context, context.deployment.artifact_types, presenter.artifact_types)
     normalize_types(context, context.deployment.interface_types, presenter.interface_types)
     
@@ -183,6 +183,9 @@ def normalize_requirement(context, requirement):
 
 def normalize_relationship_type(context, relationship_type):
     return RelationshipType(relationship_type._name)
+
+def normalize_policy_type(context, policy_type):
+    return PolicyType(policy_type._name)
 
 def normalize_relationship(context, relationship):
     relationship_type, relationship_type_variant = relationship._get_type(context)

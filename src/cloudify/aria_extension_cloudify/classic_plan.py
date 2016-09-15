@@ -57,7 +57,8 @@ def convert_plan(context):
             (k, convert_group_template(context, v)) for k, v in iter_scaling_groups(context))),
         ('policies', OrderedDict()), # TODO
         ('policy_triggers', OrderedDict()), # TODO
-        ('policy_types', OrderedDict()), # TODO
+        ('policy_types', OrderedDict(
+            (v.name, convert_policy_type(context, v)) for v in context.deployment.policy_types.iter_descendants())),
         ('workflows', OrderedDict(
             (k, convert_workflow(context, v)) for k, v in context.deployment.plan.operations.iteritems())),
         ('workflow_plugins_to_install', plugins_to_install_for_operations(context, context.deployment.plan.operations, plugins, 'central_deployment_agent')),
@@ -261,6 +262,11 @@ def convert_relationship_type(context, relationship_type):
         del r['derived_from']
     
     return r
+
+def convert_policy_type(context, policy_type):
+    return OrderedDict((
+        ('source', policy_type.implementation),
+        ('properties', convert_properties(context, policy_type.properties))))
 
 def convert_properties(context, properties):
     return OrderedDict((

@@ -70,6 +70,13 @@ class RelationshipType(Type):
         self.source_interfaces = StrictDict(key_class=basestring)
         self.target_interfaces = StrictDict(key_class=basestring)
 
+class PolicyType(Type):
+    def __init__(self, name):
+        super(PolicyType, self).__init__(name)
+
+        self.implementation = None     
+        self.properties = StrictDict(key_class=basestring)
+
 class TypeHierarchy(Type):
     def __init__(self):
         self.name = None

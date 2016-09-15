@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from aria.deployment import Type, RelationshipType, DeploymentTemplate, NodeTemplate, RelationshipTemplate, GroupTemplate, PolicyTemplate, GroupPolicy, GroupPolicyTrigger, Interface, Operation, Requirement, Parameter
+from aria.deployment import Type, RelationshipType, PolicyType, DeploymentTemplate, NodeTemplate, RelationshipTemplate, GroupTemplate, PolicyTemplate, GroupPolicy, GroupPolicyTrigger, Interface, Operation, Requirement, Parameter
 
 def get_deployment_template(context, presenter):
     r = DeploymentTemplate()
@@ -24,11 +24,8 @@ def get_deployment_template(context, presenter):
     normalize_types(context, context.deployment.node_types, presenter.node_types)
     normalize_types(context, context.deployment.group_types, presenter.group_types)
     normalize_types(context, context.deployment.relationship_types, presenter.relationship_types, normalize_relationship_type)
-    normalize_types(context, context.deployment.policy_types, presenter.policy_types)
+    normalize_types(context, context.deployment.policy_types, presenter.policy_types, normalize_policy_type)
     
-    # This policy type is built-in
-    context.deployment.policy_types.children.append(Type('cloudify.policies.scaling'))
-
     normalize_property_values(r.inputs, presenter.service_template._get_input_values(context))
     normalize_property_values(r.outputs, presenter.service_template._get_output_values(context))
 
@@ -124,6 +121,14 @@ def normalize_relationship_type(context, relationship_type):
     normalize_property_definitions(r.properties, relationship_type._get_properties(context))
     normalize_interfaces(context, r.source_interfaces, relationship_type._get_source_interfaces(context), True)
     normalize_interfaces(context, r.target_interfaces, relationship_type._get_target_interfaces(context), True)
+    
+    return r
+
+def normalize_policy_type(context, policy_type):
+    r = PolicyType(policy_type._name)
+    
+    r.implementation = policy_type.source
+    normalize_property_definitions(r.properties, policy_type._get_properties(context))
     
     return r
 
