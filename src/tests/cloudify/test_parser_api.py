@@ -715,10 +715,12 @@ plugins:
         self.assertEquals(2, len(result['nodes']))
 
         nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        self.assertEquals('test_node2', nodes[1]['id'])
-        self.assertEquals(1, len(nodes[1]['relationships']))
+        test_node = get_node_by_name(result, 'test_node')
+        test_node2 = get_node_by_name(result, 'test_node2')
+        self.assertEquals('test_node2', test_node2['id'])
+        self.assertEquals(1, len(test_node2['relationships']))
 
-        relationship = nodes[1]['relationships'][0]
+        relationship = test_node2['relationships'][0]
         self.assertEquals('test_relationship', relationship['type'])
         self.assertEquals('test_node', relationship['target_id'])
         self.assertEqual(
@@ -739,7 +741,7 @@ plugins:
         self.assertEqual(2, len(relationship_source_operations))
         self.assertEquals(8, len(relationship))
 
-        plugin_def = nodes[0]['plugins'][0]
+        plugin_def = test_node['plugins'][0]
         self.assertEquals('test_plugin', plugin_def['name'])
 
     def test_instance_relationships_duplicate_relationship(self):
@@ -807,9 +809,7 @@ plugins:
 """
         result = self.parse()
         self.assertEquals(2, len(result['nodes']))
-
-        nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        relationship = nodes[1]['relationships'][0]
+        relationship = get_node_by_name(result, 'test_node2')['relationships'][0]
         self.assertEquals('test_relationship', relationship['type'])
         self.assertEquals('test_node', relationship['target_id'])
         self.assertEqual(
@@ -924,7 +924,8 @@ plugins:
         self.assertEquals(2, len(result['nodes']))
 
         nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        node_relationship = nodes[1]['relationships'][0]
+        test_node2 = get_node_by_name(result, 'test_node2')
+        node_relationship = test_node2['relationships'][0]
         relationship = result['relationships']['relationship']
         parent_relationship = result['relationships']['parent_relationship']
         self.assertEquals(2, len(result['relationships']))
@@ -1088,8 +1089,8 @@ plugins:
 """
         result = self.parse()
         self.assertEquals(2, len(result['nodes']))
-        nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        node_relationship = nodes[1]['relationships'][0]
+        test_node2 = get_node_by_name(result, 'test_node2')
+        node_relationship = test_node2['relationships'][0]
         relationship = result['relationships']['relationship']
         parent_relationship = result['relationships']['parent_relationship']
         self.assertEquals(2, len(result['relationships']))
@@ -1253,8 +1254,8 @@ relationships:
 """
         result = self.parse()
         self.assertEquals(2, len(result['nodes']))
-        nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        relationship = nodes[1]['relationships'][0]  # in the original tests, this line started with `node[0]`
+        test_node2 = get_node_by_name(result, 'test_node2')
+        relationship = test_node2['relationships'][0]  # in the original tests, this line started with `node[0]`
         self.assertTrue('type_hierarchy' in relationship)
         type_hierarchy = relationship['type_hierarchy']
         self.assertEqual(1, len(type_hierarchy))
@@ -1277,8 +1278,8 @@ relationships:
 """
         result = self.parse()
         self.assertEquals(2, len(result['nodes']))
-        nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        relationship = nodes[1]['relationships'][0]
+        test_node2 = get_node_by_name(result, 'test_node2')
+        relationship = test_node2['relationships'][0]
         self.assertTrue('type_hierarchy' in relationship)
         type_hierarchy = relationship['type_hierarchy']
         self.assertEqual(2, len(type_hierarchy))
@@ -1304,8 +1305,8 @@ relationships:
 """
         result = self.parse()
         self.assertEquals(2, len(result['nodes']))
-        nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        relationship = nodes[1]['relationships'][0]
+        test_node2 = get_node_by_name(result, 'test_node2')
+        relationship = test_node2['relationships'][0]
         self.assertTrue('type_hierarchy' in relationship)
         type_hierarchy = relationship['type_hierarchy']
         self.assertEqual(3, len(type_hierarchy))
@@ -1580,9 +1581,10 @@ node_types:
 """
         result = self.parse()
         self.assertEquals(2, len(result['nodes']))
-        nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        self.assertEquals('test_node2', nodes[1]['host_id'])
-        self.assertFalse('host_id' in nodes[0])
+        test_node = get_node_by_name(result, 'test_node')
+        test_node2 = get_node_by_name(result, 'test_node2')
+        self.assertEquals('test_node2', test_node2['host_id'])
+        self.assertFalse('host_id' in test_node)
 
     def test_multiple_instances(self):
         self.template.version_section('cloudify_dsl', '1.0')
@@ -1627,7 +1629,8 @@ plugins:
         result = self.parse()
         self.assertEquals(2, len(result['nodes']))
         nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        relationship1 = nodes[1]['relationships'][0]
+        test_node2 = get_node_by_name(result, 'test_node2')
+        relationship1 = test_node2['relationships'][0]
         rel1_source_ops = relationship1['source_operations']
 
         self.assertEqual(
@@ -2270,12 +2273,11 @@ policy_types:
 """
         result = self.parse()
         self.assertEqual(
-            {'policy_types': {
-                'policy_type': {
-                    'source': 'the_source',
-                    'properties': {}
+            {'policy_type': {
+                'source': 'the_source',
+                'properties': {}
                 }
-            }},
+             },
             result['policy_types'])
 
     def test_policy_type_properties_empty_property(self):
@@ -2292,12 +2294,10 @@ policy_types:
 """
         result = self.parse()
         self.assertEqual(
-            {'policy_types': {
-                'policy_type': {
-                    'source': 'the_source',
-                    'properties': {
-                        'property': {}
-                    }
+            {'policy_type': {
+                'source': 'the_source',
+                'properties': {
+                    'property': {}
                 }
             }},
             result['policy_types'])
@@ -2317,13 +2317,11 @@ policy_types:
 """
         result = self.parse()
         self.assertEqual(
-            {'policy_types': {
-                'policy_type': {
-                    'source': 'the_source',
-                    'properties': {
-                        'property': {
-                            'description': 'property_description'
-                        }
+            {'policy_type': {
+                'source': 'the_source',
+                'properties': {
+                    'property': {
+                        'description': 'property_description'
                     }
                 }
             }},
@@ -2344,13 +2342,11 @@ policy_types:
 """
         result = self.parse()
         self.assertEqual(
-            {'policy_types': {
-                'policy_type': {
-                    'source': 'the_source',
-                    'properties': {
-                        'property': {
-                            'default': 'default_value'
-                        }
+            {'policy_type': {
+                'source': 'the_source',
+                'properties': {
+                    'property': {
+                        'default': 'default_value'
                     }
                 }
             }},
@@ -2372,14 +2368,12 @@ policy_types:
 """
         result = self.parse()
         self.assertEqual(
-            {'policy_types': {
-                'policy_type': {
-                    'source': 'the_source',
-                    'properties': {
-                        'property': {
-                            'description': 'property_description',
-                            'default': 'default_value'
-                        }
+            {'policy_type': {
+                'source': 'the_source',
+                'properties': {
+                    'property': {
+                        'description': 'property_description',
+                        'default': 'default_value'
                     }
                 }
             }},
@@ -2983,13 +2977,13 @@ node_types:
 """
         result = self.parse()
         self.assertEquals(2, len(result['nodes']))
-        nodes = get_nodes_by_names(result, ['test_node', 'test_node2'])
-        node1, node2 = nodes[0], nodes[1]
-        self.assertEquals('test_node', node1['id'])
-        self.assertEquals('test_type', node1['type'])
-        self.assertEquals('val', node1['properties']['key'])
-        self.assertEquals('test_node2', node2['id'])
-        self.assertEquals('test_type2', node2['type'])
+        test_node = get_node_by_name(result, 'test_node')
+        test_node2 = get_node_by_name(result, 'test_node2')
+        self.assertEquals('test_node', test_node['id'])
+        self.assertEquals('test_type', test_node['type'])
+        self.assertEquals('val', test_node['properties']['key'])
+        self.assertEquals('test_node2', test_node2['id'])
+        self.assertEquals('test_type2', test_node2['type'])
 
     def test_merge_plugins_and_interfaces_imports(self):
         template = self.template.version_section('cloudify_dsl', '1.3', raw=True)
