@@ -14,9 +14,19 @@
 # under the License.
 #
 
-from .collections import deepcopy_with_locators
+from .collections import deepcopy_with_locators, ReadOnlyList, ReadOnlyDict, StrictList, StrictDict
 import json
+from collections import OrderedDict
 from ruamel import yaml # @UnresolvedImport
+
+# Add our types to ruamel.yaml (for round trips)
+yaml.representer.RoundTripRepresenter.add_representer(ReadOnlyList, yaml.representer.RoundTripRepresenter.represent_list)
+yaml.representer.RoundTripRepresenter.add_representer(ReadOnlyDict, yaml.representer.RoundTripRepresenter.represent_dict)
+yaml.representer.RoundTripRepresenter.add_representer(StrictList, yaml.representer.RoundTripRepresenter.represent_list)
+yaml.representer.RoundTripRepresenter.add_representer(StrictDict, yaml.representer.RoundTripRepresenter.represent_dict)
+
+# Without this, ruamel.yaml will output "!!omap" types, which is technically correct but unnecessarily verbose for our uses 
+yaml.representer.RoundTripRepresenter.add_representer(OrderedDict, yaml.representer.RoundTripRepresenter.represent_dict)
 
 class JsonAsRawEncoder(json.JSONEncoder):
     """
@@ -115,5 +125,4 @@ def yaml_dumps(value, indent):
     if available. 
     """
     
-    value = as_agnostic(value)
     return yaml.dump(value, indent=indent, allow_unicode=True, Dumper=YamlAsRawDumper)
