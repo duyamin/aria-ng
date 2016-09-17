@@ -57,7 +57,7 @@ def coerce_data_type_value(context, presentation, data_type, value, aspect):
         
         value = r
     else:
-        context.validation.report('value of type "%s" is not a dict in "%s"' % (data_type._fullname, presentation._fullname), locator=value._locator, level=Issue.BETWEEN_TYPES)
+        context.validation.report('value of type "%s" is not a dict in "%s"' % (data_type._fullname, presentation._fullname), locator=value._locator if hasattr(value, '_locator') else presentation._locator, level=Issue.BETWEEN_TYPES)
         value = None
     
     return value
@@ -161,6 +161,9 @@ def coerce_to_primitive(context, presentation, primitive_type, value, aspect=Non
     """
     Returns the value after it's coerced to a primitive type, translating exceptions to validation errors if it cannot be coerced.
     """
+    
+    if value is None:
+        return None
 
     try:
         # Coerce

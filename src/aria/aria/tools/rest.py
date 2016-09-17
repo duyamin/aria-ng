@@ -16,10 +16,9 @@
 
 from .. import install_aria_extensions
 from ..consumption import ConsumerChain, Read, Validate, Template, Inputs, Plan
-from ..utils import JsonAsRawEncoder, print_exception
+from ..utils import JsonAsRawEncoder, print_exception, RestServer
 from ..loading import LiteralLocation
 from .utils import CommonArgumentParser, create_context_from_namespace
-from rest_server import Config, start_server
 from collections import OrderedDict
 from urlparse import urlparse, parse_qs
 import urllib
@@ -31,7 +30,9 @@ VALIDATE_PATH = '%s/validate' % PATH_PREFIX
 PLAN_PATH = '%s/plan' % PATH_PREFIX
 INDIRECT_PLAN_PATH = '%s/indirect/plan' % PATH_PREFIX
 
+#
 # Utils
+#
 
 def parse_path(handler):
     parsed = urlparse(urllib.unquote(handler.path))
@@ -39,27 +40,21 @@ def parse_path(handler):
     return parsed.path, query
 
 def parse_indirect_payload(handler):
-    def error(message):
-        handler.send_response(400)
-        handler.end_headers()
-        handler.wfile.write('%s\n' % message)
-        handler.handled = True
-
     try:
-        payload = handler.get_json_payload()
+        payload = handler.json_payload
     except:
-        error('Payload is not JSON')
+        handler.send_plain_text_response(400, 'Payload is not JSON\n')
         return None, None
     
     for key in payload.iterkeys():
         if key not in ('uri', 'inputs'):
-            error('Payload has unsupported field: %s' % key)
+            handler.send_plain_text_response(400, 'Payload has unsupported field: %s\n' % key)
             return None, None
     
     try:
         uri = payload['uri']
     except:
-        error('Payload does not have required "uri" field')
+        handler.send_plain_text_response(400, 'Payload does not have required "uri" field\n')
         return None, None
     
     inputs = payload.get('inputs')
@@ -85,7 +80,9 @@ def plan(uri, inputs):
 def issues(context):
     return {'issues': [i.as_raw for i in context.validation.issues]}
 
+#
 # Handlers
+#
 
 def validate_get(handler):
     path, _ = parse_path(handler)
@@ -94,7 +91,7 @@ def validate_get(handler):
     return issues(context) if context.validation.has_issues else {}
 
 def validate_post(handler):
-    payload = handler.get_payload()
+    payload = handler.payload
     context = validate(LiteralLocation(payload))
     return issues(context) if context.validation.has_issues else {}
 
@@ -119,7 +116,7 @@ def plan_post(handler):
     inputs = query.get('inputs')
     if inputs:
         inputs = inputs[0]
-    payload = handler.get_payload()
+    payload = handler.payload
     context = plan(LiteralLocation(payload), inputs)
     return issues(context) if context.validation.has_issues else context.deployment.plan_as_raw
 
@@ -129,6 +126,10 @@ def indirect_plan_post(handler):
         return None
     context = plan(uri, inputs)
     return issues(context) if context.validation.has_issues else context.deployment.plan_as_raw
+
+#
+# Server
+#
 
 ROUTES = OrderedDict((
     ('^/$', {'file': 'index.html', 'media_type': 'text/html'}),
@@ -150,13 +151,13 @@ def main():
         global args
         args, _ = ArgumentParser().parse_known_args()
             
-        config = Config()
-        config.port = args.port
-        config.routes = ROUTES
-        config.static_root = args.root
-        config.json_encoder = JsonAsRawEncoder(ensure_ascii=False, separators=(',',':'))
+        rest_server = RestServer()
+        rest_server.port = args.port
+        rest_server.routes = ROUTES
+        rest_server.static_root = args.root
+        rest_server.json_encoder = JsonAsRawEncoder(ensure_ascii=False, separators=(',', ':'))
         
-        start_server(config)
+        rest_server.start()
 
     except Exception as e:
         print_exception(e)

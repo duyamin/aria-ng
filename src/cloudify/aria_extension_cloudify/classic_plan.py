@@ -16,7 +16,8 @@
 
 from aria.consumption import Consumer
 from aria.deployment import Parameter, Function
-from aria.utils import JsonAsRawEncoder, deepcopy_with_locators, make_agnostic
+from aria.presentation import NULL
+from aria.utils import JsonAsRawEncoder, as_raw, as_agnostic
 from collections import OrderedDict
 import json
 
@@ -36,7 +37,7 @@ class ClassicPlan(Consumer):
 
         classic_plan = convert_plan(self.context)
         setattr(self.context.deployment, 'classic_plan_ordered', classic_plan)
-        setattr(self.context.deployment, 'classic_plan', make_agnostic(classic_plan))
+        setattr(self.context.deployment, 'classic_plan', as_agnostic(classic_plan))
     
     def dump(self):
         self.context.out.write(json.dumps(self.context.deployment.classic_plan, indent=2, cls=JsonAsRawEncoder))
@@ -259,7 +260,7 @@ def convert_relationship_type(context, relationship_type):
         ('name', relationship_type.name),
         ('derived_from', get_type_parent_name(relationship_type, context.deployment.relationship_types)),
         ('type_hierarchy', convert_type_hierarchy(context, relationship_type, context.deployment.relationship_types)),
-        ('properties', convert_property_definitions(context, relationship_type.properties)),
+        ('properties', convert_parameters(context, relationship_type.properties)),
         ('source_interfaces', convert_interfaces(context, relationship_type.source_interfaces)),
         ('target_interfaces', convert_interfaces(context, relationship_type.target_interfaces))))
     
@@ -271,28 +272,11 @@ def convert_relationship_type(context, relationship_type):
 def convert_policy_type(context, policy_type):
     return OrderedDict((
         ('source', policy_type.implementation),
-        ('properties', convert_property_definitions(context, policy_type.properties))))
+        ('properties', convert_parameters(context, policy_type.properties))))
 
 def convert_properties(context, properties):
     return OrderedDict((
         (k, as_raw(v.value)) for k, v in properties.iteritems()))
-
-def convert_property_definitions(context, properties):
-    return OrderedDict((
-        (k, convert_property_definition(context, v)) for k, v in properties.iteritems()))
-
-def convert_property_definition(context, prop):
-    r = OrderedDict((
-        ('type', prop.type_name),
-        ('description', prop.description),
-        ('default', prop.value)))
-
-    if r['type'] is None:
-        del r['type']
-    if r['description'] is None:
-        del r['description']
-        
-    return r
 
 def convert_inputs(context, inputs):
     return OrderedDict((
@@ -300,13 +284,14 @@ def convert_inputs(context, inputs):
 
 def convert_parameters(context, parameters):
     return OrderedDict((
-        (key, convert_parameter(context, value)) for key, value in parameters.iteritems()))
+        (k, convert_parameter(context, v)) for k, v in parameters.iteritems()))
 
 def convert_parameter(context, parameter):
-    return OrderedDict((
-        ('type', parameter.type_name),
-        ('default', as_raw(parameter.value)),
-        ('description', parameter.description)))
+    r = OrderedDict()
+    put_raw_if_not_null(r, 'type', parameter.type_name)
+    put_raw_if_not_null(r, 'default', parameter.value)
+    put_raw_if_not_null(r, 'description', parameter.description)
+    return r
 
 def convert_type_hierarchy(context, the_type, hierarchy):
     type_hierarchy = []
@@ -318,19 +303,6 @@ def convert_type_hierarchy(context, the_type, hierarchy):
 #
 # Utils
 #
-
-def as_raw(value):
-    if hasattr(value, 'as_raw'):
-        value = value.as_raw
-    elif isinstance(value, list):
-        value = deepcopy_with_locators(value)
-        for i in range(len(value)):
-            value[i] = as_raw(value[i])
-    elif isinstance(value, dict):
-        value = deepcopy_with_locators(value)
-        for k, v in value.iteritems():
-            value[k] = as_raw(v)
-    return value
 
 def parse_implementation(context, implementation):
     if (not implementation) or ('/' in implementation):
@@ -420,3 +392,9 @@ def iter_scaling_groups(context):
             for group_template_name in policy_template.target_group_template_names:
                 group_template = context.deployment.template.group_templates[group_template_name]
                 yield group_template_name, group_template
+
+def put_raw_if_not_null(r, key, value):
+    if value is NULL:
+        r[key] = None
+    elif value is not None:
+        r[key] = as_raw(value)

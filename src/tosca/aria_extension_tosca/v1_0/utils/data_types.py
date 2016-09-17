@@ -343,6 +343,9 @@ def coerce_to_primitive(context, presentation, primitive_type, constraints, valu
     Returns the value after it's coerced to a primitive type, translating exceptions to validation errors if it cannot be coerced.
     """
     
+    if value is None:
+        return None
+
     try:
         # Coerce
         value = primitive_type(value)

@@ -14,8 +14,9 @@
 # under the License.
 #
 
-from ..utils import HasCachedMethods, classname, deepcopy_with_locators, puts
+from .null import as_null
 from .utils import validate_no_short_form, validate_no_unknown_fields, validate_known_fields
+from ..utils import HasCachedMethods, classname, deepcopy_with_locators, puts
 
 class Value(object):
     def __init__(self, the_type, value):
@@ -175,16 +176,18 @@ class AsIsPresentation(PresentationBase):
     Base class for trivial ARIA presentations that provide the raw value as is.
     """
     
+    # TODO: support type coersion
+    
     @property
     def value(self):
-        return self._raw
+        return as_null(self._raw)
     
     @value.setter
     def value(self, value):
         self._raw = value
 
-class FakePresentation(PresentationBase):
-    """
-    Instances of this class are useful as placeholders when a presentation is required
-    but unavailable. 
-    """
+    def _dump(self, context):
+        if hasattr(self._raw, '_dump'):
+            self._raw._dump(context)
+        else:
+            super(AsIsPresentation, self)._dump(context)

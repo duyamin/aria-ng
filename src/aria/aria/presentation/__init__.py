@@ -17,8 +17,9 @@
 from .exceptions import PresenterError, PresenterNotFoundError
 from .context import PresentationContext
 from .presenter import Presenter
-from .presentation import Value, PresentationBase, Presentation, AsIsPresentation, FakePresentation
+from .presentation import Value, PresentationBase, Presentation, AsIsPresentation
 from .source import PRESENTER_CLASSES, PresenterSource, DefaultPresenterSource
+from .null import NULL
 from .fields import Field, has_fields, short_form_field, allow_unknown_fields, primitive_field, primitive_list_field, primitive_dict_field, primitive_dict_unknown_fields, object_field, object_list_field, object_dict_field, object_sequenced_list_field, object_dict_unknown_fields, field_getter, field_setter, field_validator
 from .field_validators import type_validator, list_type_validator, list_length_validator, derived_from_validator
 from .utils import validate_no_short_form, validate_no_unknown_fields, validate_known_fields, report_issue_for_unknown_type, report_issue_for_parent_is_self, report_issue_for_circular_type_hierarchy
@@ -32,10 +33,10 @@ __all__ = (
     'PresentationBase',
     'Presentation',
     'AsIsPresentation',
-    'FakePresentation',
     'PresenterSource',
     'PRESENTER_CLASSES',
     'DefaultPresenterSource',
+    'NULL',
     'Field',
     'has_fields',
     'short_form_field',

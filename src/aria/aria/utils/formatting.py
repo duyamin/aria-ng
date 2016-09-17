@@ -14,6 +14,7 @@
 # under the License.
 #
 
+from .collections import deepcopy_with_locators
 import json
 from ruamel import yaml # @UnresolvedImport
 
@@ -56,32 +57,47 @@ def safe_str(s):
     encoded, and will never return None.
     """
     
-    if s is None:
-        return ''
     try:
         return str(s)
     except UnicodeEncodeError:
         s = unicode(s)
         return s.encode('utf8')
 
-def make_agnostic(value):
+def as_raw(value):
+    """
+    Converts values using their :code:`as_raw` property, if it exists, recursively.
+    """
+    
+    if hasattr(value, 'as_raw'):
+        value = value.as_raw
+    elif isinstance(value, list):
+        value = deepcopy_with_locators(value)
+        for i in range(len(value)):
+            value[i] = as_raw(value[i])
+    elif isinstance(value, dict):
+        value = deepcopy_with_locators(value)
+        for k, v in value.iteritems():
+            value[k] = as_raw(v)
+    return value
+
+def as_agnostic(value):
     """
     Converts subclasses of list and dict to standard lists and dicts, recursively.
     
     Useful for creating human-readable output of structures.
     """
 
-    if isinstance(value, list) and (type(value) != list):
+    if isinstance(value, list):
         value = list(value)
-    elif isinstance(value, dict) and (type(value) != dict):
+    elif isinstance(value, dict):
         value = dict(value)
         
     if isinstance(value, list):
         for i in range(len(value)):
-            value[i] = make_agnostic(value[i])
+            value[i] = as_agnostic(value[i])
     elif isinstance(value, dict):
         for k, v in value.iteritems():
-            value[k] = make_agnostic(v)
+            value[k] = as_agnostic(v)
             
     return value
 
@@ -99,5 +115,5 @@ def yaml_dumps(value, indent):
     if available. 
     """
     
-    value = make_agnostic(value)
+    value = as_agnostic(value)
     return yaml.dump(value, indent=indent, allow_unicode=True, Dumper=YamlAsRawDumper)

@@ -17,7 +17,7 @@
 from .utils import validate_dict_values, instantiate_dict, coerce_value, coerce_dict_values, dump_dict_values, dump_properties
 from .. import UnimplementedFunctionalityError
 from ..validation import Issue
-from ..utils import StrictList, StrictDict, make_agnostic, classname, deepcopy_with_locators, puts
+from ..utils import StrictList, StrictDict, as_agnostic, classname, deepcopy_with_locators, puts
 from collections import OrderedDict
 
 class Function(object):
@@ -291,7 +291,7 @@ class Artifact(TemplateElement):
             ('source_path', self.source_path),
             ('target_path', self.target_path),
             ('repository_url', self.repository_url),
-            ('repository_credential', make_agnostic(self.repository_credential)),
+            ('repository_credential', as_agnostic(self.repository_credential)),
             ('properties', {k: v.as_raw for k, v in self.properties.iteritems()})))
 
     def instantiate(self, context, container):

@@ -78,7 +78,9 @@ def get_function(value):
             return FUNCTIONS[key](value[key])
     return None
 
+#
 # Utils
+#
 
 def get_node(classic_context, modelable_entity_name, function_name):
     node = None

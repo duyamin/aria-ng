@@ -16,13 +16,15 @@
 
 from .openclose import OpenClose
 from .caching import  cachedmethod, HasCachedMethods
-from .formatting import JsonAsRawEncoder, YamlAsRawDumper, classname, make_agnostic, json_dumps, yaml_dumps
+from .formatting import JsonAsRawEncoder, YamlAsRawDumper, classname, as_raw, as_agnostic, json_dumps, yaml_dumps
 from .collections import ReadOnlyList, EMPTY_READ_ONLY_LIST, ReadOnlyDict, EMPTY_READ_ONLY_DICT, StrictList, StrictDict, merge, prune, deepcopy_with_locators, copy_locators
 from .exceptions import print_exception, print_traceback
 from .imports import import_fullname, import_modules
 from .threading import ExecutorException, FixedThreadPoolExecutor, LockedList
 from .argparse import ArgumentParser
 from .console import puts, colored, indent
+from .rest_server import RestServer, RestRequestHandler
+from .rest_client import call_rest
 
 __all__ = (
     'OpenClose',
@@ -31,7 +33,8 @@ __all__ = (
     'JsonAsRawEncoder',
     'YamlAsRawDumper',
     'classname',
-    'make_agnostic',
+    'as_raw',
+    'as_agnostic',
     'json_dumps',
     'yaml_dumps',
     'ReadOnlyList',
@@ -54,4 +57,7 @@ __all__ = (
     'ArgumentParser',
     'puts',
     'colored',
-    'indent')
+    'indent',
+    'RestServer',
+    'RestRequestHandler',
+    'call_rest')

@@ -15,7 +15,7 @@
 #
 
 from .writer import Writer, one_line
-from aria.utils import make_agnostic
+from aria.utils import as_agnostic
 
 class CodeProperty(object):
     def __init__(self, generator, name, description=None, type_name=None, default=None):
@@ -37,7 +37,7 @@ class CodeProperty(object):
     @property
     def signature(self):
         with Writer() as w:
-            w.put('%s=%s' % (self.name, repr(make_agnostic(self.default))))
+            w.put('%s=%s' % (self.name, repr(as_agnostic(self.default))))
             #if self.default is not None:
-            #    w.put('=%s' % repr(make_agnostic(self.default)))
+            #    w.put('=%s' % repr(as_agnostic(self.default)))
             return str(w)

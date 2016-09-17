@@ -64,16 +64,24 @@ def coerce_value(context, container, value, report_issues=False):
     return value
 
 def validate_dict_values(context, the_dict):
+    if not the_dict:
+        return
     validate_list_values(context, the_dict.itervalues())
 
 def validate_list_values(context, the_list):
+    if not the_list:
+        return
     for value in the_list:
         value.validate(context)
 
 def coerce_dict_values(context, container, the_dict, report_issues=False):
+    if not the_dict:
+        return
     coerce_list_values(context, container, the_dict.itervalues(), report_issues)
 
 def coerce_list_values(context, container, the_list, report_issues=False):
+    if not the_list:
+        return
     for value in the_list:
         value.coerce_values(context, container, report_issues)
 

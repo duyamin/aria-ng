@@ -20,7 +20,10 @@ from aria.utils import puts
 
 class Description(AsIsPresentation):
     def _dump(self, context):
-        puts(context.style.meta(self.value))
+        value = self.value
+        if hasattr(value, 'as_raw'):
+            value = value.as_raw 
+        puts(context.style.meta(value))
 
 @has_fields
 @dsl_specification('outputs', 'cloudify-1.0')

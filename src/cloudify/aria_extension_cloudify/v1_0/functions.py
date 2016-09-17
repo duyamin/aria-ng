@@ -17,7 +17,6 @@
 from aria import InvalidValueError, dsl_specification
 from aria.validation import Issue
 from aria.deployment import Function, CannotEvaluateFunction
-from aria.presentation import FakePresentation
 
 @dsl_specification('intrinsic-functions-2', 'cloudify-1.0')
 @dsl_specification('intrinsic-functions-2', 'cloudify-1.1')
@@ -168,8 +167,6 @@ def parse_self(presentation):
         return presentation, 'node_template'
     elif isinstance(presentation, RelationshipTemplate) or isinstance(presentation, RelationshipType):
         return presentation, 'relationship_template'
-    elif isinstance(presentation, FakePresentation):
-        return presentation, 'fake'
     else:
         return parse_self(presentation._container)
 

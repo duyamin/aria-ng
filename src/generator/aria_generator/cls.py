@@ -15,7 +15,7 @@
 #
 
 from .writer import Writer
-from aria.utils import make_agnostic
+from aria.utils import as_agnostic
 from collections import OrderedDict
 
 class CodeClass(object):
@@ -62,7 +62,7 @@ class CodeClass(object):
             for n, p in self.properties.iteritems():
                 w.write()
                 if p.default is not None:
-                    w.write('@property_default(%s)' % repr(make_agnostic(p.default)))
+                    w.write('@property_default(%s)' % repr(as_agnostic(p.default)))
                 if p.type:
                     w.write('@property_type(%s)' % self.generator.get_classname(p.type))
                 w.write('@validated_property')

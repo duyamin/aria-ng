@@ -15,7 +15,7 @@
 #
 
 from aria import VERSION
-from aria.utils import make_agnostic
+from aria.utils import as_agnostic
 from cStringIO import StringIO
 import datetime, re
 
@@ -37,7 +37,7 @@ def unquote_tokens(v):
     return re.sub(r'(\'\$\$|\$\$\')', '', v)
 
 def repr_assignment(a):
-    return unquote_tokens(repr(translate_assignment(make_agnostic(a))))
+    return unquote_tokens(repr(translate_assignment(as_agnostic(a))))
 
 def create_header():
     with Writer() as w:

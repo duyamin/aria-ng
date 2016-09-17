@@ -29,7 +29,10 @@ class Description(AsIsPresentation):
     """
 
     def _dump(self, context):
-        puts(context.style.meta(self.value))
+        value = self.value
+        if hasattr(value, 'as_raw'):
+            value = value.as_raw 
+        puts(context.style.meta(value))
 
 @allow_unknown_fields
 @has_fields
