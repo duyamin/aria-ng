@@ -40,7 +40,7 @@ class ClassicPlan(Consumer):
         setattr(self.context.deployment, 'classic_plan', as_agnostic(classic_plan))
     
     def dump(self):
-        self.context.out.write(json.dumps(self.context.deployment.classic_plan, indent=2, cls=JsonAsRawEncoder))
+        self.context.write(json.dumps(self.context.deployment.classic_plan, indent=2, cls=JsonAsRawEncoder))
 
 #
 # Conversions

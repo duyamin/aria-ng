@@ -45,6 +45,12 @@ class ConsumptionContext(object):
         self.reading = ReadingContext()
         self.presentation = PresentationContext()
         self.deployment = DeploymentContext()
+    
+    def write(self, s):
+        try:
+            self.out.write(s)
+        except UnicodeEncodeError:
+            self.out.write(s.encode('utf8'))
 
     def has_arg_switch(self, name):
         name = '--%s' % name

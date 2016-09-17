@@ -75,10 +75,10 @@ class Plan(ConsumerChain):
         elif self.context.has_arg_switch('yaml'):
             indent = self.context.get_arg_value_int('indent', 2)
             raw = self.context.deployment.plan_as_raw
-            self.context.out.write(yaml_dumps(raw, indent=indent))
+            self.context.write(yaml_dumps(raw, indent=indent))
         elif self.context.has_arg_switch('json'):
             indent = self.context.get_arg_value_int('indent', 2)
             raw = self.context.deployment.plan_as_raw
-            self.context.out.write(json_dumps(raw, indent=indent))
+            self.context.write(json_dumps(raw, indent=indent))
         else:
             self.context.deployment.plan.dump(self.context)

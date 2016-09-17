@@ -72,11 +72,11 @@ class Read(Consumer):
         if self.context.has_arg_switch('yaml'):
             indent = self.context.get_arg_value_int('indent', 2)
             raw = self.context.presentation.presenter._raw
-            self.context.out.write(yaml_dumps(raw, indent=indent))
+            self.context.write(yaml_dumps(raw, indent=indent))
         elif self.context.has_arg_switch('json'):
             indent = self.context.get_arg_value_int('indent', 2)
             raw = self.context.presentation.presenter._raw
-            self.context.out.write(json_dumps(raw, indent=indent))
+            self.context.write(json_dumps(raw, indent=indent))
         else:
             self.context.presentation.presenter._dump(self.context)
 
