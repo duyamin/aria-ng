@@ -1674,7 +1674,14 @@ workflows:
         workflows = result['workflows']
         self.assertEqual(1, len(workflows))
         self.assertEqual(
-            {'plugin': 'test_plugin', 'operation': 'workflow1', 'parameters': {}},
+            {'plugin': 'test_plugin',
+             'operation': 'workflow1',
+             'executor': None,
+             'parameters': {},
+             'has_intrinsic_functions': False,
+             'max_retries': None,
+             'retry_interval': None,
+             },
             workflows['workflow1'])
         workflow_plugins_to_install = result['workflow_plugins_to_install']
         self.assertEqual(1, len(workflow_plugins_to_install))
@@ -1714,7 +1721,14 @@ workflows:
             }
         }
         self.assertEqual(
-            {'plugin': 'test_plugin', 'operation': 'workflow1', 'parameters': parameters},
+            {'plugin': 'test_plugin',
+             'operation': 'workflow1',
+             'executor': None,
+             'parameters': parameters,
+             'has_intrinsic_functions': False,
+             'max_retries': None,
+             'retry_interval': None,
+             },
             workflows['workflow1'])
         workflow_plugins_to_install = result['workflow_plugins_to_install']
         self.assertEqual(1, len(workflow_plugins_to_install))
@@ -2050,8 +2064,8 @@ node_types:
             self.template.node_type_section()
             self.template.node_template_section()
             version = self.parse()['version']
-            self.assertEqual(version.definitions_name, 'cloudify_dsl')
-            self.assertEqual(version.definitions_version.number, expected)
+            self.assertEqual(version['definitions_name'], 'cloudify_dsl')
+            self.assertEqual(version['definitions_version']['number'], expected)
 
         self.template.version_section('cloudify_dsl', '1.0')
         assertion(expected=(1, 0))
@@ -2239,6 +2253,7 @@ dsl_definitions:
   definition: value
 plugins:
   plugin:
+    executor: central_deployment_agent
     install: false
     install_arguments: --arg
 node_types:
@@ -3132,10 +3147,24 @@ workflows:
         workflows = result['workflows']
         self.assertEqual(2, len(workflows))
         self.assertEqual(
-            {'plugin': 'test_plugin', 'operation': 'workflow1', 'parameters': {}},
+            {'plugin': 'test_plugin',
+             'operation': 'workflow1',
+             'executor': None,
+             'parameters': {},
+             'has_intrinsic_functions': False,
+             'max_retries': None,
+             'retry_interval': None
+             },
             workflows['workflow1'])
         self.assertEqual(
-            {'plugin': 'test_plugin2', 'operation': 'workflow2', 'parameters': {}},
+            {'plugin': 'test_plugin2',
+             'operation': 'workflow2',
+             'executor': None,
+             'parameters': {},
+             'has_intrinsic_functions': False,
+             'max_retries': None,
+             'retry_interval': None
+             },
             workflows['workflow2'])
         workflow_plugins_to_install = result['workflow_plugins_to_install']
         self.assertEqual(2, len(workflow_plugins_to_install))
@@ -3369,4 +3398,4 @@ imports:
 
         result = self.parse()
         self.assertEqual(
-            result['policy_triggers'], expected_result['policy_triggers'])
+            expected_result['policy_triggers'], result['policy_triggers'])
