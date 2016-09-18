@@ -30,15 +30,36 @@ class Null(object):
  
 NULL = Null()
 
-def as_null(value):
+def none_to_null(value):
+    """
+    Convert :code:`None` to :code:`NULL`, recursively.
+    """
+    
     if value is None:
         return NULL
     if isinstance(value, list):
         value = deepcopy_with_locators(value)
         for i in range(len(value)):
-            value[i] = as_null(value[i])
+            value[i] = none_to_null(value[i])
     elif isinstance(value, dict):
         value = deepcopy_with_locators(value)
         for k, v in value.iteritems():
-            value[k] = as_null(v)
+            value[k] = none_to_null(v)
+    return value
+
+def null_to_none(value):
+    """
+    Convert :code:`NULL` to :code:`None`, recursively.
+    """
+    
+    if value is NULL:
+        return None
+    if isinstance(value, list):
+        value = deepcopy_with_locators(value)
+        for i in range(len(value)):
+            value[i] = none_to_null(value[i])
+    elif isinstance(value, dict):
+        value = deepcopy_with_locators(value)
+        for k, v in value.iteritems():
+            value[k] = none_to_null(v)
     return value

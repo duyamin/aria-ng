@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from .null import as_null
+from .null import none_to_null
 from .utils import validate_no_short_form, validate_no_unknown_fields, validate_known_fields
 from ..utils import HasCachedMethods, classname, deepcopy_with_locators, puts
 
@@ -180,7 +180,7 @@ class AsIsPresentation(PresentationBase):
     
     @property
     def value(self):
-        return as_null(self._raw)
+        return none_to_null(self._raw)
     
     @value.setter
     def value(self, value):

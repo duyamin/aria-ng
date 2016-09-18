@@ -18,7 +18,7 @@ from .collections import deepcopy_with_locators, ReadOnlyList, ReadOnlyDict, Str
 import json
 from collections import OrderedDict
 from ruamel import yaml # @UnresolvedImport
-from types import FunctionType, MethodType
+from types import MethodType
 
 # Add our types to ruamel.yaml (for round trips)
 yaml.representer.RoundTripRepresenter.add_representer(ReadOnlyList, yaml.representer.RoundTripRepresenter.represent_list)
