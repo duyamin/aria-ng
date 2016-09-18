@@ -19,7 +19,7 @@ from .field_validators import constraint_clause_field_validator, constraint_clau
 from .utils.data_types import get_data_type, get_data_type_value, get_property_constraints, apply_constraint_to_value
 from .utils.substitution_mappings import validate_subtitution_mappings_requirement, validate_subtitution_mappings_capability
 from aria import dsl_specification
-from aria.utils import cachedmethod, puts
+from aria.utils import cachedmethod, puts, as_raw
 from aria.presentation import AsIsPresentation, has_fields, allow_unknown_fields, short_form_field, primitive_field, primitive_list_field, primitive_dict_unknown_fields, object_field, object_list_field, object_dict_field, field_validator, type_validator
 
 @dsl_specification('3.5.1', 'tosca-simple-profile-1.0')
@@ -31,7 +31,7 @@ class Description(AsIsPresentation):
     def _dump(self, context):
         value = self.value
         if hasattr(value, 'as_raw'):
-            value = value.as_raw 
+            value = as_raw(value) 
         puts(context.style.meta(value))
 
 @allow_unknown_fields

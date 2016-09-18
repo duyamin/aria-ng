@@ -17,7 +17,7 @@
 from aria import dsl_specification, InvalidValueError
 from aria.validation import Issue
 from aria.deployment import Function
-from aria.utils import ReadOnlyList
+from aria.utils import ReadOnlyList, as_raw
 from cStringIO import StringIO
 
 #
@@ -46,7 +46,7 @@ class Concat(Function):
         string_expressions = []
         for string_expression in self.string_expressions:
             if hasattr(string_expression, 'as_raw'):
-                string_expression = string_expression.as_raw
+                string_expression = as_raw(string_expression)
             string_expressions.append(string_expression)
         return {'concat': string_expressions}
 
@@ -78,10 +78,10 @@ class Token(Function):
     def as_raw(self):
         string_with_tokens = self.string_with_tokens
         if hasattr(string_with_tokens, 'as_raw'):
-            string_with_tokens = string_with_tokens.as_raw
+            string_with_tokens = as_raw(string_with_tokens)
         string_of_token_chars = self.string_with_tokens
         if hasattr(string_of_token_chars, 'as_raw'):
-            string_of_token_chars = string_of_token_chars.as_raw
+            string_of_token_chars = as_raw(string_of_token_chars)
         return {'token': [string_with_tokens, string_of_token_chars, self.substring_index]}
 
     def _evaluate(self, context, container):
@@ -113,7 +113,7 @@ class GetInput(Function):
     def as_raw(self):
         input_property_name = self.input_property_name
         if hasattr(input_property_name, 'as_raw'):
-            input_property_name = input_property_name.as_raw
+            input_property_name = as_raw(input_property_name)
         return {'get_input': input_property_name}
     
     def _evaluate(self, context, container):
@@ -221,13 +221,13 @@ class GetOperationOutput(Function):
     def as_raw(self):
         interface_name = self.interface_name
         if hasattr(interface_name, 'as_raw'):
-            interface_name = interface_name.as_raw
+            interface_name = as_raw(interface_name)
         operation_name = self.operation_name
         if hasattr(operation_name, 'as_raw'):
-            operation_name = operation_name.as_raw
+            operation_name = as_raw(operation_name)
         output_variable_name = self.output_variable_name
         if hasattr(output_variable_name, 'as_raw'):
-            output_variable_name = output_variable_name.as_raw
+            output_variable_name = as_raw(output_variable_name)
         return {'get_operation_output': [self.modelable_entity_name, interface_name, operation_name, output_variable_name]}
 
 #
@@ -254,7 +254,7 @@ class GetNodesOfType(Function):
     def as_raw(self):
         node_type_name = self.node_type_name
         if hasattr(node_type_name, 'as_raw'):
-            node_type_name = node_type_name.as_raw
+            node_type_name = as_raw(node_type_name)
         return {'get_nodes_of_type': node_type_name}
 
     def _evaluate(self, context, container):
@@ -285,10 +285,10 @@ class GetArtifact(Function):
     def as_raw(self):
         artifact_name = self.artifact_name
         if hasattr(artifact_name, 'as_raw'):
-            artifact_name = artifact_name.as_raw
+            artifact_name = as_raw(artifact_name)
         location = self.location
         if hasattr(location, 'as_raw'):
-            location = location.as_raw
+            location = as_raw(location)
         return {'get_artifacts': [self.modelable_entity_name, artifact_name, location, self.remove]}
 
 #

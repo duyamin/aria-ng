@@ -123,18 +123,19 @@ The CLI supports the following commands to create variations of the default cons
 chain:
 
 * `presentation`: emits a colorized textual representation of the Python presentation
-   classes wrapping the blueprint. You can also use `--json` or `--yaml` flags to emit
-   in those formats.
+   classes wrapping the blueprint.
 * `template`: emits a colorized textual representation of the complete topology
    template derived from the validated blueprint. This includes all the node templates,
    with their requirements satisfied at the level of relating to other node templates.
    Use `--types` to see just the type hierarchy.
-* `plan`: **this is the default consumer**; emits a colorized textual representation of
+* `plan`: **this is the default command**; emits a colorized textual representation of
    a deployment plan instantiated from the deployment template. Here the node templates
    are each used to create one or more nodes, with the appropriate relationships between
    them. Note that every time you run this consumer, you will get a different set of node
-   IDs. Use `--graph` to see just the node relationship graph. You can also use `--json`
-   or `--yaml` flags to emit in those formats.
+   IDs. Use `--graph` to see just the node relationship graph.
+   
+For all these commands, you can also use `--json` or `--yaml` flags to emit in those
+formats.
 
 Additionally, The CLI tool lets you specify the complete classname of your own custom
 consumer to chain at the end of the default consumer chain, after `plan`.

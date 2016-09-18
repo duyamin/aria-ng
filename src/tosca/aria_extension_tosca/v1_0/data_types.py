@@ -19,6 +19,7 @@ from aria import dsl_specification
 from aria.utils import StrictDict
 from functools import total_ordering
 from datetime import datetime, tzinfo, timedelta
+from collections import OrderedDict
 import re
 
 class Timezone(tzinfo):
@@ -265,6 +266,10 @@ class List(list):
 
         return r
 
+    # Can't define as property because it's old-style Python class
+    def as_raw(self):
+        return list(self)
+
 @dsl_specification('3.2.5', 'tosca-simple-profile-1.0')
 class Map(StrictDict):
     """
@@ -294,6 +299,10 @@ class Map(StrictDict):
 
     def __init__(self, items=None):
         super(Map, self).__init__(items, key_class=str)
+
+    # Can't define as property because it's old-style Python class
+    def as_raw(self):
+        return OrderedDict(self)
 
 @total_ordering
 @dsl_specification('3.2.6', 'tosca-simple-profile-1.0')

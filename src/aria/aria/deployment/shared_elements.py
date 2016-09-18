@@ -17,7 +17,7 @@
 from .utils import validate_dict_values, instantiate_dict, coerce_value, coerce_dict_values, dump_dict_values, dump_properties
 from .. import UnimplementedFunctionalityError
 from ..validation import Issue
-from ..utils import StrictList, StrictDict, as_agnostic, classname, deepcopy_with_locators, puts
+from ..utils import StrictList, StrictDict, as_agnostic, classname, deepcopy_with_locators, puts, as_raw
 from collections import OrderedDict
 
 class Function(object):
@@ -151,8 +151,8 @@ class Interface(TemplateElement):
         return OrderedDict((
             ('name', self.name),
             ('type_name', self.type_name),
-            ('inputs', {k: v.as_raw for k, v in self.inputs.iteritems()}),
-            ('operations', [v.as_raw for v in self.operations.itervalues()])))
+            ('inputs', {k: as_raw(v) for k, v in self.inputs.iteritems()}),
+            ('operations', [as_raw(v) for v in self.operations.itervalues()])))
 
     def instantiate(self, context, container):
         r = Interface(self.name, self.type_name)
@@ -217,7 +217,7 @@ class Operation(TemplateElement):
             ('executor', self.executor),
             ('max_retries', self.max_retries),
             ('retry_interval', self.retry_interval),
-            ('inputs', {k: v.as_raw for k, v in self.inputs.iteritems()})))
+            ('inputs', {k: as_raw(v) for k, v in self.inputs.iteritems()})))
 
     def instantiate(self, context, container):
         r = Operation(self.name)
@@ -292,7 +292,7 @@ class Artifact(TemplateElement):
             ('target_path', self.target_path),
             ('repository_url', self.repository_url),
             ('repository_credential', as_agnostic(self.repository_credential)),
-            ('properties', {k: v.as_raw for k, v in self.properties.iteritems()})))
+            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()})))
 
     def instantiate(self, context, container):
         r = Artifact(self.name, self.type_name, self.source_path)
@@ -354,8 +354,8 @@ class GroupPolicy(TemplateElement):
         return OrderedDict((
             ('name', self.name),
             ('type_name', self.type_name),
-            ('properties', {k: v.as_raw for k, v in self.properties.iteritems()}),
-            ('triggers', [v.as_raw for v in self.triggers.itervalues()])))
+            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
+            ('triggers', [as_raw(v) for v in self.triggers.itervalues()])))
 
     def instantiate(self, context, container):
         r = GroupPolicy(self.name, self.type_name)
@@ -407,7 +407,7 @@ class GroupPolicyTrigger(TemplateElement):
         return OrderedDict((
             ('name', self.name),
             ('implementation', self.implementation),
-            ('properties', {k: v.as_raw for k, v in self.properties.iteritems()})))
+            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()})))
 
     def instantiate(self, context, container):
         r = GroupPolicyTrigger(self.name, self.implementation)

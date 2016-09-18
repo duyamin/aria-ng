@@ -16,13 +16,13 @@
 
 from aria import dsl_specification
 from aria.presentation import Presentation, AsIsPresentation, has_fields, primitive_field, object_field 
-from aria.utils import puts
+from aria.utils import puts, as_raw
 
 class Description(AsIsPresentation):
     def _dump(self, context):
         value = self.value
         if hasattr(value, 'as_raw'):
-            value = value.as_raw 
+            value = as_raw(value) 
         puts(context.style.meta(value))
 
 @has_fields

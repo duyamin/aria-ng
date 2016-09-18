@@ -17,6 +17,7 @@
 from aria import InvalidValueError, dsl_specification
 from aria.validation import Issue
 from aria.deployment import Function, CannotEvaluateFunction
+from aria.utils import as_raw
 
 @dsl_specification('intrinsic-functions-2', 'cloudify-1.0')
 @dsl_specification('intrinsic-functions-2', 'cloudify-1.1')
@@ -46,7 +47,7 @@ class GetInput(Function):
     def as_raw(self):
         input_property_name = self.input_property_name
         if hasattr(input_property_name, 'as_raw'):
-            input_property_name = input_property_name.as_raw
+            input_property_name = as_raw(input_property_name)
         return {'get_input': input_property_name}
     
     def _evaluate(self, context, container):

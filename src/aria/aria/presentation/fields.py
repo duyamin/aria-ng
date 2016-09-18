@@ -17,7 +17,7 @@
 from .null import NULL
 from ..exceptions import InvalidValueError, AriaError
 from ..validation import Issue
-from ..utils import ReadOnlyList, ReadOnlyDict, print_exception, deepcopy_with_locators, merge, cachedmethod, puts
+from ..utils import ReadOnlyList, ReadOnlyDict, print_exception, deepcopy_with_locators, merge, cachedmethod, puts, as_raw
 from functools import wraps
 from types import MethodType
 from collections import OrderedDict
@@ -440,7 +440,7 @@ class Field(object):
 
     def _dump_primitive(self, context, value):
         if hasattr(value, 'as_raw'):
-            value = value.as_raw
+            value = as_raw(value)
         puts('%s: %s' % (self.name, context.style.literal(value)))
 
     def _get_primitive_list(self, presentation, raw, value):
@@ -464,7 +464,7 @@ class Field(object):
         with context.style.indent:
             for v in value:
                 if hasattr(v, 'as_raw'):
-                    v = v.as_raw
+                    v = as_raw(v)
                 puts(context.style.literal(v))
 
     def _get_primitive_dict(self, presentation, raw, value):
@@ -487,7 +487,7 @@ class Field(object):
         with context.style.indent:
             for v in value.itervalues():
                 if hasattr(v, 'as_raw'):
-                    v = v.as_raw
+                    v = as_raw(v)
                 puts(context.style.literal(v))
 
     def _get_object(self, presentation, raw, value):

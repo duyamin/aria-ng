@@ -18,6 +18,7 @@ from .collections import deepcopy_with_locators, ReadOnlyList, ReadOnlyDict, Str
 import json
 from collections import OrderedDict
 from ruamel import yaml # @UnresolvedImport
+from types import FunctionType, MethodType
 
 # Add our types to ruamel.yaml (for round trips)
 yaml.representer.RoundTripRepresenter.add_representer(ReadOnlyList, yaml.representer.RoundTripRepresenter.represent_list)
@@ -39,7 +40,7 @@ class JsonAsRawEncoder(json.JSONEncoder):
             return iter(o)
         except TypeError:
             if hasattr(o, 'as_raw'):
-                return o.as_raw
+                return as_raw(o)
             return str(o)
         return super(JsonAsRawEncoder, self).default(self, o)
 
@@ -51,7 +52,7 @@ class YamlAsRawDumper(yaml.dumper.RoundTripDumper):
     
     def represent_data(self, data):
         if hasattr(data, 'as_raw'):
-            data = data.as_raw
+            data = as_raw(data)
         return super(YamlAsRawDumper, self).represent_data(data)
 
 def classname(o):
@@ -80,6 +81,9 @@ def as_raw(value):
     
     if hasattr(value, 'as_raw'):
         value = value.as_raw
+        if isinstance(value, MethodType):
+            # Old-style Python classes don't support properties
+            value = value()
     elif isinstance(value, list):
         value = deepcopy_with_locators(value)
         for i in range(len(value)):

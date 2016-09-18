@@ -16,7 +16,7 @@
 
 from .. import install_aria_extensions
 from ..consumption import ConsumerChain, Read, Validate, Template, Inputs, Plan
-from ..utils import JsonAsRawEncoder, print_exception, RestServer
+from ..utils import RestServer, JsonAsRawEncoder, print_exception, as_raw
 from ..loading import LiteralLocation
 from .utils import CommonArgumentParser, create_context_from_namespace
 from collections import OrderedDict
@@ -78,7 +78,7 @@ def plan(uri, inputs):
     return context
 
 def issues(context):
-    return {'issues': [i.as_raw for i in context.validation.issues]}
+    return {'issues': [as_raw(i) for i in context.validation.issues]}
 
 #
 # Handlers

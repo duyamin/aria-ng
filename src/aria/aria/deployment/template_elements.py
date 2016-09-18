@@ -20,7 +20,8 @@ from .shared_elements import Element, TemplateElement, Parameter, Interface, Ope
 from .plan_elements import DeploymentPlan, Node, Capability, Relationship, Group, Policy, Mapping, Substitution
 from .utils import validate_dict_values, validate_list_values, instantiate_dict, dump_list_values, dump_dict_values, dump_properties, dump_interfaces
 from ..validation import Issue
-from ..utils import StrictList, StrictDict, puts
+from ..utils import StrictList, StrictDict, puts, as_raw
+from collections import OrderedDict
 from types import FunctionType
 
 class DeploymentTemplate(TemplateElement):
@@ -54,6 +55,19 @@ class DeploymentTemplate(TemplateElement):
         self.inputs = StrictDict(key_class=basestring, value_class=Parameter)
         self.outputs = StrictDict(key_class=basestring, value_class=Parameter)
         self.operations = StrictDict(key_class=basestring, value_class=Operation)
+
+    @property
+    def as_raw(self):
+        return OrderedDict((
+            ('description', self.description),
+            ('metadata', as_raw(self.metadata) if self.metadata is not None else None),
+            ('node_templates', [as_raw(v) for v in self.node_templates.itervalues()]),
+            ('group_templates', [as_raw(v) for v in self.group_templates.itervalues()]),
+            ('policy_templates', [as_raw(v) for v in self.policy_templates.itervalues()]),
+            ('substitution_template', as_raw(self.substitution_template) if self.substitution_template is not None else None),
+            ('inputs', {k: as_raw(v) for k, v in self.inputs.iteritems()}),
+            ('outputs', {k: as_raw(v) for k, v in self.outputs.iteritems()}),
+            ('operations', [as_raw(v) for v in self.operations.itervalues()])))
 
     def instantiate(self, context, container):
         r = DeploymentPlan()
@@ -159,6 +173,20 @@ class NodeTemplate(TemplateElement):
                 if not node_type_constraint(target_node_template, self):
                     return False
         return True
+
+    @property
+    def as_raw(self):
+        return OrderedDict((
+            ('name', self.name),
+            ('type_name', self.type_name),
+            ('default_instances', self.default_instances),
+            ('min_instances', self.min_instances),
+            ('max_instances', self.max_instances),
+            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
+            ('interfaces', [as_raw(v) for v in self.interfaces.itervalues()]),
+            ('artifacts', [as_raw(v) for v in self.artifacts.itervalues()]),
+            ('capabilities', [as_raw(v) for v in self.capabilities.itervalues()]),
+            ('requirements', [as_raw(v) for v in self.requirements])))
     
     def instantiate(self, context, container):
         r = Node(context, self.type_name, self.name)
@@ -272,6 +300,16 @@ class Requirement(Element):
                 return capability
         return None
 
+    @property
+    def as_raw(self):
+        return OrderedDict((
+            ('name', self.name),
+            ('target_node_type_name', self.target_node_type_name),
+            ('target_node_template_name', self.target_node_template_name),
+            ('target_capability_type_name', self.target_capability_type_name),
+            ('target_capability_name', self.target_capability_name),
+            ('relationship_template', as_raw(self.relationship_template) if self.relationship_template is not None else None)))
+
     def validate(self, context):
         if (self.target_node_type_name) and (context.deployment.node_types.get_descendant(self.target_node_type_name) is None):
             context.validation.report('requirement "%s" refers to an unknown node type: %s' % (self.name, repr(self.target_node_type_name)), level=Issue.BETWEEN_TYPES)        
@@ -350,6 +388,16 @@ class CapabilityTemplate(TemplateElement):
         
         return True
 
+    @property
+    def as_raw(self):
+        return OrderedDict((
+            ('name', self.name),
+            ('type_name', self.type_name),
+            ('min_occurrences', self.min_occurrences),
+            ('max_occurrences', self.max_occurrences),
+            ('valid_source_node_type_names', self.valid_source_node_type_names),
+            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()})))
+
     def instantiate(self, context, container):
         r = Capability(self.name, self.type_name)
         r.min_occurrences = self.min_occurrences
@@ -399,6 +447,15 @@ class RelationshipTemplate(TemplateElement):
         self.properties = StrictDict(key_class=basestring, value_class=Parameter)
         self.source_interfaces = StrictDict(key_class=basestring, value_class=Interface)
         self.target_interfaces = StrictDict(key_class=basestring, value_class=Interface)
+
+    @property
+    def as_raw(self):
+        return OrderedDict((
+            ('type_name', self.type_name),
+            ('template_name', self.template_name),
+            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
+            ('source_interfaces', [as_raw(v) for v in self.source_interfaces.itervalues()]),            
+            ('target_interfaces', [as_raw(v) for v in self.target_interfaces.itervalues()])))            
 
     def instantiate(self, context, container):
         r = Relationship(self.type_name, self.template_name)
@@ -455,6 +512,16 @@ class GroupTemplate(TemplateElement):
         self.policies = StrictDict(key_class=basestring, value_class=GroupPolicy)
         self.member_node_template_names = StrictList(value_class=basestring)
 
+    @property
+    def as_raw(self):
+        return OrderedDict((
+            ('name', self.name),
+            ('type_name', self.type_name),
+            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
+            ('interfaces', [as_raw(v) for v in self.interfaces.itervalues()]),            
+            ('policies', [as_raw(v) for v in self.policies.itervalues()]),            
+            ('member_node_template_names', self.member_node_template_names)))
+
     def instantiate(self, context, container):
         r = Group(context, self.type_name, self.name)
         instantiate_dict(context, self, r.properties, self.properties)
@@ -508,6 +575,15 @@ class PolicyTemplate(TemplateElement):
         self.target_node_template_names = StrictList(value_class=basestring)
         self.target_group_template_names = StrictList(value_class=basestring)
 
+    @property
+    def as_raw(self):
+        return OrderedDict((
+            ('name', self.name),
+            ('type_name', self.type_name),
+            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
+            ('target_node_template_names', self.target_node_template_names),
+            ('target_group_template_names', self.target_group_template_names)))
+
     def instantiate(self, context, container):
         r = Policy(self.name, self.type_name)
         instantiate_dict(context, self, r.properties, self.properties)
@@ -556,6 +632,13 @@ class MappingTemplate(TemplateElement):
         self.node_template_name = node_template_name
         self.name = name
 
+    @property
+    def as_raw(self):
+        return OrderedDict((
+            ('mapped_name', self.mapped_name),
+            ('node_template_name', self.node_template_name),
+            ('name', self.name)))
+
     def instantiate(self, context, container):
         nodes = context.deployment.plan.find_nodes(self.node_template_name)
         if len(nodes) == 0:
@@ -588,6 +671,13 @@ class SubstitutionTemplate(TemplateElement):
         self.node_type_name = node_type_name
         self.capabilities = StrictDict(key_class=basestring, value_class=MappingTemplate)
         self.requirements = StrictDict(key_class=basestring, value_class=MappingTemplate)
+
+    @property
+    def as_raw(self):
+        return OrderedDict((
+            ('node_type_name', self.node_type_name),
+            ('capabilities', [as_raw(v) for v in self.capabilities.itervalues()]),
+            ('requirements', [as_raw(v) for v in self.requirements.itervalues()])))
 
     def instantiate(self, context, container):
         r = Substitution(self.node_type_name)

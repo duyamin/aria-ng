@@ -17,7 +17,7 @@
 from ..v1_0.functions import parse_string_expression
 from aria import InvalidValueError, dsl_specification
 from aria.deployment import Function
-from aria.utils import ReadOnlyList
+from aria.utils import ReadOnlyList, as_raw
 from cStringIO import StringIO
 
 @dsl_specification('intrinsic-functions-1', 'cloudify-1.1')
@@ -46,7 +46,7 @@ class Concat(Function):
         string_expressions = []
         for string_expression in self.string_expressions:
             if hasattr(string_expression, 'as_raw'):
-                string_expression = string_expression.as_raw
+                string_expression = as_raw(string_expression)
             string_expressions.append(string_expression)
         return {'concat': string_expressions}
 

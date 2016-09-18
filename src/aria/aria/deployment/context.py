@@ -90,6 +90,12 @@ class DeploymentContext(object):
         # TODO: coerce to validate type
 
     @property
+    def template_as_raw(self):
+        raw = self.template.as_raw
+        prune(raw)
+        return raw
+
+    @property
     def plan_as_raw(self):
         raw = self.plan.as_raw
         prune(raw)

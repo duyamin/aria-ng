@@ -15,6 +15,7 @@
 #
 
 from .consumer import Consumer, ConsumerChain
+from ..utils import json_dumps, yaml_dumps
 
 class Derive(Consumer):
     """
@@ -51,5 +52,13 @@ class Template(ConsumerChain):
     def dump(self):
         if self.context.has_arg_switch('types'):
             self.context.deployment.dump_types(self.context)
+        elif self.context.has_arg_switch('yaml'):
+            indent = self.context.get_arg_value_int('indent', 2)
+            raw = self.context.deployment.template_as_raw
+            self.context.write(yaml_dumps(raw, indent=indent))
+        elif self.context.has_arg_switch('json'):
+            indent = self.context.get_arg_value_int('indent', 2)
+            raw = self.context.deployment.template_as_raw
+            self.context.write(json_dumps(raw, indent=indent))
         else:
             self.context.deployment.template.dump(self.context)

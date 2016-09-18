@@ -17,7 +17,7 @@
 from .shared_elements import Element, Parameter, Interface, Operation, Artifact, GroupPolicy
 from .utils import validate_dict_values, validate_list_values, coerce_dict_values, coerce_list_values, dump_list_values, dump_dict_values, dump_properties, dump_interfaces
 from ..validation import Issue
-from ..utils import StrictList, StrictDict, ReadOnlyList, puts, indent 
+from ..utils import StrictList, StrictDict, ReadOnlyList, puts, indent, as_raw 
 from collections import OrderedDict
 
 class DeploymentPlan(Element):
@@ -107,14 +107,14 @@ class DeploymentPlan(Element):
     def as_raw(self):
         return OrderedDict((
             ('description', self.description),
-            ('metadata', self.metadata.as_raw if self.metadata is not None else None),
-            ('nodes', [v.as_raw for v in self.nodes.itervalues()]),
-            ('groups', [v.as_raw for v in self.groups.itervalues()]),
-            ('policies', [v.as_raw for v in self.policies.itervalues()]),
-            ('substitution', self.substitution.as_raw if self.substitution is not None else None),
-            ('inputs', {k: v.as_raw for k, v in self.inputs.iteritems()}),
-            ('outputs', {k: v.as_raw for k, v in self.outputs.iteritems()}),
-            ('operations', [v.as_raw for v in self.operations.itervalues()])))
+            ('metadata', as_raw(self.metadata) if self.metadata is not None else None),
+            ('nodes', [as_raw(v) for v in self.nodes.itervalues()]),
+            ('groups', [as_raw(v) for v in self.groups.itervalues()]),
+            ('policies', [as_raw(v) for v in self.policies.itervalues()]),
+            ('substitution', as_raw(self.substitution) if self.substitution is not None else None),
+            ('inputs', {k: as_raw(v) for k, v in self.inputs.iteritems()}),
+            ('outputs', {k: as_raw(v) for k, v in self.outputs.iteritems()}),
+            ('operations', [as_raw(v) for v in self.operations.itervalues()])))
     
     def validate(self, context):
         if self.metadata is not None:
@@ -266,11 +266,11 @@ class Node(Element):
             ('id', self.id),
             ('type_name', self.type_name),
             ('template_name', self.template_name),
-            ('properties', {k: v.as_raw for k, v in self.properties.iteritems()}),
-            ('interfaces', [v.as_raw for v in self.interfaces.itervalues()]),
-            ('artifacts', [v.as_raw for v in self.artifacts.itervalues()]),
-            ('capabilities', [v.as_raw for v in self.capabilities.itervalues()]),
-            ('relationships', [v.as_raw for v in self.relationships])))
+            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
+            ('interfaces', [as_raw(v) for v in self.interfaces.itervalues()]),
+            ('artifacts', [as_raw(v) for v in self.artifacts.itervalues()]),
+            ('capabilities', [as_raw(v) for v in self.capabilities.itervalues()]),
+            ('relationships', [as_raw(v) for v in self.relationships])))
             
     def validate(self, context):
         if len(self.id) > context.deployment.id_max_length:
@@ -325,10 +325,10 @@ class Capability(Element):
         
         self.name = name
         self.type_name = type_name
-        self.min_occurrences = None # optional
-        self.max_occurrences = None # optional
         self.properties = StrictDict(key_class=basestring, value_class=Parameter)
         
+        self.min_occurrences = None # optional
+        self.max_occurrences = None # optional
         self.occurrences = 0
     
     @property
@@ -349,7 +349,7 @@ class Capability(Element):
         return OrderedDict((
             ('name', self.name),
             ('type_name', self.type_name),
-            ('properties', {k: v.as_raw for k, v in self.properties.iteritems()})))
+            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()})))
 
     def validate(self, context):
         if context.deployment.capability_types.get_descendant(self.type_name) is None:
@@ -407,9 +407,9 @@ class Relationship(Element):
             ('target_capability_name', self.target_capability_name),
             ('type_name', self.type_name),
             ('template_name', self.template_name),
-            ('properties', {k: v.as_raw for k, v in self.properties.iteritems()}),
-            ('source_interfaces', [v.as_raw for v in self.source_interfaces.itervalues()]),            
-            ('target_interfaces', [v.as_raw for v in self.target_interfaces.itervalues()])))            
+            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
+            ('source_interfaces', [as_raw(v) for v in self.source_interfaces.itervalues()]),            
+            ('target_interfaces', [as_raw(v) for v in self.target_interfaces.itervalues()])))            
 
     def validate(self, context):
         if self.type_name:
@@ -471,9 +471,9 @@ class Group(Element):
             ('id', self.id),
             ('type_name', self.type_name),
             ('template_name', self.template_name),
-            ('properties', {k: v.as_raw for k, v in self.properties.iteritems()}),
-            ('interfaces', [v.as_raw for v in self.interfaces.itervalues()]),
-            ('policies', [v.as_raw for v in self.policies.itervalues()]),
+            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
+            ('interfaces', [as_raw(v) for v in self.interfaces.itervalues()]),
+            ('policies', [as_raw(v) for v in self.policies.itervalues()]),
             ('member_node_ids', self.member_node_ids)))
 
     def validate(self, context):
@@ -533,7 +533,7 @@ class Policy(Element):
         return OrderedDict((
             ('name', self.name),
             ('type_name', self.type_name),
-            ('properties', {k: v.as_raw for k, v in self.properties.iteritems()}),
+            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
             ('target_node_ids', self.target_node_ids),
             ('target_group_ids', self.target_group_ids)))
 
@@ -618,8 +618,8 @@ class Substitution(Element):
     def as_raw(self):
         return OrderedDict((
             ('node_type_name', self.node_type_name),
-            ('capabilities', [v.as_raw for v in self.capabilities.itervalues()]),
-            ('requirements', [v.as_raw for v in self.requirements.itervalues()])))
+            ('capabilities', [as_raw(v) for v in self.capabilities.itervalues()]),
+            ('requirements', [as_raw(v) for v in self.requirements.itervalues()])))
 
     def validate(self, context):
         if context.deployment.node_types.get_descendant(self.node_type_name) is None:
