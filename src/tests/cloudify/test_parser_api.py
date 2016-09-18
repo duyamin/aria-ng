@@ -22,13 +22,12 @@ from ruamel.yaml import safe_dump
 from aria.reading.exceptions import ReaderNotFoundError
 
 
-from dsl_parser.exceptions import (DSLParsingLogicException,
-                                   DSLParsingException)
+from dsl_parser.exceptions import (DSLParsingException)
 
 from .suite import (
     ParserTestCase,
     TempDirectoryTestCase,
-    CloudifyDSLError,
+    CloudifyParserError,
     op_struct,
     get_nodes_by_names,
     get_node_by_name,
@@ -3318,7 +3317,7 @@ imports:
         self.template.version_section('cloudify_dsl', '1.2')
         self._create_importable_yaml_for_version_1_3_and_above(importable)
 
-        ex = self.assertRaises(CloudifyDSLError, self.parse)
+        ex = self.assertRaises(CloudifyParserError, self.parse)
         self.assertIn(
             'parse failed with issues: \n\timport has forbidden "{0}" section'.format(import_type),
             str(ex))

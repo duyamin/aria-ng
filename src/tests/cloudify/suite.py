@@ -24,6 +24,7 @@ from tempfile import mkdtemp
 from testtools import TestCase
 
 from dsl_parser.parser import parse, parse_from_path
+from dsl_parser.exceptions import DSLParsingException
 
 
 class TempDirectoryTestCase(TestCase):
@@ -102,8 +103,22 @@ class ParserTestCase(TestCase):
             return
         msg = 'parse failed with issues: \n\t{0}'.format('\n\t'.join(
             issue.message for issue in context.validation.issues))
-        raise CloudifyDSLError(msg)
+        raise CloudifyParserError(msg)
 
+    def assert_parser_raise_exception(
+            self,
+            exception_types=DSLParsingException,
+            error_code=None,
+            extra_tests=()):
+        try:
+            self.parse()
+            self.fail()
+        except exception_types as exc:
+            if error_code:
+                self.assertEquals(error_code, exc.err_code)
+            for test in extra_tests:
+                test(exc)
+        return exc
 
 
 class Template(object):
@@ -272,7 +287,7 @@ class Template(object):
         )
 
 
-class CloudifyDSLError(Exception):
+class CloudifyParserError(Exception):
     pass
 
 def op_struct(
