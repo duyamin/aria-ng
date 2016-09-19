@@ -17,12 +17,9 @@
 import os
 from urllib import pathname2url
 
-from ruamel.yaml import safe_dump
+from ruamel.yaml import safe_dump, safe_load
 
 from aria.reading.exceptions import ReaderNotFoundError
-
-
-from dsl_parser.exceptions import (DSLParsingException)
 
 from .suite import (
     ParserTestCase,
@@ -2433,6 +2430,64 @@ groups:
             'key3': 'group_value3'
         }, policy['properties'])
 
+    def test_plugin_fields(self):
+        self.template.version_section('cloudify_dsl', '1.2')
+        self.template += """
+node_types:
+  type:
+    properties:
+      prop1:
+        default: value
+  cloudify.nodes.Compute:
+    properties:
+      prop1:
+        default: value
+node_templates:
+  node1:
+    type: type
+    interfaces:
+     interface:
+       op: plugin1.op
+  node2:
+    type: cloudify.nodes.Compute
+    interfaces:
+     interface:
+       op: plugin2.op
+"""
+        base_plugin_def = {
+            'distribution': 'dist',
+            'distribution_release': 'release',
+            'distribution_version': 'version',
+            'install': True,
+            'install_arguments': '123',
+            'package_name': 'name',
+            'package_version': 'version',
+            'source': 'source',
+            'supported_platform': 'any',
+        }
+        deployment_plugin_def = base_plugin_def.copy()
+        deployment_plugin_def['executor'] = 'central_deployment_agent'
+        host_plugin_def = base_plugin_def.copy()
+        host_plugin_def['executor'] = 'host_agent'
+        raw_parsed = safe_load(str(self.template))
+        raw_parsed['plugins'] = {
+            'plugin1': deployment_plugin_def,
+            'plugin2': host_plugin_def,
+        }
+
+        self.template.clear()
+        self.template.version_section('cloudify_dsl', '1.2')
+        self.template += safe_dump(raw_parsed)
+        parsed = self.parse()
+        expected_plugin1 = deployment_plugin_def.copy()
+        expected_plugin1['name'] = 'plugin1'
+        expected_plugin2 = host_plugin_def.copy()
+        expected_plugin2['name'] = 'plugin2'
+        plugin1 = parsed['deployment_plugins_to_install'][0]
+        node2 = get_node_by_name(parsed, 'node2')
+        plugin2 = node2['plugins_to_install'][0]
+        self.assertEqual(expected_plugin1, plugin1)
+        self.assertEqual(expected_plugin2, plugin2)
 
 
 class TestParserApiWithFileSystem(ParserTestCase, TempDirectoryTestCase, _AssertionsMixin):
@@ -3121,7 +3176,7 @@ node_templates:
   node:
     type: type
 """
-        self.assertRaises(DSLParsingException, self.parse)
+        self.assertRaises(CloudifyParserError, self.parse)
         self.parse(validate_version=False)
 
     def test_workflow_imports(self):
