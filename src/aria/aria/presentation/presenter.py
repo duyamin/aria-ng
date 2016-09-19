@@ -84,6 +84,10 @@ class Presenter(Presentation):
         return None
     
     @property
+    def policy_trigger_types(self):
+        return None
+
+    @property
     def node_templates(self):
         return None
     
@@ -97,10 +101,6 @@ class Presenter(Presentation):
 
     @property
     def policies(self):
-        return None
-
-    @property
-    def policy_triggers(self):
         return None
 
     @property

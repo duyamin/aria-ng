@@ -82,11 +82,6 @@ class CloudifyPresenter1_0(Presenter):
 
     @property
     @cachedmethod
-    def repositories(self):
-        return None
-
-    @property
-    @cachedmethod
     def inputs(self):
         return self.service_template.inputs
             
@@ -95,11 +90,6 @@ class CloudifyPresenter1_0(Presenter):
     def outputs(self):
         return self.service_template.outputs
 
-    @property
-    @cachedmethod
-    def data_types(self):
-        return None
-    
     @property
     @cachedmethod
     def node_types(self):
@@ -112,29 +102,14 @@ class CloudifyPresenter1_0(Presenter):
     
     @property
     @cachedmethod
-    def group_types(self):
-        return None
-
-    @property
-    @cachedmethod
-    def capability_types(self):
-        return None
-
-    @property
-    @cachedmethod
-    def interface_types(self):
-        return None
-
-    @property
-    @cachedmethod
-    def artifact_types(self):
-        return None
-
-    @property
-    @cachedmethod
     def policy_types(self):
         return self.service_template.policy_types
     
+    @property
+    @cachedmethod
+    def policy_trigger_types(self):
+        return self.service_template.policy_triggers
+
     @property
     @cachedmethod
     def node_templates(self):
@@ -142,23 +117,8 @@ class CloudifyPresenter1_0(Presenter):
 
     @property
     @cachedmethod
-    def relationship_templates(self):
-        return None
-
-    @property
-    @cachedmethod
     def groups(self):
         return self.service_template.groups
-
-    @property
-    @cachedmethod
-    def policies(self):
-        return None
-
-    @property
-    @cachedmethod
-    def policy_triggers(self):
-        return self.service_template.policy_triggers
 
     @property
     @cachedmethod

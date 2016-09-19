@@ -19,7 +19,7 @@ from .context import IdType, DeploymentContext
 from .shared_elements import Element, TemplateElement, Function, Parameter, Metadata, Interface, Operation, Artifact, GroupPolicy, GroupPolicyTrigger
 from .plan_elements import DeploymentPlan, Node, Capability, Relationship, Group, Policy, Mapping, Substitution
 from .template_elements import DeploymentTemplate, NodeTemplate, Requirement, CapabilityTemplate, RelationshipTemplate, GroupTemplate, PolicyTemplate, MappingTemplate, SubstitutionTemplate
-from .types import TypeHierarchy, Type, RelationshipType, PolicyType
+from .types import TypeHierarchy, Type, RelationshipType, PolicyType, PolicyTriggerType
 
 __all__ = (
     'CannotEvaluateFunction',
@@ -55,4 +55,5 @@ __all__ = (
     'TypeHierarchy',
     'Type',
     'RelationshipType',
-    'PolicyType')
+    'PolicyType',
+    'PolicyTriggerType')

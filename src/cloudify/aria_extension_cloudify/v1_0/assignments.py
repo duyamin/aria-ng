@@ -23,7 +23,7 @@ class PropertyAssignment(AsIsPresentation):
     pass
 
 @has_fields
-class TriggerAssignment(Presentation):
+class GroupPolicyTriggerAssignment(Presentation):
     @field_validator(type_validator('policy trigger', 'policy_triggers'))
     @primitive_field(str, required=True)
     def type(self):
@@ -50,11 +50,11 @@ class TriggerAssignment(Presentation):
         return ReadOnlyDict(get_assigned_and_defined_property_values(context, self, 'parameters'))
 
     def _validate(self, context):
-        super(TriggerAssignment, self)._validate(context)
+        super(GroupPolicyTriggerAssignment, self)._validate(context)
         self._get_property_values(context)
 
 @has_fields
-class PolicyAssignment(Presentation):
+class GroupPolicyAssignment(Presentation):
     @field_validator(type_validator('policy type', 'policy_types'))
     @primitive_field(str, required=True)
     def type(self):
@@ -72,12 +72,12 @@ class PolicyAssignment(Presentation):
         :rtype: dict of str, :class:`PropertyAssignment`
         """
 
-    @object_dict_field(TriggerAssignment)
+    @object_dict_field(GroupPolicyTriggerAssignment)
     def triggers(self):
         """
         A dict of triggers.
         
-        :rtype: dict of str, :class:`TriggerAssignment`
+        :rtype: dict of str, :class:`GroupPolicyTriggerAssignment`
         """
 
     @cachedmethod
@@ -89,7 +89,7 @@ class PolicyAssignment(Presentation):
         return ReadOnlyDict(get_assigned_and_defined_property_values(context, self))
 
     def _validate(self, context):
-        super(PolicyAssignment, self)._validate(context)
+        super(GroupPolicyAssignment, self)._validate(context)
         self._get_property_values(context)
 
 @short_form_field('implementation')

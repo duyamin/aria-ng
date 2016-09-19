@@ -50,23 +50,31 @@ def convert_plan(context):
     plugins = [convert_plugin(context, v) for v in plugins.itervalues()] if plugins is not None else []
 
     r = OrderedDict((
+        # General
         ('version', convert_version(context)),
         ('description', context.deployment.plan.description),
         ('inputs', convert_properties(context, context.deployment.plan.inputs)),
         ('outputs', convert_properties(context, context.deployment.plan.outputs)),
-        ('nodes', [convert_node_template(context, v, plugins) for v in context.deployment.template.node_templates.itervalues()]),
+        ('workflows', OrderedDict(
+            (k, convert_workflow(context, v)) for k, v in context.deployment.plan.operations.iteritems())),
+        ('workflow_plugins_to_install', plugins_to_install_for_operations(context, context.deployment.plan.operations, plugins, 'central_deployment_agent')),
+        ('policies', OrderedDict()), # TODO
+
+        # Instances
         ('node_instances', [convert_node(context, v) for v in context.deployment.plan.nodes.itervalues()]),
+
+        # Templates
+        ('nodes', [convert_node_template(context, v, plugins) for v in context.deployment.template.node_templates.itervalues()]),
         ('groups', OrderedDict(
             (k, convert_group_template(context, v)) for k, v in context.deployment.template.group_templates.iteritems())),
         ('scaling_groups', OrderedDict(
             (k, convert_group_template(context, v)) for k, v in iter_scaling_groups(context))),
-        ('policies', OrderedDict()), # TODO
-        ('policy_triggers', OrderedDict()), # TODO
+
+        # Types
         ('policy_types', OrderedDict(
             (v.name, convert_policy_type(context, v)) for v in context.deployment.policy_types.iter_descendants())),
-        ('workflows', OrderedDict(
-            (k, convert_workflow(context, v)) for k, v in context.deployment.plan.operations.iteritems())),
-        ('workflow_plugins_to_install', plugins_to_install_for_operations(context, context.deployment.plan.operations, plugins, 'central_deployment_agent')),
+        ('policy_triggers', OrderedDict(
+            (v.name, convert_policy_trigger_type(context, v)) for v in context.deployment.policy_trigger_types.iter_descendants())),
         ('relationships', OrderedDict(
             (v.name, convert_relationship_type(context, v)) for v in context.deployment.relationship_types.iter_descendants()))))
         
@@ -80,6 +88,10 @@ def convert_plan(context):
     
     return r
 
+#
+# General
+#
+
 def convert_version(context):
     number = context.presentation.presenter.service_template.tosca_definitions_version
     number = number[len('cloudify_dsl_'):]
@@ -90,6 +102,61 @@ def convert_version(context):
         ('definitions_name', 'cloudify_dsl'),
         ('definitions_version', OrderedDict((
             ('number', number),)))))
+
+def convert_plugin(context, plugin):
+    return OrderedDict((
+        ('name', plugin._name),
+        ('distribution', getattr(plugin, 'distribution', None)),
+        ('distribution_release', getattr(plugin, 'distribution_release', None)),
+        ('distribution_version', getattr(plugin, 'distribution_version', None)),
+        ('executor', plugin.executor),
+        ('install', plugin.install),
+        ('install_arguments', getattr(plugin, 'install_arguments', None)),
+        ('package_name', getattr(plugin, 'package_name', None)),
+        ('package_version', getattr(plugin, 'package_version', None)),
+        ('source', plugin.source),
+        ('supported_platform', getattr(plugin, 'supported_platform', None))))
+
+def convert_workflow(context, operation):
+    plugin_name, _, operation_name = parse_implementation(context, operation.implementation)
+
+    r = OrderedDict((
+        ('plugin', plugin_name),
+        ('operation', operation_name),
+        ('parameters', convert_parameters(context, operation.inputs)),
+        ('has_intrinsic_functions', has_intrinsic_functions(context, operation.inputs)),
+        ('executor', operation.executor),
+        ('max_retries', operation.max_retries),
+        ('retry_interval', operation.retry_interval)))
+
+    return r
+
+#
+# Instances
+#
+
+def convert_node(context, node):
+    host_node = find_host_node(context, node)
+    groups = find_groups(context, node)
+
+    return OrderedDict((
+        ('id', node.id),
+        ('name', node.template_name),
+        ('host_id', host_node.id if host_node is not None else None),
+        ('relationships', [convert_relationship(context, v) for v in node.relationships]),
+        ('scaling_groups', [OrderedDict((('name', group.template_name),)) for group in groups])))
+
+def convert_relationship(context, relationship):
+    target_node = context.deployment.plan.nodes.get(relationship.target_node_id)
+    
+    return OrderedDict((
+        ('type', relationship.type_name), # template_name?
+        ('target_id', relationship.target_node_id),
+        ('target_name', target_node.template_name)))
+
+#
+# Templates
+#
 
 def convert_node_template(context, node_template, plugins):
     node_type = context.deployment.node_types.get_descendant(node_template.type_name)
@@ -130,17 +197,6 @@ def convert_node_template(context, node_template, plugins):
         
     return r
 
-def convert_group_template(context, group_template):
-    return OrderedDict((
-        ('members', group_template.member_node_template_names),
-        ('policies', OrderedDict(
-            (k, convert_group_policy(context, v)) for k, v in group_template.policies.iteritems()))))
-
-def convert_group_policy(context, group_policy):
-    return OrderedDict((
-        ('type', group_policy.type_name),
-        ('properties', convert_properties(context, group_policy.properties))))
-
 def convert_relationship_template(context, requirement):
     relationship_template = requirement.relationship_template
     relationship_type = context.deployment.relationship_types.get_descendant(relationship_template.type_name)
@@ -155,24 +211,63 @@ def convert_relationship_template(context, requirement):
         ('source_operations', convert_operations(context, relationship_template.source_interfaces)), 
         ('target_operations', convert_operations(context, relationship_template.target_interfaces))))
 
-def convert_node(context, node):
-    host_node = find_host_node(context, node)
-    groups = find_groups(context, node)
-
+def convert_group_template(context, group_template):
     return OrderedDict((
-        ('id', node.id),
-        ('name', node.template_name),
-        ('host_id', host_node.id if host_node is not None else None),
-        ('relationships', [convert_relationship(context, v) for v in node.relationships]),
-        ('scaling_groups', [OrderedDict((('name', group.template_name),)) for group in groups])))
+        ('members', group_template.member_node_template_names),
+        ('policies', OrderedDict(
+            (k, convert_group_policy(context, v)) for k, v in group_template.policies.iteritems()))))
 
-def convert_relationship(context, relationship):
-    target_node = context.deployment.plan.nodes.get(relationship.target_node_id)
+def convert_group_policy(context, group_policy):
+    return OrderedDict((
+        ('type', group_policy.type_name),
+        ('properties', convert_properties(context, group_policy.properties))))
+
+#
+# Types
+#
+
+def convert_policy_type(context, policy_type):
+    return OrderedDict((
+        ('source', policy_type.implementation),
+        ('properties', convert_parameters(context, policy_type.properties))))
+
+def convert_policy_trigger_type(context, policy_trigger_type):
+    return OrderedDict((
+        ('source', policy_trigger_type.implementation),
+        ('parameters', convert_parameters(context, policy_trigger_type.properties))))
+
+def convert_relationship_type(context, relationship_type):
+    r = OrderedDict((
+        ('name', relationship_type.name),
+        ('derived_from', get_type_parent_name(relationship_type, context.deployment.relationship_types)),
+        ('type_hierarchy', convert_type_hierarchy(context, relationship_type, context.deployment.relationship_types)),
+        ('properties', convert_parameters(context, relationship_type.properties)),
+        ('source_interfaces', convert_interfaces(context, relationship_type.source_interfaces)),
+        ('target_interfaces', convert_interfaces(context, relationship_type.target_interfaces))))
     
+    if r['derived_from'] is None:
+        del r['derived_from']
+    
+    return r
+
+#
+# Misc
+#
+
+def convert_properties(context, properties):
     return OrderedDict((
-        ('type', relationship.type_name), # template_name?
-        ('target_id', relationship.target_node_id),
-        ('target_name', target_node.template_name)))
+        (k, as_raw(v.value)) for k, v in properties.iteritems()))
+
+def convert_parameters(context, parameters):
+    return OrderedDict((
+        (k, convert_parameter(context, v)) for k, v in parameters.iteritems()))
+
+def convert_parameter(context, parameter):
+    # prune removes any None (but not NULL), and then as_raw converts any NULL to None
+    return as_raw(prune(OrderedDict((
+        ('type', parameter.type_name),
+        ('default', parameter.value),
+        ('description', parameter.description)))))
 
 def convert_interfaces(context, interfaces):
     r = OrderedDict()
@@ -226,71 +321,9 @@ def convert_operation(context, operation):
         ('max_retries', operation.max_retries),
         ('retry_interval', operation.retry_interval)))
 
-def convert_workflow(context, operation):
-    plugin_name, _, operation_name = parse_implementation(context, operation.implementation)
-
-    r = OrderedDict((
-        ('plugin', plugin_name),
-        ('operation', operation_name),
-        ('parameters', convert_parameters(context, operation.inputs)),
-        ('has_intrinsic_functions', has_intrinsic_functions(context, operation.inputs)),
-        ('executor', operation.executor),
-        ('max_retries', operation.max_retries),
-        ('retry_interval', operation.retry_interval)))
-
-    return r
-        
-def convert_plugin(context, plugin):
-    return OrderedDict((
-        ('name', plugin._name),
-        ('distribution', getattr(plugin, 'distribution', None)),
-        ('distribution_release', getattr(plugin, 'distribution_release', None)),
-        ('distribution_version', getattr(plugin, 'distribution_version', None)),
-        ('executor', plugin.executor),
-        ('install', plugin.install),
-        ('install_arguments', getattr(plugin, 'install_arguments', None)),
-        ('package_name', getattr(plugin, 'package_name', None)),
-        ('package_version', getattr(plugin, 'package_version', None)),
-        ('source', plugin.source),
-        ('supported_platform', getattr(plugin, 'supported_platform', None))))
-
-def convert_relationship_type(context, relationship_type):
-    r = OrderedDict((
-        ('name', relationship_type.name),
-        ('derived_from', get_type_parent_name(relationship_type, context.deployment.relationship_types)),
-        ('type_hierarchy', convert_type_hierarchy(context, relationship_type, context.deployment.relationship_types)),
-        ('properties', convert_parameters(context, relationship_type.properties)),
-        ('source_interfaces', convert_interfaces(context, relationship_type.source_interfaces)),
-        ('target_interfaces', convert_interfaces(context, relationship_type.target_interfaces))))
-    
-    if r['derived_from'] is None:
-        del r['derived_from']
-    
-    return r
-
-def convert_policy_type(context, policy_type):
-    return OrderedDict((
-        ('source', policy_type.implementation),
-        ('properties', convert_parameters(context, policy_type.properties))))
-
-def convert_properties(context, properties):
-    return OrderedDict((
-        (k, as_raw(v.value)) for k, v in properties.iteritems()))
-
 def convert_inputs(context, inputs):
     return OrderedDict((
         (k, as_raw(v.value)) for k, v in inputs.iteritems()))
-
-def convert_parameters(context, parameters):
-    return OrderedDict((
-        (k, convert_parameter(context, v)) for k, v in parameters.iteritems()))
-
-def convert_parameter(context, parameter):
-    # prune removes any None (but not NULL), and then as_raw converts any NULL to None
-    return as_raw(prune(OrderedDict((
-        ('type', parameter.type_name),
-        ('default', parameter.value),
-        ('description', parameter.description)))))
 
 def convert_type_hierarchy(context, the_type, hierarchy):
     type_hierarchy = []

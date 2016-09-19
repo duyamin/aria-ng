@@ -15,8 +15,8 @@
 #
 
 from .definitions import PropertyDefinition, WorkflowDefinition
-from .assignments import PropertyAssignment, InterfaceAssignment, PolicyAssignment
-from .types import NodeType, RelationshipType, PolicyType, GroupPolicyTrigger
+from .assignments import PropertyAssignment, InterfaceAssignment, GroupPolicyAssignment
+from .types import NodeType, RelationshipType, PolicyType, PolicyTriggerType
 from .misc import Description, Output, Plugin, Instances
 from .field_validators import node_templates_or_groups_validator
 from .utils.properties import get_assigned_and_defined_property_values, get_parameter_values
@@ -216,12 +216,12 @@ class GroupDefinition(Presentation):
         :rtype: list of str
         """
 
-    @object_dict_field(PolicyAssignment)
+    @object_dict_field(GroupPolicyAssignment)
     def policies(self):
         """
         A dict of policies. 
         
-        :rtype: dict of str, :class:`PolicyAssignment`
+        :rtype: dict of str, :class:`GroupPolicyAssignment`
         """
 
 @has_fields
@@ -330,10 +330,10 @@ class ServiceTemplate(Presentation):
         :rtype: dict of str, :class:`GroupPolicyType`
         """
 
-    @object_dict_field(GroupPolicyTrigger)
+    @object_dict_field(PolicyTriggerType)
     def policy_triggers(self):
         """
-        :rtype: dict of str, :class:`GroupPolicyTrigger`
+        :rtype: dict of str, :class:`PolicyTriggerType`
         """
 
     @cachedmethod

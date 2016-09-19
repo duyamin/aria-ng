@@ -77,6 +77,13 @@ class PolicyType(Type):
         self.implementation = None     
         self.properties = StrictDict(key_class=basestring)
 
+class PolicyTriggerType(Type):
+    def __init__(self, name):
+        super(PolicyTriggerType, self).__init__(name)
+
+        self.implementation = None     
+        self.properties = StrictDict(key_class=basestring)
+
 class TypeHierarchy(Type):
     def __init__(self):
         self.name = None

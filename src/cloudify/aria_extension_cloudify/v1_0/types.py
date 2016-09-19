@@ -197,16 +197,12 @@ class PolicyType(Presentation):
     def _get_properties(self, context):
         return self.properties
 
-    def _validate(self, context):
-        super(PolicyType, self)._validate(context)
-        self._get_properties(context)
-
 @has_fields
 @dsl_specification('policy-triggers', 'cloudify-1.0')
 @dsl_specification('policy-triggers', 'cloudify-1.1')
 @dsl_specification('policy-triggers', 'cloudify-1.2')
 @dsl_specification('policy-triggers', 'cloudify-1.3')
-class GroupPolicyTrigger(Presentation):
+class PolicyTriggerType(Presentation):
     """
     :code:`policy_triggers` specify the implementation of actions invoked by policies and declare the properties that define the trigger's behavior.
     
@@ -230,6 +226,9 @@ class GroupPolicyTrigger(Presentation):
         """
 
     @cachedmethod
+    def _get_parent(self, context):
+        return None
+
+    @cachedmethod
     def _get_properties(self, context):
         return self.parameters
-
