@@ -3452,3 +3452,36 @@ imports:
         result = self.parse()
         self.assertEqual(
             expected_result['policy_triggers'], result['policy_triggers'])
+
+    def test_groups_imports(self):
+        groups = [
+            dict(groups={
+                'group{0}'.format(i): dict(
+                    members=['test_node'],
+                    policies=dict(
+                        policy=dict(
+                            type='policy_type',
+                            properties={},
+                            triggers={})))})
+            for i in range(2)
+            ]
+        policy_types = """
+policy_types:
+    policy_type:
+        properties: {}
+        source: source
+"""
+        template = self.template.version_section('cloudify_dsl', '1.3', raw=True)
+        self.template.node_type_section()
+        self.template.plugin_section()
+        self.template.node_template_section()
+        self.template.template = template + self.create_yaml_with_imports([
+            str(self.template),
+            policy_types,
+            yaml_dumps(groups[0]),
+            yaml_dumps(groups[1])])
+        expected_result = dict(groups=groups[0]['groups'])
+        expected_result['groups'].update(groups[1]['groups'])
+
+        result = self.parse()
+        self.assertEqual(result['groups'], expected_result['groups'])
