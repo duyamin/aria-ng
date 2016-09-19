@@ -3113,6 +3113,7 @@ node_templates:
             self.template.version_section('cloudify_dsl', '1.2', raw=True),
             self.template.version_section('cloudify_dsl', '1.3', raw=True),
         ])
+        self.template.version_section('cloudify_dsl', '1.0')
         self.template += """
 node_types:
   type: {}
