@@ -64,8 +64,9 @@ def convert_plan(context):
         ('outputs', convert_properties(context, context.deployment.plan.outputs)),
         ('workflows', OrderedDict(
             (k, convert_workflow(context, v)) for k, v in context.deployment.plan.operations.iteritems())),
-        ('workflow_plugins_to_install', plugins_to_install_for_operations(context, context.deployment.plan.operations, CENTRAL_DEPLOYMENT_AGENT)),
         ('policies', OrderedDict()), # TODO
+        ('deployment_plugins_to_install', []),
+        ('workflow_plugins_to_install', plugins_to_install_for_operations(context, context.deployment.plan.operations, CENTRAL_DEPLOYMENT_AGENT)),
 
         # Instances
         ('node_instances', [convert_node(context, v) for v in context.deployment.plan.nodes.itervalues()]),
@@ -84,6 +85,17 @@ def convert_plan(context):
             (v.name, convert_policy_trigger_type(context, v)) for v in context.deployment.policy_trigger_types.iter_descendants())),
         ('relationships', OrderedDict(
             (v.name, convert_relationship_type(context, v)) for v in context.deployment.relationship_types.iter_descendants()))))
+
+    # Aggregate deployment_plugins_to_install from nodes
+    for node in r['nodes']:
+        for plugin in node['deployment_plugins_to_install']:
+            exists = False
+            for plugin in r['deployment_plugins_to_install']:
+                if plugin['name'] == plugin['name']:
+                    exists = True
+                    break
+            if not exists:
+                r['deployment_plugins_to_install'].append(plugin)
     
     # Some code needs to access these as Python attributes
     setattr(r, 'version', r['version'])
@@ -348,9 +360,9 @@ def parse_implementation(context, implementation, is_workflow=False):
     parsed = False
 
     if not implementation:
-        plugin_name = ''
+        plugin_name = None
         plugin_executor = None
-        operation_name = ''
+        operation_name = None
         inputs = OrderedDict()
         parsed = True
     
@@ -406,7 +418,7 @@ def plugins_to_install_for_interface(context, interfaces, agent):
             if executor == agent:
                 if plugin_name not in install: 
                     install.append(plugin_name)
-    return [OrderedDict((('name', v),)) for v in install]
+    return [find_plugin(context, v) for v in install]
 
 def plugins_to_install_for_operations(context, operations, agent):
     install = []
@@ -416,7 +428,7 @@ def plugins_to_install_for_operations(context, operations, agent):
         if executor == agent:
             if plugin_name not in install: 
                 install.append(plugin_name)
-    return [OrderedDict((('name', v),)) for v in install]
+    return [find_plugin(context, v) for v in install]
 
 def get_type_parent_name(the_type, hierarchy):
     the_type = hierarchy.get_parent(the_type.name)
