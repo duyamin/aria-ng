@@ -115,7 +115,7 @@ def as_agnostic(value):
             
     return value
 
-def json_dumps(value, indent):
+def json_dumps(value, indent=2):
     """
     JSON dumps that supports Unicode and the :code:`as_raw` property of objects
     if available. 
@@ -123,7 +123,7 @@ def json_dumps(value, indent):
     
     return json.dumps(value, indent=indent, ensure_ascii=False, cls=JsonAsRawEncoder)
 
-def yaml_dumps(value, indent):
+def yaml_dumps(value, indent=2):
     """
     YAML dumps that supports Unicode and the :code:`as_raw` property of objects
     if available. 
