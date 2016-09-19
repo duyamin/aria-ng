@@ -218,7 +218,7 @@ def is_removable(container, k, v):
 
 def prune(value, is_removable_fn=is_removable):
     """
-    Deletes nulls and empty lists and dicts, recursively.
+    Deletes :code:`None` and empty lists and dicts, recursively.
     """
     
     if isinstance(value, list):

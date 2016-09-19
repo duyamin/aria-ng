@@ -17,7 +17,7 @@
 from .openclose import OpenClose
 from .caching import  cachedmethod, HasCachedMethods
 from .formatting import JsonAsRawEncoder, YamlAsRawDumper, classname, as_raw, as_agnostic, json_dumps, yaml_dumps
-from .collections import ReadOnlyList, EMPTY_READ_ONLY_LIST, ReadOnlyDict, EMPTY_READ_ONLY_DICT, StrictList, StrictDict, merge, prune, deepcopy_with_locators, copy_locators
+from .collections import ReadOnlyList, EMPTY_READ_ONLY_LIST, ReadOnlyDict, EMPTY_READ_ONLY_DICT, StrictList, StrictDict, merge, prune, deepcopy_with_locators, copy_locators, is_removable
 from .exceptions import print_exception, print_traceback
 from .imports import import_fullname, import_modules
 from .threading import ExecutorException, FixedThreadPoolExecutor, LockedList
@@ -47,6 +47,7 @@ __all__ = (
     'prune',
     'deepcopy_with_locators',
     'copy_locators',
+    'is_removable',
     'print_exception',
     'print_traceback',
     'import_fullname',

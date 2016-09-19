@@ -16,8 +16,7 @@
 
 from aria.consumption import Consumer
 from aria.deployment import Parameter, Function
-from aria.presentation import NULL
-from aria.utils import JsonAsRawEncoder, as_raw, as_agnostic
+from aria.utils import JsonAsRawEncoder, as_raw, as_agnostic, prune
 from collections import OrderedDict
 import json
 
@@ -287,11 +286,11 @@ def convert_parameters(context, parameters):
         (k, convert_parameter(context, v)) for k, v in parameters.iteritems()))
 
 def convert_parameter(context, parameter):
-    r = OrderedDict()
-    put_raw_if_not_null(r, 'type', parameter.type_name)
-    put_raw_if_not_null(r, 'default', parameter.value)
-    put_raw_if_not_null(r, 'description', parameter.description)
-    return r
+    # prune removes any None (but not NULL), and then as_raw converts any NULL to None
+    return as_raw(prune(OrderedDict((
+        ('type', parameter.type_name),
+        ('default', parameter.value),
+        ('description', parameter.description)))))
 
 def convert_type_hierarchy(context, the_type, hierarchy):
     type_hierarchy = []
@@ -392,9 +391,3 @@ def iter_scaling_groups(context):
             for group_template_name in policy_template.target_group_template_names:
                 group_template = context.deployment.template.group_templates[group_template_name]
                 yield group_template_name, group_template
-
-def put_raw_if_not_null(r, key, value):
-    if value is NULL:
-        r[key] = None
-    elif value is not None:
-        r[key] = as_raw(value)
