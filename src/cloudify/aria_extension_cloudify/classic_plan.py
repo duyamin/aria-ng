@@ -16,13 +16,15 @@
 
 from aria.consumption import Consumer
 from aria.deployment import Parameter, Function
-from aria.utils import JsonAsRawEncoder, as_raw, as_agnostic, prune
+from aria.utils import as_raw, as_agnostic, merge, prune, json_dumps
 from collections import OrderedDict
-import json
+import os
 
 COMPUTE_NODE_NAME = 'cloudify.nodes.Compute'
 CONTAINED_IN_RELATIONSHIP_NAME = 'cloudify.relationships.contained_in'
 SCALING_POLICY_NAME = 'cloudify.policies.scaling'
+SCRIPT_RUNNER_RUN_OPERATION = 'script_runner.tasks.run'
+SCRIPT_RUNNER_EXECUTE_WORKFLOW_OPERATION = 'script_runner.tasks.execute_workflow'
 
 class ClassicPlan(Consumer):
     """
@@ -34,21 +36,23 @@ class ClassicPlan(Consumer):
             self.context.validation.report('ClassicPlan consumer: missing deployment plan')
             return
 
+        plugins = self.context.presentation.presenter.service_template.plugins
+        plugins = [convert_plugin(self.context, v) for v in plugins.itervalues()] if plugins is not None else []
+        setattr(self.context.deployment, 'plugins', plugins)
+
         classic_plan = convert_plan(self.context)
         setattr(self.context.deployment, 'classic_plan_ordered', classic_plan)
         setattr(self.context.deployment, 'classic_plan', as_agnostic(classic_plan))
     
     def dump(self):
-        self.context.write(json.dumps(self.context.deployment.classic_plan, indent=2, cls=JsonAsRawEncoder))
+        indent = self.context.get_arg_value_int('indent', 2)
+        self.context.write(json_dumps(self.context.deployment.classic_plan, indent=indent))
 
 #
 # Conversions
 #
 
 def convert_plan(context):
-    plugins = context.presentation.presenter.service_template.plugins
-    plugins = [convert_plugin(context, v) for v in plugins.itervalues()] if plugins is not None else []
-
     r = OrderedDict((
         # General
         ('version', convert_version(context)),
@@ -57,14 +61,14 @@ def convert_plan(context):
         ('outputs', convert_properties(context, context.deployment.plan.outputs)),
         ('workflows', OrderedDict(
             (k, convert_workflow(context, v)) for k, v in context.deployment.plan.operations.iteritems())),
-        ('workflow_plugins_to_install', plugins_to_install_for_operations(context, context.deployment.plan.operations, plugins, 'central_deployment_agent')),
+        ('workflow_plugins_to_install', plugins_to_install_for_operations(context, context.deployment.plan.operations, 'central_deployment_agent')),
         ('policies', OrderedDict()), # TODO
 
         # Instances
         ('node_instances', [convert_node(context, v) for v in context.deployment.plan.nodes.itervalues()]),
 
         # Templates
-        ('nodes', [convert_node_template(context, v, plugins) for v in context.deployment.template.node_templates.itervalues()]),
+        ('nodes', [convert_node_template(context, v) for v in context.deployment.template.node_templates.itervalues()]),
         ('groups', OrderedDict(
             (k, convert_group_template(context, v)) for k, v in context.deployment.template.group_templates.iteritems())),
         ('scaling_groups', OrderedDict(
@@ -118,12 +122,12 @@ def convert_plugin(context, plugin):
         ('supported_platform', getattr(plugin, 'supported_platform', None))))
 
 def convert_workflow(context, operation):
-    plugin_name, _, operation_name = parse_implementation(context, operation.implementation)
+    plugin_name, _, operation_name, inputs = parse_implementation(context, operation.implementation, True)
 
     r = OrderedDict((
         ('plugin', plugin_name),
         ('operation', operation_name),
-        ('parameters', convert_parameters(context, operation.inputs)),
+        ('parameters', merge(convert_parameters(context, operation.inputs), inputs)),
         ('has_intrinsic_functions', has_intrinsic_functions(context, operation.inputs)),
         ('executor', operation.executor),
         ('max_retries', operation.max_retries),
@@ -158,7 +162,7 @@ def convert_relationship(context, relationship):
 # Templates
 #
 
-def convert_node_template(context, node_template, plugins):
+def convert_node_template(context, node_template):
     node_type = context.deployment.node_types.get_descendant(node_template.type_name)
     host_node_template = find_host_node_template(context, node_template)
     
@@ -181,9 +185,9 @@ def convert_node_template(context, node_template, plugins):
         ('properties', convert_properties(context, node_template.properties)),
         ('operations', convert_operations(context, node_template.interfaces)),
         ('relationships', relationships),
-        ('plugins', plugins),
-        ('plugins_to_install', plugins_to_install_for_interface(context, node_template.interfaces, plugins, 'host_agent')),
-        ('deployment_plugins_to_install', plugins_to_install_for_interface(context, node_template.interfaces, plugins, 'central_deployment_agent')),
+        ('plugins', context.deployment.plugins),
+        ('plugins_to_install', plugins_to_install_for_interface(context, node_template.interfaces, 'host_agent')),
+        ('deployment_plugins_to_install', plugins_to_install_for_interface(context, node_template.interfaces, 'central_deployment_agent')),
         ('capabilities', OrderedDict((
             ('scalable', OrderedDict((
                 ('properties', OrderedDict((
@@ -281,7 +285,7 @@ def convert_interfaces(context, interfaces):
     return r
 
 def convert_interface_operation(context, operation):
-    _, plugin_executor, _ = parse_implementation(context, operation.implementation)
+    _, plugin_executor, _, _ = parse_implementation(context, operation.implementation)
 
     return OrderedDict((
         ('implementation', operation.implementation or ''),
@@ -310,12 +314,12 @@ def convert_operations(context, interfaces):
     return r
 
 def convert_operation(context, operation):
-    plugin_name, plugin_executor, operation_name = parse_implementation(context, operation.implementation)
+    plugin_name, plugin_executor, operation_name, inputs = parse_implementation(context, operation.implementation)
 
     return OrderedDict((
         ('plugin', plugin_name),
         ('operation', operation_name),
-        ('inputs', convert_inputs(context, operation.inputs)),
+        ('inputs', merge(convert_inputs(context, operation.inputs), inputs)),
         ('has_intrinsic_functions', has_intrinsic_functions(context, operation.inputs)),
         ('executor', operation.executor or plugin_executor),
         ('max_retries', operation.max_retries),
@@ -336,16 +340,33 @@ def convert_type_hierarchy(context, the_type, hierarchy):
 # Utils
 #
 
-def parse_implementation(context, implementation):
-    if (not implementation) or ('/' in implementation):
-        # Explicit script
-        return None, None, implementation
-    else:
+def parse_implementation(context, implementation, is_workflow=False):
+    is_script = False
+    for search_path in context.loading.search_paths:
+        path = os.path.join(search_path, implementation)
+        if os.path.isfile(path):
+            # Explicit script
+            is_script = True
+            plugin = find_plugin(context)
+            plugin_name = plugin['name'] 
+            plugin_executor = plugin['executor']
+            if is_workflow:
+                operation_name = SCRIPT_RUNNER_EXECUTE_WORKFLOW_OPERATION
+                inputs = OrderedDict((
+                    ('script_path', OrderedDict((('default', implementation),))),)) 
+            else:
+                operation_name = SCRIPT_RUNNER_RUN_OPERATION
+                inputs = OrderedDict((('script_path', implementation),))
+            break
+
+    if not is_script:
         # plugin.operation
         plugin_name, operation_name = implementation.split('.', 1)
-        plugin = context.presentation.presenter.service_template.plugins.get(plugin_name) if context.presentation.presenter.service_template.plugins is not None else None
-        plugin_executor = plugin.executor if plugin is not None else None
-        return plugin_name, plugin_executor, operation_name
+        plugin = find_plugin(context, plugin_name)
+        plugin_executor = plugin['executor']
+        inputs = OrderedDict()
+
+    return plugin_name, plugin_executor, operation_name, inputs
 
 def has_intrinsic_functions(context, value):
     if isinstance(value, Parameter):
@@ -363,21 +384,21 @@ def has_intrinsic_functions(context, value):
                 return True
     return False
 
-def plugins_to_install_for_interface(context, interfaces, plugins, agent):
+def plugins_to_install_for_interface(context, interfaces, agent):
     install = []
     for interface in interfaces.itervalues():
         for operation in interface.operations.itervalues():
-            plugin_name, plugin_executor, _ = parse_implementation(context, operation.implementation)
+            plugin_name, plugin_executor, _, _ = parse_implementation(context, operation.implementation)
             executor = operation.executor or plugin_executor
             if executor == agent:
                 if plugin_name not in install: 
                     install.append(plugin_name)
     return [OrderedDict((('name', v),)) for v in install]
 
-def plugins_to_install_for_operations(context, operations, plugins, agent):
+def plugins_to_install_for_operations(context, operations, agent):
     install = []
     for operation in operations.itervalues():
-        plugin_name, plugin_executor, _ = parse_implementation(context, operation.implementation)
+        plugin_name, plugin_executor, _, _ = parse_implementation(context, operation.implementation)
         executor = operation.executor or plugin_executor
         if executor == agent:
             if plugin_name not in install: 
@@ -387,6 +408,14 @@ def plugins_to_install_for_operations(context, operations, plugins, agent):
 def get_type_parent_name(the_type, hierarchy):
     the_type = hierarchy.get_parent(the_type.name)
     return the_type.name if the_type is not None else None
+
+def find_plugin(context, name=None):
+    for plugin in context.deployment.plugins:
+        if name is None:
+            return plugin
+        elif plugin['name'] == name:
+            return plugin
+    return None
 
 def find_host_node_template(context, node_template):
     if context.deployment.node_types.is_descendant(COMPUTE_NODE_NAME, node_template.type_name):

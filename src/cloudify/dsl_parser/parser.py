@@ -19,11 +19,17 @@ from aria.consumption import ConsumptionContext, ConsumerChain, Read, Validate, 
 from aria.loading import UriLocation, LiteralLocation
 from aria_extension_cloudify import ClassicPlan
 from aria_extension_cloudify.v1_3 import CloudifyPresenter1_3
+import os
 
 install_aria_extensions()
 
 def parse_from_path(dsl_file_path, resources_base_url=None, additional_resource_sources=(), validate_version=True, **legacy):
-    paths = [resources_base_url] if resources_base_url is not None else []
+    paths = []
+    path = os.path.dirname(dsl_file_path)
+    if path:
+        paths.append(path)
+    if resources_base_url:
+        paths.append(resources_base_url)
     paths += additional_resource_sources
     return _parse(UriLocation(dsl_file_path), paths, validate_version)
 
@@ -31,7 +37,7 @@ def parse(dsl_string, resources_base_url=None, validate_version=True, **legacy):
     paths = [resources_base_url] if resources_base_url is not None else []
     return _parse(LiteralLocation(dsl_string), paths, validate_version)
 
-def _parse(location, search_paths=None, validate_version=True):
+def _parse(location, search_paths, validate_version):
     context = ConsumptionContext()
     context.presentation.print_exceptions = True # Developers, developers, developers, developers
     context.presentation.location = location
