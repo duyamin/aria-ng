@@ -14,8 +14,9 @@
 # under the License.
 #
 
-from ..utils import merge
 from .presentation import Presentation
+from ..utils import merge
+from ..validation import Issue 
 
 class Presenter(Presentation):
     """
@@ -23,6 +24,17 @@ class Presenter(Presentation):
     
     Presenters provide a robust API over agnostic raw data.
     """
+
+    @classmethod
+    def can_present(cls, raw):
+        dsl = raw.get('tosca_definitions_version')
+        return dsl == cls.DSL_VERSION
+
+    def _validate_import(self, context, presentation):
+        if (presentation.service_template.tosca_definitions_version is not None) and (presentation.service_template.tosca_definitions_version not in self.__class__.ALLOWED_IMPORTED_DSL_VERSIONS):
+            context.validation.report('import "tosca_definitions_version" is not one of %s: %s' % (' or '.join([repr(v) for v in self.__class__.ALLOWED_IMPORTED_DSL_VERSIONS]), presentation.service_template.tosca_definitions_version), locator=presentation._get_child_locator('inputs'), level=Issue.BETWEEN_TYPES)
+            return False
+        return True
 
     def _merge_import(self, presentation):
         merge(self._raw, presentation._raw)

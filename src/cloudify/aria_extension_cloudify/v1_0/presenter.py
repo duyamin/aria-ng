@@ -26,6 +26,9 @@ class CloudifyPresenter1_0(Presenter):
     ARIA presenter for the `Cloudify DSL v1.0 specification <http://getcloudify.org/guide/3.1/dsl-spec-general.html>`__.
     """
 
+    DSL_VERSION = 'cloudify_dsl_1_0'
+    ALLOWED_IMPORTED_DSL_VERSIONS = ('cloudify_dsl_1_0',)
+    
     @property
     @cachedmethod
     def service_template(self):
@@ -49,18 +52,12 @@ class CloudifyPresenter1_0(Presenter):
 
     # Presenter
 
-    @staticmethod
-    def can_present(raw):
-        dsl = raw.get('tosca_definitions_version')
-        return dsl == 'cloudify_dsl_1_0'
-
     def _get_import_locations(self):
         return self.service_template.imports if (self.service_template and self.service_template.imports) else EMPTY_READ_ONLY_LIST
-    
+
     def _validate_import(self, context, presentation):
         r = True
-        if (presentation.service_template.tosca_definitions_version is not None) and (presentation.service_template.tosca_definitions_version != self.service_template.tosca_definitions_version):
-            context.validation.report('import "tosca_definitions_version" is not "%s": %s' % (self.service_template.tosca_definitions_version, presentation.service_template.tosca_definitions_version), locator=presentation._get_child_locator('inputs'), level=Issue.BETWEEN_TYPES)
+        if not super(CloudifyPresenter1_0, self)._validate_import(context, presentation):
             r = False
         if presentation.inputs is not None:
             context.validation.report('import has forbidden "inputs" section', locator=presentation._get_child_locator('inputs'), level=Issue.BETWEEN_TYPES)

@@ -18,6 +18,7 @@ from .consumer import Consumer
 from ..utils import FixedThreadPoolExecutor, json_dumps, yaml_dumps
 from ..loading import UriLocation
 from ..reading import AlreadyReadError
+from ..presentation import PresenterNotFoundError
 
 class Read(Consumer):
     """
@@ -46,7 +47,7 @@ class Read(Consumer):
         executor = FixedThreadPoolExecutor(size=self.context.presentation.threads, timeout=self.context.presentation.timeout)
         executor.print_exceptions = self.context.presentation.print_exceptions
         try:
-            presenter = self._present(self.context.presentation.location, None, self.context.presentation.presenter_class, executor)
+            presenter = self._present(self.context.presentation.location, None, None, executor)
             executor.drain()
             
             # Handle exceptions
@@ -87,9 +88,18 @@ class Read(Consumer):
     
     def _present(self, location, origin_location, presenter_class, executor):
         raw = self._read(location, origin_location)
-        
-        if presenter_class is None:
-            presenter_class = self.context.presentation.presenter_source.get_presenter(raw)
+
+        if self.context.presentation.presenter_class is not None:
+            # The presenter class we specified in the context overrides everything 
+            presenter_class = self.context.presentation.presenter_class
+        else:
+            try:
+                presenter_class = self.context.presentation.presenter_source.get_presenter(raw)
+            except PresenterNotFoundError:
+                # We'll use the presenter class we were given (from the presenter that imported us)
+                pass
+            if presenter_class is None:
+                raise PresenterNotFoundError()
         
         presentation = presenter_class(raw=raw)
 

@@ -16,6 +16,7 @@
 
 from ..v1_2 import CloudifyPresenter1_2
 from .templates import ServiceTemplate
+from aria.presentation import Presenter
 from aria.validation import Issue
 from aria.utils import cachedmethod
 
@@ -31,6 +32,9 @@ class CloudifyPresenter1_3(CloudifyPresenter1_2):
     * Deprecate `instances` in `node templates <http://docs.getcloudify.org/3.4.0/blueprints/spec-node-templates/>`__.
     """
 
+    DSL_VERSION = 'cloudify_dsl_1_3'
+    ALLOWED_IMPORTED_DSL_VERSIONS = ('cloudify_dsl_1_3', 'cloudify_dsl_1_2', 'cloudify_dsl_1_1', 'cloudify_dsl_1_0')
+
     @property
     @cachedmethod
     def service_template(self):
@@ -38,15 +42,9 @@ class CloudifyPresenter1_3(CloudifyPresenter1_2):
 
     # Presenter
 
-    @staticmethod
-    def can_present(raw):
-        dsl = raw.get('tosca_definitions_version')
-        return dsl == 'cloudify_dsl_1_3'
-
     def _validate_import(self, context, presentation):
         r = True
-        if (presentation.service_template.tosca_definitions_version is not None) and (presentation.service_template.tosca_definitions_version != self.service_template.tosca_definitions_version):
-            context.validation.report('import "tosca_definitions_version" is not "%s": %s' % (self.service_template.tosca_definitions_version, presentation.service_template.tosca_definitions_version), locator=presentation._get_child_locator('inputs'), level=Issue.BETWEEN_TYPES)
+        if not Presenter._validate_import(self, context, presentation):
             r = False
         if presentation.groups is not None:
             context.validation.report('import has forbidden "groups" section', locator=presentation._get_child_locator('groups'), level=Issue.BETWEEN_TYPES)

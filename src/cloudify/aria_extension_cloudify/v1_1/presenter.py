@@ -30,6 +30,9 @@ class CloudifyPresenter1_1(CloudifyPresenter1_0):
     * Addition of `install_arguments` to `plugin definitions <http://getcloudify.org/guide/3.2/dsl-spec-plugins.html>`__.
     """
 
+    DSL_VERSION = 'cloudify_dsl_1_1'
+    ALLOWED_IMPORTED_DSL_VERSIONS = ('cloudify_dsl_1_1', 'cloudify_dsl_1_0')
+
     @property
     @cachedmethod
     def service_template(self):
@@ -42,10 +45,3 @@ class CloudifyPresenter1_1(CloudifyPresenter1_0):
         functions.update({
             'concat': Concat})
         return functions
-
-    # Presenter
-
-    @staticmethod
-    def can_present(raw):
-        dsl = raw.get('tosca_definitions_version')
-        return dsl == 'cloudify_dsl_1_1'

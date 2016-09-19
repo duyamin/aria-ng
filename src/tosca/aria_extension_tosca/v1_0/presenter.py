@@ -17,7 +17,6 @@
 from .templates import ServiceTemplate
 from .functions import Concat, Token, GetInput, GetProperty, GetAttribute, GetOperationOutput, GetNodesOfType, GetArtifact
 from .utils.deployment import get_deployment_template
-from aria.validation import Issue
 from aria.presentation import Presenter
 from aria.utils import ReadOnlyList, cachedmethod
 
@@ -25,6 +24,9 @@ class ToscaSimplePresenter1_0(Presenter):
     """
     ARIA presenter for the `TOSCA Simple Profile v1.0 <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html>`__.
     """
+
+    DSL_VERSION = 'tosca_simple_yaml_1_0'
+    ALLOWED_IMPORTED_DSL_VERSIONS = ('tosca_simple_yaml_1_0',)
     
     @property
     @cachedmethod
@@ -54,21 +56,9 @@ class ToscaSimplePresenter1_0(Presenter):
 
     # Presenter
 
-    @staticmethod
-    def can_present(raw):
-        dsl = raw.get('tosca_definitions_version')
-        return dsl == 'tosca_simple_yaml_1_0'
-
     @cachedmethod
     def _get_import_locations(self):
         return ReadOnlyList([i.file for i in self.service_template.imports] if (self.service_template and self.service_template.imports) else [])
-
-    def _validate_import(self, context, presentation):
-        r = True
-        if (presentation.service_template.tosca_definitions_version is not None) and (presentation.service_template.tosca_definitions_version != self.service_template.tosca_definitions_version):
-            context.validation.report('import "tosca_definitions_version" is not "%s": %s' % (self.service_template.tosca_definitions_version, presentation.service_template.tosca_definitions_version), locator=presentation._get_child_locator('inputs'), level=Issue.BETWEEN_TYPES)
-            r = False
-        return r
 
     @cachedmethod
     def _get_deployment_template(self, context):
