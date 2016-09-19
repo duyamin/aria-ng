@@ -3121,7 +3121,7 @@ node_templates:
   node:
     type: type
 """
-        self.assertRaises(DSLParsingException, self.parse)
+        self.assertRaises(CloudifyParserError, self.parse)
         self.parse(validate_version=False)
 
     def test_workflow_imports(self):

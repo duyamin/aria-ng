@@ -24,7 +24,7 @@ class PropertyAssignment(AsIsPresentation):
 
 @has_fields
 class GroupPolicyTriggerAssignment(Presentation):
-    @field_validator(type_validator('policy trigger', 'policy_triggers'))
+    @field_validator(type_validator('policy trigger type', 'policy_trigger_types'))
     @primitive_field(str, required=True)
     def type(self):
         """
@@ -43,7 +43,7 @@ class GroupPolicyTriggerAssignment(Presentation):
 
     @cachedmethod
     def _get_type(self, context):
-        return context.presentation.presenter.policy_triggers.get(self.type) if context.presentation.presenter.policy_triggers is not None else None
+        return context.presentation.presenter.policy_trigger_types.get(self.type) if context.presentation.presenter.policy_trigger_types is not None else None
 
     @cachedmethod
     def _get_property_values(self, context):
