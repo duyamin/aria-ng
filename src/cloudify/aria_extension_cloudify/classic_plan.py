@@ -341,25 +341,34 @@ def convert_type_hierarchy(context, the_type, hierarchy):
 #
 
 def parse_implementation(context, implementation, is_workflow=False):
-    is_script = False
-    for search_path in context.loading.search_paths:
-        path = os.path.join(search_path, implementation)
-        if os.path.isfile(path):
-            # Explicit script
-            is_script = True
-            plugin = find_plugin(context)
-            plugin_name = plugin['name'] 
-            plugin_executor = plugin['executor']
-            if is_workflow:
-                operation_name = SCRIPT_RUNNER_EXECUTE_WORKFLOW_OPERATION
-                inputs = OrderedDict((
-                    ('script_path', OrderedDict((('default', implementation),))),)) 
-            else:
-                operation_name = SCRIPT_RUNNER_RUN_OPERATION
-                inputs = OrderedDict((('script_path', implementation),))
-            break
+    parsed = False
 
-    if not is_script:
+    if not implementation:
+        plugin_name = ''
+        plugin_executor = None
+        operation_name = ''
+        inputs = OrderedDict()
+        parsed = True
+    
+    if not parsed:
+        for search_path in context.loading.search_paths:
+            path = os.path.join(search_path, implementation)
+            if os.path.isfile(path):
+                # Explicit script
+                plugin = find_plugin(context)
+                plugin_name = plugin['name'] 
+                plugin_executor = plugin['executor']
+                if is_workflow:
+                    operation_name = SCRIPT_RUNNER_EXECUTE_WORKFLOW_OPERATION
+                    inputs = OrderedDict((
+                        ('script_path', OrderedDict((('default', implementation),))),)) 
+                else:
+                    operation_name = SCRIPT_RUNNER_RUN_OPERATION
+                    inputs = OrderedDict((('script_path', implementation),))
+                parsed = True
+                break
+
+    if not parsed:
         # plugin.operation
         plugin_name, operation_name = implementation.split('.', 1)
         plugin = find_plugin(context, plugin_name)
