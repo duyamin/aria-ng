@@ -341,8 +341,12 @@ class Field(object):
         return 'field "%s" in %s.%s' % (self.name, self.container_cls.__module__, self.container_cls.__name__)
 
     @property
-    def fullclass(self):
-        return '%s.%s' % (self.cls.__module__, self.cls.__name__)
+    def fullclassname(self):
+        module = str(self.cls.__module__)
+        name = str(self.cls.__name__)
+        if module == '__builtin__':
+            return '%s' % name 
+        return '%s.%s' % (module, name)
 
     def get(self, presentation):
         return self._get(presentation)
@@ -435,7 +439,7 @@ class Field(object):
             try:
                 return self.cls(value)
             except ValueError:
-                raise InvalidValueError('%s is not a valid "%s": %s' % (self.fullname, self.fullclass, repr(value)), locator=self.get_locator(raw))
+                raise InvalidValueError('%s is not a valid "%s": %s' % (self.fullname, self.fullclassname, repr(value)), locator=self.get_locator(raw))
         return value
 
     def _dump_primitive(self, context, value):
@@ -455,7 +459,7 @@ class Field(object):
                     try:
                         v = self.cls(v)
                     except ValueError:
-                        raise InvalidValueError('%s is not a list of "%s": element %d is %s' % (self.fullname, self.fullclass, i, repr(v)), locator=self.get_locator(raw))
+                        raise InvalidValueError('%s is not a list of "%s": element %d is %s' % (self.fullname, self.fullclassname, i, repr(v)), locator=self.get_locator(raw))
                 r.append(v)
         return ReadOnlyList(r)
 
@@ -478,7 +482,7 @@ class Field(object):
                     try:
                         v = self.cls(v)
                     except ValueError:
-                        raise InvalidValueError('%s is not a dict of "%s" values: entry "%d" is %s' % (self.fullname, self.fullclass, k, repr(v)), locator=self.get_locator(raw))
+                        raise InvalidValueError('%s is not a dict of "%s" values: entry "%d" is %s' % (self.fullname, self.fullclassname, k, repr(v)), locator=self.get_locator(raw))
                 r[k] = v
         return ReadOnlyDict(r)
 
@@ -494,7 +498,7 @@ class Field(object):
         try:
             return self.cls(raw=value, container=presentation)
         except TypeError as e:
-            raise InvalidValueError('%s cannot not be initialized to an instance of "%s": %s' % (self.fullname, self.fullclass, repr(value)), cause=e, locator=self.get_locator(raw))
+            raise InvalidValueError('%s cannot not be initialized to an instance of "%s": %s' % (self.fullname, self.fullclassname, repr(value)), cause=e, locator=self.get_locator(raw))
 
     def _dump_object(self, context, value):
         puts('%s:' % self.name)
@@ -556,7 +560,7 @@ class Field(object):
                             try:
                                 r[k] = self.cls(v)
                             except ValueError:
-                                raise InvalidValueError('%s is not a dict of "%s" values: entry "%d" is %s' % (self.fullname, self.fullclass, k, repr(v)), locator=self.get_locator(raw))
+                                raise InvalidValueError('%s is not a dict of "%s" values: entry "%d" is %s' % (self.fullname, self.fullclassname, k, repr(v)), locator=self.get_locator(raw))
             return ReadOnlyDict(r)
         return None
 

@@ -17,7 +17,7 @@
 import os
 from uuid import uuid4
 from shutil import rmtree
-from ruamel.yaml import safe_dump
+from aria.utils import yaml_dumps
 from itertools import imap
 from tempfile import mkdtemp
 
@@ -214,11 +214,11 @@ class Template(object):
             blueprint['policy_types'] = policy_types
 
         self.clear()
-        self.template += safe_dump(blueprint)
+        self.template += yaml_dumps(blueprint)
 
     def from_blueprint_dict(self, blueprint):
         self.clear()
-        self.template += safe_dump(blueprint)
+        self.template += yaml_dumps(blueprint)
 
     def clear(self):
         self.template = ''

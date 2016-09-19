@@ -16,9 +16,7 @@
 
 import os
 from urllib import pathname2url
-
-from ruamel.yaml import safe_dump, safe_load
-
+from aria.utils import yaml_dumps, yaml_loads
 from aria.reading.exceptions import ReaderNotFoundError
 
 from .suite import (
@@ -2469,7 +2467,7 @@ node_templates:
         deployment_plugin_def['executor'] = 'central_deployment_agent'
         host_plugin_def = base_plugin_def.copy()
         host_plugin_def['executor'] = 'host_agent'
-        raw_parsed = safe_load(str(self.template))
+        raw_parsed = yaml_loads(str(self.template))
         raw_parsed['plugins'] = {
             'plugin1': deployment_plugin_def,
             'plugin2': host_plugin_def,
@@ -2477,7 +2475,7 @@ node_templates:
 
         self.template.clear()
         self.template.version_section('cloudify_dsl', '1.2')
-        self.template += safe_dump(raw_parsed)
+        self.template += yaml_dumps(raw_parsed)
         parsed = self.parse()
         expected_plugin1 = deployment_plugin_def.copy()
         expected_plugin1['name'] = 'plugin1'
@@ -3411,8 +3409,8 @@ imports:
         self.template.node_template_section()
         self.template.template = template + self.create_yaml_with_imports([
             str(self.template),
-            safe_dump(policy_types[0]),
-            safe_dump(policy_types[1]),
+            yaml_dumps(policy_types[0]),
+            yaml_dumps(policy_types[1]),
         ])
 
         expected_result = dict(policy_types=policy_types[0]['policy_types'])
@@ -3442,8 +3440,8 @@ imports:
         self.template.node_template_section()
         self.template.template = template + self.create_yaml_with_imports([
             str(self.template),
-            safe_dump(policy_triggers[0]),
-            safe_dump(policy_triggers[1]),
+            yaml_dumps(policy_triggers[0]),
+            yaml_dumps(policy_triggers[1]),
         ])
 
         expected_result = dict(

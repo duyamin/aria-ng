@@ -14,6 +14,7 @@
 # under the License.
 #
 
+from aria import InvalidValueError
 from aria.consumption import Consumer
 from aria.deployment import Parameter, Function
 from aria.utils import as_raw, as_agnostic, merge, prune, json_dumps
@@ -25,6 +26,8 @@ CONTAINED_IN_RELATIONSHIP_NAME = 'cloudify.relationships.contained_in'
 SCALING_POLICY_NAME = 'cloudify.policies.scaling'
 SCRIPT_RUNNER_RUN_OPERATION = 'script_runner.tasks.run'
 SCRIPT_RUNNER_EXECUTE_WORKFLOW_OPERATION = 'script_runner.tasks.execute_workflow'
+CENTRAL_DEPLOYMENT_AGENT = 'central_deployment_agent'
+HOST_AGENT = 'host_agent'
 
 class ClassicPlan(Consumer):
     """
@@ -41,8 +44,8 @@ class ClassicPlan(Consumer):
         setattr(self.context.deployment, 'plugins', plugins)
 
         classic_plan = convert_plan(self.context)
-        setattr(self.context.deployment, 'classic_plan_ordered', classic_plan)
-        setattr(self.context.deployment, 'classic_plan', as_agnostic(classic_plan))
+        setattr(self.context.deployment, 'classic_plan_ordered', classic_plan) # ordered version
+        setattr(self.context.deployment, 'classic_plan', as_agnostic(classic_plan)) # agnostic version (does not maintain dict order)
     
     def dump(self):
         indent = self.context.get_arg_value_int('indent', 2)
@@ -61,7 +64,7 @@ def convert_plan(context):
         ('outputs', convert_properties(context, context.deployment.plan.outputs)),
         ('workflows', OrderedDict(
             (k, convert_workflow(context, v)) for k, v in context.deployment.plan.operations.iteritems())),
-        ('workflow_plugins_to_install', plugins_to_install_for_operations(context, context.deployment.plan.operations, 'central_deployment_agent')),
+        ('workflow_plugins_to_install', plugins_to_install_for_operations(context, context.deployment.plan.operations, CENTRAL_DEPLOYMENT_AGENT)),
         ('policies', OrderedDict()), # TODO
 
         # Instances
@@ -81,7 +84,8 @@ def convert_plan(context):
             (v.name, convert_policy_trigger_type(context, v)) for v in context.deployment.policy_trigger_types.iter_descendants())),
         ('relationships', OrderedDict(
             (v.name, convert_relationship_type(context, v)) for v in context.deployment.relationship_types.iter_descendants()))))
-        
+    
+    # Some code needs to access these as Python attributes
     setattr(r, 'version', r['version'])
     setattr(r['version'], 'definitions_name', r['version']['definitions_name'])
     setattr(r['version'], 'definitions_version', r['version']['definitions_version'])
@@ -186,8 +190,8 @@ def convert_node_template(context, node_template):
         ('operations', convert_operations(context, node_template.interfaces)),
         ('relationships', relationships),
         ('plugins', context.deployment.plugins),
-        ('plugins_to_install', plugins_to_install_for_interface(context, node_template.interfaces, 'host_agent')),
-        ('deployment_plugins_to_install', plugins_to_install_for_interface(context, node_template.interfaces, 'central_deployment_agent')),
+        ('plugins_to_install', plugins_to_install_for_interface(context, node_template.interfaces, HOST_AGENT)),
+        ('deployment_plugins_to_install', plugins_to_install_for_interface(context, node_template.interfaces, CENTRAL_DEPLOYMENT_AGENT)),
         ('capabilities', OrderedDict((
             ('scalable', OrderedDict((
                 ('properties', OrderedDict((
@@ -424,7 +428,7 @@ def find_plugin(context, name=None):
             return plugin
         elif plugin['name'] == name:
             return plugin
-    return None
+    raise InvalidValueError('unknown plugin: %s' % name)
 
 def find_host_node_template(context, node_template):
     if context.deployment.node_types.is_descendant(COMPUTE_NODE_NAME, node_template.type_name):

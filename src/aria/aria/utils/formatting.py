@@ -60,7 +60,11 @@ def classname(o):
     The full class name of an object.
     """
     
-    return '%s.%s' % (o.__class__.__module__, o.__class__.__name__)
+    module = str(o.__class__.__module__)
+    name = str(o.__class__.__name__)
+    if module == '__builtin__':
+        return '%s' % name 
+    return '%s.%s' % (module, name)
 
 def safe_str(s):
     """
@@ -130,3 +134,6 @@ def yaml_dumps(value, indent=2):
     """
     
     return yaml.dump(value, indent=indent, allow_unicode=True, Dumper=YamlAsRawDumper)
+
+def yaml_loads(value):
+    return yaml.load(value, Loader=yaml.SafeLoader)

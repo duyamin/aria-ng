@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from yaml import safe_dump, safe_load
+from aria.utils import yaml_dumps, yaml_loads
 
 from .suite import ParserTestCase, CloudifyParserError
 
@@ -53,7 +53,7 @@ class PluginsTest(ParserTestCase):
               source=None,
               package_name=None,
               partial_issue_message=None):
-        raw_parsed_yaml = safe_load("""
+        raw_parsed_yaml = yaml_loads("""
 plugins:
   test_plugin: {}
 
@@ -79,7 +79,7 @@ node_types:
 
         raw_parsed_yaml['plugins']['test_plugin'] = plugin
         self.template.version_section('cloudify_dsl', '1.2')
-        self.template += safe_dump(raw_parsed_yaml)
+        self.template += yaml_dumps(raw_parsed_yaml)
         if partial_issue_message:
             ex = self.assertRaises(CloudifyParserError, self.parse)
             self.assertIn(partial_issue_message,
