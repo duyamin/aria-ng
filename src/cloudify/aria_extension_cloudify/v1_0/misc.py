@@ -14,8 +14,9 @@
 # under the License.
 #
 
+from .utils.plugin import validate_plugin
 from aria import dsl_specification
-from aria.presentation import Presentation, AsIsPresentation, has_fields, primitive_field, object_field 
+from aria.presentation import Presentation, AsIsPresentation, has_fields, primitive_field, object_field
 from aria.utils import puts, as_raw
 
 class Description(AsIsPresentation):
@@ -83,6 +84,10 @@ class Plugin(Presentation):
         
         :rtype: bool
         """
+
+    def _validate(self, context):
+        super(Plugin, self)._validate(context)
+        validate_plugin(context, self)
 
 @has_fields
 @dsl_specification('node-templates-2', 'cloudify-1.0')

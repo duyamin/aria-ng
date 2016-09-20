@@ -14,6 +14,7 @@
 # under the License.
 #
 
+from .utils.plugin import validate_plugin
 from ..v1_1 import Plugin as Plugin1_1
 from aria import dsl_specification
 from aria.presentation import Presentation, has_fields, primitive_field, object_list_field
@@ -69,6 +70,10 @@ class Plugin(Plugin1_1):
         
         :rtype: str
         """
+
+    def _validate(self, context):
+        Presentation._validate(self, context)
+        validate_plugin(context, self)
 
 @has_fields
 class PluginResource(Presentation):
