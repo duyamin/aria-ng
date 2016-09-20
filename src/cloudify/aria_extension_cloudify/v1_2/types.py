@@ -14,8 +14,8 @@
 # under the License.
 #
 
+from .utils.data_types import coerce_data_type_value, validate_data_type_name
 from ..v1_0 import PropertyDefinition
-from ..v1_0.utils.data_types import coerce_data_type_value
 from ..v1_0.utils.properties import get_inherited_property_definitions
 from aria import dsl_specification
 from aria.presentation import Presentation, has_fields, primitive_field, object_dict_field, field_validator, derived_from_validator
@@ -66,6 +66,7 @@ class DataType(Presentation):
 
     def _validate(self, context):
         super(DataType, self)._validate(context)
+        validate_data_type_name(context, self)
         self._get_properties(context)
 
     def _coerce_value(self, context, presentation, value, aspect):

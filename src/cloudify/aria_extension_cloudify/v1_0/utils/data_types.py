@@ -17,50 +17,6 @@
 from ..functions import get_function
 from aria.validation import Issue
 from aria.utils import import_fullname, deepcopy_with_locators, full_type_name
-from collections import OrderedDict
-
-#
-# DataType
-#
-
-def coerce_data_type_value(context, presentation, data_type, value, aspect):
-    """
-    Handles the :code:`_coerce_data()` hook for complex data types.
-    
-    We return the assigned property values while making
-    sure they are defined in our type. The property definition's default value, if available, will
-    be used if we did not assign it. We also make sure that required definitions indeed end up with
-    a value.
-    """
-    
-    definitions = data_type._get_properties(context)
-    if isinstance(value, dict):
-        r = OrderedDict()
-
-        # Fill in our values, but make sure they are defined
-        for name, v in value.iteritems():
-            if name in definitions:
-                definition = definitions[name]
-                definition_type = definition._get_type(context)
-                r[name] = coerce_value(context, presentation, definition_type, v)
-            else:
-                context.validation.report('assignment to undefined property "%s" in type "%s" in "%s"' % (name, data_type._fullname, presentation._fullname), locator=v._locator, level=Issue.BETWEEN_TYPES)
-
-        # Fill in defaults from the definitions, and check if required definitions have not been assigned
-        for name, definition in definitions.iteritems():
-            if (r.get(name) is None) and hasattr(definition, 'default') and (definition.default is not None):
-                definition_type = definition._get_type(context)
-                r[name] = coerce_value(context, presentation, definition_type, definition.default)
-
-            if getattr(definition, 'required', False) and (r.get(name) is None):
-                context.validation.report('required property "%s" in type "%s" is not assigned a value in "%s"' % (name, data_type._fullname, presentation._fullname), locator=presentation._get_child_locator('definitions'), level=Issue.BETWEEN_TYPES)
-        
-        value = r
-    else:
-        context.validation.report('value of type "%s" is not a dict in "%s"' % (data_type._fullname, presentation._fullname), locator=value._locator if hasattr(value, '_locator') else presentation._locator, level=Issue.BETWEEN_TYPES)
-        value = None
-    
-    return value
 
 #
 # PropertyDefinition

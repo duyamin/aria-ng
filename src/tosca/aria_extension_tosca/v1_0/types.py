@@ -27,7 +27,7 @@ from .utils.requirements import get_inherited_requirement_definitions
 from .utils.capabilities import get_inherited_valid_source_types, get_inherited_capability_definitions
 from .utils.artifacts import get_inherited_artifact_definitions
 from .utils.policies import get_inherited_targets
-from .utils.data_types import get_data_type, get_inherited_constraints, coerce_data_type_value
+from .utils.data_types import get_data_type, get_inherited_constraints, coerce_data_type_value, validate_data_type_name
 from aria import dsl_specification
 from aria.utils import ReadOnlyDict, ReadOnlyList, cachedmethod
 from aria.presentation import has_fields, allow_unknown_fields, primitive_field, primitive_list_field, object_field, object_dict_field, object_list_field, object_sequenced_list_field, object_dict_unknown_fields, field_getter, field_validator, list_type_validator, derived_from_validator
@@ -188,6 +188,7 @@ class DataType(ToscaPresentation):
 
     def _validate(self, context):
         super(DataType, self)._validate(context)
+        validate_data_type_name(context, self)
         self._get_properties(context)
     
     def _coerce_value(self, context, presentation, entry_schema, constraints, value, aspect):

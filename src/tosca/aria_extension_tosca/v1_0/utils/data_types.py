@@ -96,6 +96,15 @@ def coerce_data_type_value(context, presentation, data_type, entry_schema, const
     
     return value
 
+def validate_data_type_name(context, presentation):
+    """
+    Makes sure the complex data type's name is not that of a built-in type.
+    """
+    
+    name = presentation._name
+    if get_primitive_data_type(name) is not None:
+        context.validation.report('data type name is that of a built-in type: %s' % repr(name), locator=presentation._locator, level=Issue.BETWEEN_TYPES)
+
 #
 # PropertyDefinition, AttributeDefinition, EntrySchema, DataType
 #
