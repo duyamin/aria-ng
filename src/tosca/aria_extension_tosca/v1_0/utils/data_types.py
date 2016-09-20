@@ -17,7 +17,7 @@
 from ..functions import get_function
 from aria import dsl_specification
 from aria.validation import Issue
-from aria.utils import import_fullname
+from aria.utils import import_fullname, full_type_name
 from collections import OrderedDict
 import re
 
@@ -300,7 +300,7 @@ def get_data_type_name(the_type):
     
     if hasattr(the_type, '_name'):
         return the_type._name
-    return '%s.%s' % (the_type.__module__, the_type.__name__) 
+    return full_type_name(the_type)
 
 def coerce_value(context, presentation, the_type, entry_schema, constraints, value, aspect=None):
     """

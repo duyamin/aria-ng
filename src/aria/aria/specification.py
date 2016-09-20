@@ -14,6 +14,7 @@
 # under the License.
 #
 
+from .utils import full_type_name
 from collections import OrderedDict
 
 DSL_SPECIFICATION = {}
@@ -49,7 +50,7 @@ def dsl_specification(section, spec):
                         url = doc[url_start:url_end]
 
         sp[section] = OrderedDict((
-            ('code', '%s.%s' % (o.__module__, o.__name__)),
+            ('code', full_type_name(o)),
             ('url', url)))
         try:
             setattr(o, DSL_SPECIFICATION, {section: section, spec: spec})

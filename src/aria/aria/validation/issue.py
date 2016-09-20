@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from ..utils import classname
+from ..utils import full_type_name
 from collections import OrderedDict
 
 class Issue(object):
@@ -86,7 +86,7 @@ class Issue(object):
             ('line', self.line),
             ('column', self.column),
             ('snippet', self.snippet),
-            ('exception', classname(self.exception) if self.exception else None)))
+            ('exception', full_type_name(self.exception) if self.exception else None)))
             
     @property
     def locator_as_str(self):

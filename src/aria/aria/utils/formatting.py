@@ -55,16 +55,16 @@ class YamlAsRawDumper(yaml.dumper.RoundTripDumper):
             data = as_raw(data)
         return super(YamlAsRawDumper, self).represent_data(data)
 
-def classname(o):
+def full_type_name(o):
     """
-    The full class name of an object.
+    The full class name of a type or object.
     """
     
-    module = str(o.__class__.__module__)
-    name = str(o.__class__.__name__)
-    if module == '__builtin__':
-        return '%s' % name 
-    return '%s.%s' % (module, name)
+    if not isinstance(o, type):
+        o = o.__class__
+    module = str(o.__module__)
+    name = str(o.__name__)
+    return name if module == '__builtin__' else '%s.%s' % (module, name)
 
 def safe_str(s):
     """

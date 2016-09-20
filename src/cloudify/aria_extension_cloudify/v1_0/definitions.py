@@ -15,9 +15,10 @@
 #
 
 from .misc import Description
+from .field_validators import data_type_validator
 from .utils.data_types import get_data_type
 from aria import dsl_specification
-from aria.presentation import Presentation, has_fields, allow_unknown_fields, short_form_field, primitive_field, object_field, object_dict_field, object_dict_unknown_fields
+from aria.presentation import Presentation, has_fields, allow_unknown_fields, short_form_field, primitive_field, object_field, object_dict_field, object_dict_unknown_fields, field_validator
 from aria.utils import cachedmethod
 
 @has_fields
@@ -30,6 +31,7 @@ class PropertyDefinition(Presentation):
         :rtype: :class:`Description`
         """
 
+    @field_validator(data_type_validator)
     @primitive_field(str)
     def type(self):
         """

@@ -20,9 +20,8 @@ from .style import Style
 from .consumer import Consumer, ConsumerChain
 from .presentation import Read
 from .validation import Validate
-from .template import Template
+from .deployment import Template, Plan
 from .inputs import Inputs
-from .plan import Plan
 
 __all__ = (
     'ConsumerError',
@@ -33,5 +32,5 @@ __all__ = (
     'Read',
     'Validate',
     'Template',
-    'Inputs',
-    'Plan')
+    'Plan',
+    'Inputs')

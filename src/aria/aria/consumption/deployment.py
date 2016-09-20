@@ -17,6 +17,52 @@
 from .consumer import Consumer, ConsumerChain
 from ..utils import json_dumps, yaml_dumps
 
+class Derive(Consumer):
+    """
+    Derives the deployment template.
+    """
+    
+    def consume(self):
+        if self.context.presentation.presenter is None:
+            self.context.validation.report('Derive consumer: missing presenter')
+            return
+        
+        if not hasattr(self.context.presentation.presenter, '_get_deployment_template'):
+            self.context.validation.report('Derive consumer: presenter does not support "_get_deployment_template"')
+            return
+
+        self.context.deployment.template = self.context.presentation.presenter._get_deployment_template(self.context)
+
+class ValidateTemplate(Consumer):
+    """
+    Validates the deployment template.
+    """
+
+    def consume(self):
+        self.context.deployment.template.validate(self.context)
+
+class Template(ConsumerChain):
+    """
+    Generates the deployment template by deriving it from the presentation.
+    """
+
+    def __init__(self, context):
+        super(Template, self).__init__(context, (Derive, ValidateTemplate))
+
+    def dump(self):
+        if self.context.has_arg_switch('types'):
+            self.context.deployment.dump_types(self.context)
+        elif self.context.has_arg_switch('yaml'):
+            indent = self.context.get_arg_value_int('indent', 2)
+            raw = self.context.deployment.template_as_raw
+            self.context.write(yaml_dumps(raw, indent=indent))
+        elif self.context.has_arg_switch('json'):
+            indent = self.context.get_arg_value_int('indent', 2)
+            raw = self.context.deployment.template_as_raw
+            self.context.write(json_dumps(raw, indent=indent))
+        else:
+            self.context.deployment.template.dump(self.context)
+
 class Instantiate(Consumer):
     """
     Instantiates the deployment plan.
@@ -24,7 +70,7 @@ class Instantiate(Consumer):
     
     def consume(self):
         if self.context.deployment.template is None:
-            self.context.validation.report('Plan consumer: missing deployment template')
+            self.context.validation.report('Instantiate consumer: missing deployment template')
             return
 
         self.context.deployment.template.instantiate(self.context, None)
@@ -37,7 +83,7 @@ class CoerceValues(Consumer):
     def consume(self):
         self.context.deployment.plan.coerce_values(self.context, None, True)
 
-class Validate(Consumer):
+class ValidatePlan(Consumer):
     """
     Validates the deployment plan.
     """
@@ -67,7 +113,7 @@ class Plan(ConsumerChain):
     """
     
     def __init__(self, context):
-        super(Plan, self).__init__(context, (Instantiate, CoerceValues, Validate, CoerceValues, SatisfyRequirements, CoerceValues, ValidateCapabilities, CoerceValues))
+        super(Plan, self).__init__(context, (Instantiate, CoerceValues, ValidatePlan, CoerceValues, SatisfyRequirements, CoerceValues, ValidateCapabilities, CoerceValues))
 
     def dump(self):
         if self.context.has_arg_switch('graph'):

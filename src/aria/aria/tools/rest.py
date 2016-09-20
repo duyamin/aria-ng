@@ -21,7 +21,7 @@ from ..loading import LiteralLocation
 from .utils import CommonArgumentParser, create_context_from_namespace
 from collections import OrderedDict
 from urlparse import urlparse, parse_qs
-import urllib
+import urllib, os
 
 API_VERSION = 1
 PATH_PREFIX = 'openoapi/tosca/v%d' % API_VERSION
@@ -142,7 +142,7 @@ class ArgumentParser(CommonArgumentParser):
     def __init__(self):
         super(ArgumentParser, self).__init__(description='REST Server', prog='aria-rest')
         self.add_argument('--port', type=int, default=8204, help='HTTP port')
-        self.add_argument('--root', default='.', help='web root directory')
+        self.add_argument('--root', help='web root directory')
 
 def main():
     try:
@@ -150,11 +150,11 @@ def main():
         
         global args
         args, _ = ArgumentParser().parse_known_args()
-            
+
         rest_server = RestServer()
         rest_server.port = args.port
         rest_server.routes = ROUTES
-        rest_server.static_root = args.root
+        rest_server.static_root = args.root or os.path.join(os.path.dirname(__file__), 'web')
         rest_server.json_encoder = JsonAsRawEncoder(ensure_ascii=False, separators=(',', ':'))
         
         rest_server.start()

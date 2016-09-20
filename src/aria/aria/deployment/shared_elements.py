@@ -17,7 +17,7 @@
 from .utils import validate_dict_values, instantiate_dict, coerce_value, coerce_dict_values, dump_dict_values, dump_properties
 from .. import UnimplementedFunctionalityError
 from ..validation import Issue
-from ..utils import StrictList, StrictDict, as_agnostic, classname, deepcopy_with_locators, puts, as_raw
+from ..utils import StrictList, StrictDict, as_agnostic, full_type_name, deepcopy_with_locators, puts, as_raw
 from collections import OrderedDict
 
 class Function(object):
@@ -30,10 +30,10 @@ class Function(object):
     
     @property
     def as_raw(self):
-        raise UnimplementedFunctionalityError(classname(self) + '.as_raw')
+        raise UnimplementedFunctionalityError(full_type_name(self) + '.as_raw')
 
     def _evaluate(self, context, container):
-        raise UnimplementedFunctionalityError(classname(self) + '._evaluate')
+        raise UnimplementedFunctionalityError(full_type_name(self) + '._evaluate')
 
     def __deepcopy__(self, memo):
         # Circumvent cloning in order to maintain our state
@@ -49,7 +49,7 @@ class Element(object):
     
     @property
     def as_raw(self):
-        raise UnimplementedFunctionalityError(classname(self) + '.as_raw')
+        raise UnimplementedFunctionalityError(full_type_name(self) + '.as_raw')
 
     def validate(self, context):
         pass

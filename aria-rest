@@ -24,4 +24,4 @@ TOSCA_SRC="$HERE/src/tosca"
 CLOUDIFY_SRC="$HERE/src/cloudify"
 
 PYTHONPATH="$ARIA_SRC:$TOSCA_SRC:$CLOUDIFY_SRC:$PYTHONPATH" \
-python -m aria.tools.rest --root="$HERE/web" "$@"
+python -m aria.tools.rest "$@"

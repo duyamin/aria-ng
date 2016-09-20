@@ -19,6 +19,11 @@ from __future__ import absolute_import # so we can import standard 'collections'
 from collections import OrderedDict
 from copy import deepcopy
 
+def cls_name(cls):
+    module = str(cls.__module__)
+    name = str(cls.__name__)
+    return name if module == '__builtin__' else '%s.%s' % (module, name)
+
 class ReadOnlyList(list):
     """
     An immutable list.
@@ -120,7 +125,7 @@ class StrictList(list):
     
     def _wrap(self, value):
         if (self.value_class is not None) and (not isinstance(value, self.value_class)):
-            raise TypeError('value must be a "%s.%s": %s' % (self.value_class.__module__, self.value_class.__name__, repr(value)))
+            raise TypeError('value must be a "%s": %s' % (cls_name(self.value_class), repr(value)))
         if self.wrapper_fn is not None:
             value = self.wrapper_fn(value)
         return value
@@ -177,7 +182,7 @@ class StrictDict(OrderedDict):
     
     def __getitem__(self, key):
         if (self.key_class is not None) and (not isinstance(key, self.key_class)):
-            raise TypeError('key must be a "%s.%s"' % (self.key_class.__module__, self.key_class.__name__))
+            raise TypeError('key must be a "%s": %s' % (cls_name(self.key_class), repr(key)))
         value = super(StrictDict, self).__getitem__(key)
         if self.unwrapper_fn is not None:
             value = self.unwrapper_fn(value)
@@ -185,9 +190,9 @@ class StrictDict(OrderedDict):
         
     def __setitem__(self, key, value):
         if (self.key_class is not None) and (not isinstance(key, self.key_class)):
-            raise TypeError('key must be a "%s.%s": %s' % (self.key_class.__module__, self.key_class.__name__, repr(key)))
+            raise TypeError('key must be a "%s": %s' % (cls_name(self.key_class), repr(key)))
         if (self.value_class is not None) and (not isinstance(value, self.value_class)):
-            raise TypeError('value must be a "%s.%s": %s' % (self.value_class.__module__, self.value_class.__name__, repr(value)))
+            raise TypeError('value must be a "%s": %s' % (cls_name(self.value_class), repr(value)))
         if self.wrapper_fn is not None:
             value = self.wrapper_fn(value)
         return super(StrictDict, self).__setitem__(key, value)

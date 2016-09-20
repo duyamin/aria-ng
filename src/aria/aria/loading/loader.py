@@ -15,7 +15,7 @@
 #
 
 from .. import UnimplementedFunctionalityError
-from ..utils import classname
+from ..utils import full_type_name
 
 class Loader(object):
     """
@@ -28,7 +28,7 @@ class Loader(object):
     """
     
     def load(self):
-        raise UnimplementedFunctionalityError(classname(self) + '.load')
+        raise UnimplementedFunctionalityError(full_type_name(self) + '.load')
     
     def open(self):
         pass

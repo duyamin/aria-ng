@@ -67,6 +67,7 @@ class TestDataTypes(ParserTestCase, TempDirectoryTestCase):
         )
         # TODO check for validation issue that indicates cyclic definition
         # of a data type
+        print self.parse()
         self.assert_parser_raise_exception(
             error_code=ERROR_CODE_CYCLE,
             exception_types=DSLParsingLogicException)

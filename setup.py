@@ -68,9 +68,11 @@ setup(
         'aria_extension_tosca': 'src/tosca/aria_extension_tosca'},
       
     package_data={
+        'aria.tools': [
+            'web/**'],
         'aria_extension_tosca': [
-            'profiles/tosca-simple-profile-1.0/*',
-            'profiles/tosca-simple-nfv-1.0/*']},
+            'profiles/tosca-simple-profile-1.0/**',
+            'profiles/tosca-simple-nfv-1.0/**']},
     
     scripts=[
         'src/aria/scripts/aria',

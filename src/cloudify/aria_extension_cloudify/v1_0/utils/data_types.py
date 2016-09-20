@@ -16,7 +16,7 @@
 
 from ..functions import get_function
 from aria.validation import Issue
-from aria.utils import import_fullname, deepcopy_with_locators
+from aria.utils import import_fullname, deepcopy_with_locators, full_type_name
 from collections import OrderedDict
 
 #
@@ -104,7 +104,7 @@ def get_data_type_name(the_type):
     
     if hasattr(the_type, '_name'):
         return the_type._name
-    return '%s.%s' % (the_type.__module__, the_type.__name__) 
+    return full_type_name(the_type)
 
 def find_functions(context, presentation, value):
     if isinstance(value, dict):

@@ -16,7 +16,7 @@
 
 from .null import none_to_null
 from .utils import validate_no_short_form, validate_no_unknown_fields, validate_known_fields
-from ..utils import HasCachedMethods, classname, deepcopy_with_locators, puts
+from ..utils import HasCachedMethods, full_type_name, deepcopy_with_locators, puts
 
 class Value(object):
     def __init__(self, the_type, value):
@@ -53,7 +53,7 @@ class PresentationBase(HasCachedMethods):
             return self._name
         elif self._container is not None:
             return self._container._fullname
-        return classname(self)
+        return full_type_name(self)
 
     @property
     def _locator(self):

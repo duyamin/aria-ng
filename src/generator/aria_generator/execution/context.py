@@ -16,7 +16,7 @@
 
 from .exceptions import ExecutorNotFoundError
 from .cloudify import HostAgentExecutor, CentralDeploymentAgentExecutor
-from aria.utils import classname, puts
+from aria.utils import full_type_name, puts
 
 class Relationship(object):
     def __init__(self, source, relationship, target):
@@ -94,9 +94,9 @@ class ExecutionContext(object):
             with self.style.indent:
                 for name in self.nodes:
                     node = getattr(self.service, name)
-                    puts('%s: %s' % (self.style.node(name), self.style.type(classname(node))))
+                    puts('%s: %s' % (self.style.node(name), self.style.type(full_type_name(node))))
                     relationships = self.get_relationship_from(node)
                     if relationships:
                         with self.style.indent:
                             for relationship in relationships:
-                                puts('-> %s %s' % (self.style.type(classname(relationship.relationship)), self.style.node(self.get_node_name(relationship.target))))
+                                puts('-> %s %s' % (self.style.type(full_type_name(relationship.relationship)), self.style.node(self.get_node_name(relationship.target))))

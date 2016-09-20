@@ -15,7 +15,7 @@
 #
 
 from .. import UnimplementedFunctionalityError
-from ..utils import OpenClose, classname
+from ..utils import OpenClose, full_type_name
 from .exceptions import ReaderError, AlreadyReadError
 
 class Reader(object):
@@ -45,4 +45,4 @@ class Reader(object):
             return data
     
     def read(self):
-        raise UnimplementedFunctionalityError(classname(self) + '.read')
+        raise UnimplementedFunctionalityError(full_type_name(self) + '.read')
