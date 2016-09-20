@@ -184,7 +184,7 @@ class Template(object):
             version=None):
         groups = groups or {}
         nodes = nodes or {'node': None}
-        version = 'tosca_aria_yaml_{0}'.format(version or '1_0')
+        version = 'cloudify_dsl_{0}'.format(version or '1_3')
 
         node_templates = {}
         for node, contained_in in nodes.iteritems():
