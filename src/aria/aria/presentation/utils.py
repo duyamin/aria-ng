@@ -16,6 +16,20 @@
 
 from ..validation import Issue
 
+def get_locator(*values):
+    """
+    Gets the first available locator.
+        
+    :rtype: :class:`aria.reading.Locator`
+    """
+    
+    for v in values:
+        if hasattr(v, '_locator'):
+            locator = v._locator
+            if locator is not None:
+                return locator
+    return None
+
 def validate_no_short_form(presentation, context):
     """
     Makes sure that we can use short form definitions only if we allowed it.

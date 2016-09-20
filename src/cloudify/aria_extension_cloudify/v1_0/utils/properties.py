@@ -133,13 +133,6 @@ def validate_required_values(context, presentation, values, definitions):
             context.validation.report('required property "%s" is not assigned a value in "%s"' % (name, presentation._fullname), locator=presentation._get_child_locator('properties'), level=Issue.BETWEEN_TYPES)
 
 def merge_raw_property_definition(context, presentation, raw_property_definition, our_property_definition, field_name, property_name):
-    # Check if we changed the type
-    # TODO: allow a sub-type?
-    type1 = raw_property_definition.get('type')
-    type2 = our_property_definition.type
-    if type1 != type2:
-        context.validation.report('override changes type from "%s" to "%s" for property "%s" in "%s"' % (type1, type2, property_name, presentation._fullname), locator=presentation._get_grandchild_locator(field_name, property_name), level=Issue.BETWEEN_TYPES)
-
     merge(raw_property_definition, our_property_definition._raw)
 
 def merge_property_definitions(context, presentation, property_definitions, our_property_definitions, field_name, for_presentation):

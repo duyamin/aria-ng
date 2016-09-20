@@ -16,6 +16,7 @@
 
 from ...v1_0.utils.data_types import coerce_value, get_primitive_data_type
 from aria.validation import Issue
+from aria.presentation import get_locator
 from collections import OrderedDict
 
 #
@@ -43,7 +44,7 @@ def coerce_data_type_value(context, presentation, data_type, value, aspect):
                 definition_type = definition._get_type(context)
                 r[name] = coerce_value(context, presentation, definition_type, v)
             else:
-                context.validation.report('assignment to undefined property "%s" in type "%s" in "%s"' % (name, data_type._fullname, presentation._fullname), locator=v._locator, level=Issue.BETWEEN_TYPES)
+                context.validation.report('assignment to undefined property "%s" in type "%s" in "%s"' % (name, data_type._fullname, presentation._fullname), locator=get_locator(v, value, presentation), level=Issue.BETWEEN_TYPES)
 
         # Fill in defaults from the definitions, and check if required definitions have not been assigned
         for name, definition in definitions.iteritems():
@@ -56,7 +57,7 @@ def coerce_data_type_value(context, presentation, data_type, value, aspect):
         
         value = r
     else:
-        context.validation.report('value of type "%s" is not a dict in "%s"' % (data_type._fullname, presentation._fullname), locator=value._locator if hasattr(value, '_locator') else presentation._locator, level=Issue.BETWEEN_TYPES)
+        context.validation.report('value of type "%s" is not a dict in "%s"' % (data_type._fullname, presentation._fullname), locator=get_locator(value, presentation), level=Issue.BETWEEN_TYPES)
         value = None
     
     return value

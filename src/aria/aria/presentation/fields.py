@@ -355,9 +355,9 @@ class Field(object):
 
     def get_locator(self, raw):
         if hasattr(raw, '_locator'):
-            if isinstance(raw._locator.children, dict):
-                return raw._locator.children.get(self.name, raw._locator)
-            return raw._locator
+            locator = raw._locator
+            if locator is not None:
+                return locator.get_child(self.name)
         return None
     
     def dump(self, presentation, context):

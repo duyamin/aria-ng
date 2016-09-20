@@ -15,7 +15,7 @@
 #
 
 from .null import none_to_null
-from .utils import validate_no_short_form, validate_no_unknown_fields, validate_known_fields
+from .utils import get_locator, validate_no_short_form, validate_no_unknown_fields, validate_known_fields
 from ..utils import HasCachedMethods, full_type_name, deepcopy_with_locators, puts
 
 class Value(object):
@@ -64,13 +64,9 @@ class PresentationBase(HasCachedMethods):
         :rtype: :class:`aria.reading.Locator`
         """
         
-        if hasattr(self._raw, '_locator'):
-            return self._raw._locator
-        elif self._container is not None:
-            return self._container._locator
-        return None
+        return get_locator(self._raw, self._container)
 
-    def _get_child_locator(self, name):
+    def _get_child_locator(self, *names):
         """
         Attempts to return the locator of one our children. Will default to our locator
         if not found.
@@ -81,21 +77,7 @@ class PresentationBase(HasCachedMethods):
         if hasattr(self._raw, '_locator'):
             locator = self._raw._locator
             if locator is not None:
-                return locator.get_child(name)
-        return self._locator
-
-    def _get_grandchild_locator(self, name1, name2):
-        """
-        Attempts to return the locator of one our grand children. Will default to our
-        locator if not found.
-        
-        :rtype: :class:`aria.reading.Locator`
-        """
-
-        if hasattr(self._raw, '_locator'):
-            locator = self._raw._locator
-            if locator is not None:
-                return locator.get_grandchild(name1, name2)
+                return locator.get_child(*names)
         return self._locator
 
     def _dump(self, context):

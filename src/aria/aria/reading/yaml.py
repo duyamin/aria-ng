@@ -21,7 +21,7 @@ from .locator import Locator
 from collections import OrderedDict
 from ruamel import yaml # @UnresolvedImport
 
-# Add our types to ruamel.yaml (for round trips)
+# Add our types to ruamel.yaml
 yaml.representer.RoundTripRepresenter.add_representer(LocatableString, yaml.representer.RoundTripRepresenter.represent_unicode)
 yaml.representer.RoundTripRepresenter.add_representer(LocatableInt, yaml.representer.RoundTripRepresenter.represent_int)
 yaml.representer.RoundTripRepresenter.add_representer(LocatableFloat, yaml.representer.RoundTripRepresenter.represent_float)

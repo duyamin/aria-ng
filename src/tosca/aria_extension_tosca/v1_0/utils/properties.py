@@ -125,7 +125,7 @@ def merge_raw_property_definition(context, presentation, raw_property_definition
     type1 = raw_property_definition.get('type')
     type2 = our_property_definition.type
     if type1 != type2:
-        context.validation.report('override changes type from "%s" to "%s" for property "%s" in "%s"' % (type1, type2, property_name, presentation._fullname), locator=presentation._get_grandchild_locator(field_name, property_name), level=Issue.BETWEEN_TYPES)
+        context.validation.report('override changes type from "%s" to "%s" for property "%s" in "%s"' % (type1, type2, property_name, presentation._fullname), locator=presentation._get_child_locator(field_name, property_name), level=Issue.BETWEEN_TYPES)
 
     merge(raw_property_definition, our_property_definition._raw)
 

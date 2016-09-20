@@ -16,6 +16,7 @@
 
 from .properties import coerce_property_value, convert_property_definitions_to_values
 from aria.validation import Issue
+from aria.presentation import get_locator
 from aria.utils import merge, deepcopy_with_locators
 from collections import OrderedDict
 
@@ -274,7 +275,7 @@ def validate_required_inputs(context, presentation, assignment, definition, orig
     if input_definitions:
         for input_name, input_definition in input_definitions.iteritems():
             if input_definition.required and ((assignment is None) or (assignment.inputs is None) or (assignment.inputs.get(input_name) is None)):
-                context.validation.report('interface definition "%s" does not assign a value to a required operation input "%s.%s" in "%s"' % (interface_name, operation_name, input_name, presentation._fullname), locator=original_assignment._locator if original_assignment is not None else presentation._locator, level=Issue.BETWEEN_TYPES)
+                context.validation.report('interface definition "%s" does not assign a value to a required operation input "%s.%s" in "%s"' % (interface_name, operation_name, input_name, presentation._fullname), locator=get_locator(original_assignment, presentation), level=Issue.BETWEEN_TYPES)
 
 def validate_required_interface_inputs(context, presentation, assignment, definition, original_assignment, interface_name):
     assignment_operations = assignment.operations 

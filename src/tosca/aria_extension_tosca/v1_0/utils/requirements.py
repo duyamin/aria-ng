@@ -229,7 +229,7 @@ def merge_requirement_assignment_relationship(context, presentation, property_de
                 definition = property_definitions[property_name]
                 requirement._raw['relationship']['properties'][property_name] = coerce_property_value(context, presentation, definition, prop)
             else:
-                context.validation.report('relationship property "%s" not declared at definition of requirement "%s" in "%s"' % (property_name, presentation._fullname, presentation._container._container._fullname), locator=our_relationship._get_grandchild_locator('properties', property_name), level=Issue.BETWEEN_TYPES)
+                context.validation.report('relationship property "%s" not declared at definition of requirement "%s" in "%s"' % (property_name, presentation._fullname, presentation._container._container._fullname), locator=our_relationship._get_child_locator('properties', property_name), level=Issue.BETWEEN_TYPES)
 
     our_interfaces = our_relationship.interfaces
     if our_interfaces:

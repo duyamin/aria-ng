@@ -46,18 +46,15 @@ class Locator(object):
         self.column = column
         self.children = None
     
-    def get_child(self, name):
-        if isinstance(self.children, dict):
-            return self.children.get(name, self)
-        return self
+    def get_child(self, *names):
+        if (not names) or (not isinstance(self.children, dict)):
+            return self
+        name = names[0]
+        if name not in self.children:
+            return self
+        child = self.children[name]
+        return child.get_child(names[1:])
 
-    def get_grandchild(self, name1, name2):
-        if isinstance(self.children, dict):
-            locator1 = self.children.get(name1)
-            if (locator1 is not None) and (locator1.children is not None):
-                return locator1.children.get(name2, locator1)
-        return self
-    
     def link(self, raw, path=None):
         if hasattr(raw, '_locator'):
             # This can happen when we use anchors
