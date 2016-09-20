@@ -147,7 +147,7 @@ def merge_property_definitions(context, presentation, property_definitions, our_
             property_definition = property_definitions[property_name]
             merge_raw_property_definition(context, presentation, property_definition._raw, our_property_definition, field_name, property_name)
         else:
-            property_definitions[property_name] = our_property_definition._clone()
+            property_definitions[property_name] = our_property_definition
 
 def coerce_property_value(context, presentation, definition, value, aspect=None): # works on properties, inputs, and parameters
     the_type = definition._get_type(context) if definition is not None else None

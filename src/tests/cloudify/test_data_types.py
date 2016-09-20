@@ -536,7 +536,6 @@ node_templates:
         node2_prop = prop1('node2')
         node3_prop = prop1('node3')
         self.assertEqual(
-            node1_prop,
             {'inner': {'inner1': 'inner1_default',
                        'inner2': 'inner2_override',
                        'inner3': 'inner3_override',
@@ -548,9 +547,8 @@ node_templates:
                                   'inner2_3': 'inner2_3_override',
                                   'inner2_4': 'inner2_4_override',
                                   'inner2_5': 'inner2_5_default',
-                                  'inner2_6': 'inner2_6_override'}}})
+                                  'inner2_6': 'inner2_6_override'}}}, node1_prop)
         self.assertEqual(
-            node2_prop,
             {'inner': {'inner1': 'inner1_default',
                        'inner2': 'inner2_override',
                        'inner3': 'inner3_override',
@@ -562,9 +560,8 @@ node_templates:
                                   'inner2_3': 'inner2_3_override',
                                   'inner2_4': 'inner2_4_override',
                                   'inner2_5': 'inner2_5_override',
-                                  'inner2_6': 'inner2_6_override'}}})
+                                  'inner2_6': 'inner2_6_override'}}}, node2_prop)
         self.assertEqual(
-            node3_prop,
             {'inner': {'inner1': 'inner1_default',
                        'inner2': 'inner2_override',
                        'inner3': 'inner3_override',
@@ -576,7 +573,7 @@ node_templates:
                                   'inner2_3': 'inner2_3_override',
                                   'inner2_4': 'inner2_4_override',
                                   'inner2_5': 'inner2_5_override',
-                                  'inner2_6': 'inner2_6_override'}}})
+                                  'inner2_6': 'inner2_6_override'}}}, node3_prop)
 
     def test_partial_default_validation_in_node_template(self):
         self.template.version_section('cloudify_dsl', '1.2')

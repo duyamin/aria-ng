@@ -40,10 +40,20 @@ def get_inherited_property_definitions(context, presentation, field_name, for_pr
     if our_definitions:
         our_definitions_clone = OrderedDict()
         for name, our_definition in our_definitions.iteritems():
-            our_definitions_clone[name] = our_definition._clone(for_presentation)
+            our_definition_clone = our_definition._clone(for_presentation)
+            #merge_property_definition_default(context, our_definition_clone)
+            our_definitions_clone[name] = our_definition_clone
+            
         our_definitions = our_definitions_clone
         merge_property_definitions(context, presentation, definitions, our_definitions, field_name, for_presentation)
-        
+    
+#     if presentation._name == 'data1':
+#         print '!!!!'
+#         definitions['inner']._dump(context)
+#     if presentation._name == 'type1':
+#         print '####'
+#         definitions['prop1']._dump(context)
+    
     return definitions
 
 #
@@ -132,6 +142,27 @@ def validate_required_values(context, presentation, values, definitions):
         if getattr(definition, 'required', False) and ((values is None) or (values.get(name) is None)):
             context.validation.report('required property "%s" is not assigned a value in "%s"' % (name, presentation._fullname), locator=presentation._get_child_locator('properties'), level=Issue.BETWEEN_TYPES)
 
+def merge_property_definition_default(context, our_definition):
+    the_type = our_definition._get_type(context)
+    if the_type is None:
+        return
+
+    default = OrderedDict()
+    properties = the_type._get_properties(context)
+    for property_name, prop in properties.iteritems():
+        default_value = prop.default
+        if default_value is not None:
+            default[property_name] = default_value
+    
+    if default:
+        # Make sure we have a dict
+        if our_definition._raw.get('default') is None:
+            our_definition._raw['default'] = OrderedDict()
+        
+        # Merge our default over the type's default
+        if isinstance(our_definition._raw['default'], dict): 
+            our_definition._raw['default'] = merge(default, our_definition._raw['default'])
+
 def merge_raw_property_definition(context, presentation, raw_property_definition, our_property_definition, field_name, property_name):
     merge(raw_property_definition, our_property_definition._raw)
 
@@ -143,7 +174,8 @@ def merge_property_definitions(context, presentation, property_definitions, our_
             property_definition = property_definitions[property_name]
             merge_raw_property_definition(context, presentation, property_definition._raw, our_property_definition, field_name, property_name)
         else:
-            property_definitions[property_name] = our_property_definition._clone()
+            property_definitions[property_name] = our_property_definition
+        merge_property_definition_default(context, our_property_definition)
 
 def coerce_property_value(context, presentation, definition, value, aspect=None): # works on properties, inputs, and parameters
     the_type = definition._get_type(context) if hasattr(definition, '_get_type') else None
