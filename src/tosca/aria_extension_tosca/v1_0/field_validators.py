@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from .utils.data_types import get_primitive_data_type, get_data_type_name, coerce_value
+from .utils.data_types import get_primitive_data_type, get_data_type_name, coerce_value, get_container_data_type
 from aria import dsl_specification
 from aria.validation import Issue
 from aria.presentation import report_issue_for_unknown_type, derived_from_validator
@@ -67,6 +67,11 @@ def data_type_validator(type_name='data type'):
     
         value = getattr(presentation, field.name)
         if value is not None:
+            # Test for circular definitions
+            container_data_type = get_container_data_type(presentation)
+            if (container_data_type is not None) and (container_data_type._name == value):
+                context.validation.report('type of property "%s" creates a circular value hierarchy: %s' % (presentation._fullname, repr(value)), locator=presentation._get_child_locator('type'), level=Issue.BETWEEN_TYPES)
+    
             # Can be a complex data type
             if (context.presentation.presenter.data_types is not None) and (value in context.presentation.presenter.data_types):
                 return True

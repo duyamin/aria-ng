@@ -32,6 +32,11 @@ def get_data_type(context, presentation):
     if the_type is None:
         return None
     
+    # Avoid circular definitions
+    container_data_type = get_container_data_type(presentation)
+    if (container_data_type is not None) and (container_data_type._name == the_type):
+        return None
+    
     # Try complex data type
     data_type = context.presentation.presenter.data_types.get(the_type) if context.presentation.presenter.data_types is not None else None
     if data_type is not None:
@@ -132,6 +137,13 @@ def coerce_to_primitive(context, presentation, primitive_type, value, aspect=Non
         value = None
     
     return value
+
+def get_container_data_type(presentation):
+    if presentation is None:
+        return None
+    if type(presentation).__name__ == 'DataType':
+        return presentation
+    return get_container_data_type(presentation._container)
 
 def report_issue_for_bad_format(context, presentation, the_type, value, aspect, e):
     aspect = None
