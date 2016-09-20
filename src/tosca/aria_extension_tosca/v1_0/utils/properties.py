@@ -43,6 +43,9 @@ def get_inherited_property_definitions(context, presentation, field_name, for_pr
             our_definitions_clone[name] = our_definition._clone(for_presentation)
         our_definitions = our_definitions_clone
         merge_property_definitions(context, presentation, definitions, our_definitions, field_name, for_presentation)
+
+    for definition in definitions.itervalues():
+        definition._reset_method_cache()
         
     return definitions
 
