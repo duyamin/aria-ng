@@ -41,11 +41,16 @@ class PluginsTest(ParserTestCase):
         self._test(package_name='package')
 
     def test_plugin_with_missing_install_missing_source_and_package(self):
-        self._test(partial_issue_message=50)
+        self._test(partial_issue_message='plugin "test_plugin" is set to '
+                                         'install but does not have "source" '
+                                         'or "package_name"')
         # TODO issue #1 in test_plugins
 
     def test_plugin_with_install_true_missing_source_and_package(self):
-        self._test(install=True, partial_issue_message=50)
+        self._test(install=True,
+                   partial_issue_message='plugin "test_plugin" is set to '
+                                         'install but does not have "source" '
+                                         'or "package_name"')
         # TODO issue #2 in test_plugins
 
     def _test(self,
