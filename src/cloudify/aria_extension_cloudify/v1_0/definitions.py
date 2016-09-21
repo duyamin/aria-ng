@@ -15,7 +15,7 @@
 #
 
 from .misc import Description
-from .field_validators import data_type_validator
+from .field_validators import data_type_validator, data_value_validator
 from .utils.data_types import get_data_type
 from aria import dsl_specification
 from aria.presentation import Presentation, has_fields, allow_unknown_fields, short_form_field, primitive_field, object_field, object_dict_field, object_dict_unknown_fields, field_validator
@@ -40,6 +40,7 @@ class PropertyDefinition(Presentation):
         :rtype: str
         """
 
+    @field_validator(data_value_validator)
     @primitive_field()
     def default(self):
         """

@@ -57,7 +57,7 @@ def data_type_validator(type_name='data type'):
     """
     Makes sure that the field refers to a valid data type, whether complex or primitive. 
     
-    Used with the :func:`field_validator` decorator for :code:`type` fields in :class:`PropertyDefinition`, :class:`AttributeDefinition`, :class:`ParameterDefinition`, and :class:`EntrySchema`.
+    Used with the :func:`field_validator` decorator for the :code:`type` fields in :class:`PropertyDefinition`, :class:`AttributeDefinition`, :class:`ParameterDefinition`, and :class:`EntrySchema`.
     
     Extra behavior beyond validation: generated function returns true if field is a complex data type.
     """

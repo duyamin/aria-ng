@@ -14,9 +14,10 @@
 # under the License.
 #
 
+from .utils.data_types import get_primitive_data_type, get_container_data_type
+from .utils.properties import coerce_value
 from aria.presentation import report_issue_for_unknown_type
 from aria.validation import Issue
-from .utils.data_types import get_primitive_data_type, get_container_data_type
 
 #
 # GroupDefinition
@@ -47,7 +48,7 @@ def data_type_validator(field, presentation, context):
     """
     Makes sure that the field refers to a valid data type, whether complex or primitive. 
     
-    Used with the :func:`field_validator` decorator for :code:`type` fields in :class:`PropertyDefinition`.
+    Used with the :func:`field_validator` decorator for the :code:`type` field in :class:`PropertyDefinition`.
     
     Extra behavior beyond validation: generated function returns true if field is a complex data type.
     """
@@ -69,3 +70,17 @@ def data_type_validator(field, presentation, context):
             report_issue_for_unknown_type(context, presentation, 'data type', field.name)
 
     return False
+
+def data_value_validator(field, presentation, context):
+    """
+    Makes sure that the field contains a valid value according to data type and constraints.
+
+    Used with the :func:`field_validator` decorator for the :code:`default` field in :class:`PropertyDefinition`.
+    """
+
+    field._validate(presentation, context)
+
+    value = getattr(presentation, field.name)
+    if value is not None:
+        the_type = presentation._get_type(context)
+        coerce_value(context, presentation, the_type, value, field.name)
