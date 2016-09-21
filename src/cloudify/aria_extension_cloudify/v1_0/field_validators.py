@@ -26,7 +26,7 @@ def node_templates_or_groups_validator(field, presentation, context):
     """
     Makes sure that the field's elements refer to either node templates or groups.
 
-    Used with the :func:`field_validator` decorator for the "targets" field in :class:`PolicyDefinition`.
+    Used with the :func:`field_validator` decorator for the "targets" field in :class:`GroupDefinition`.
     """
     
     field._validate(presentation, context)
@@ -47,7 +47,7 @@ def data_type_validator(field, presentation, context):
     """
     Makes sure that the field refers to a valid data type, whether complex or primitive. 
     
-    Used with the :func:`field_validator` decorator for :code:`type` fields in :class:`PropertyDefinition`, :class:`AttributeDefinition`, :class:`ParameterDefinition`, and :class:`EntrySchema`.
+    Used with the :func:`field_validator` decorator for :code:`type` fields in :class:`PropertyDefinition`.
     
     Extra behavior beyond validation: generated function returns true if field is a complex data type.
     """

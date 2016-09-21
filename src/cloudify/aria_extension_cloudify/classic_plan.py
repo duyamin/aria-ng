@@ -20,6 +20,7 @@ from aria.deployment import Parameter, Function
 from aria.utils import as_raw, as_agnostic, merge, prune, json_dumps
 from collections import OrderedDict
 import os
+from aria.utils.collections import deepcopy_with_locators
 
 COMPUTE_NODE_NAME = 'cloudify.nodes.Compute'
 CONTAINED_IN_RELATIONSHIP_NAME = 'cloudify.relationships.contained_in'
@@ -64,7 +65,6 @@ def convert_plan(context):
         ('outputs', convert_properties(context, context.deployment.plan.outputs)),
         ('workflows', OrderedDict(
             (k, convert_workflow(context, v)) for k, v in context.deployment.plan.operations.iteritems())),
-        ('policies', OrderedDict()), # TODO
         ('deployment_plugins_to_install', []),
         ('workflow_plugins_to_install', plugins_to_install_for_operations(context, context.deployment.plan.operations, CENTRAL_DEPLOYMENT_AGENT)),
 
@@ -76,7 +76,9 @@ def convert_plan(context):
         ('groups', OrderedDict(
             (k, convert_group_template(context, v)) for k, v in context.deployment.template.group_templates.iteritems())),
         ('scaling_groups', OrderedDict(
-            (k, convert_group_template(context, v)) for k, v in iter_scaling_groups(context))),
+            (k, convert_group_template(context, v, policy_template)) for k, v, policy_template in iter_scaling_groups(context))),
+        ('policies', OrderedDict(
+            (k, convert_policy_template(context, v)) for k, v in context.deployment.template.policy_templates.iteritems())),
 
         # Types
         ('policy_types', OrderedDict(
@@ -247,16 +249,25 @@ def convert_relationship_template(context, requirement, plugins_to_install, depl
         ('source_operations', convert_operations(context, relationship_template.source_interfaces)), 
         ('target_operations', convert_operations(context, relationship_template.target_interfaces))))
 
-def convert_group_template(context, group_template):
-    return OrderedDict((
+def convert_group_template(context, group_template, policy_template=None):
+    r = OrderedDict((
         ('members', group_template.member_node_template_names),
         ('policies', OrderedDict(
             (k, convert_group_policy(context, v)) for k, v in group_template.policies.iteritems()))))
+
+    if policy_template is not None:
+        r['properties'] = convert_properties(context, policy_template.properties)
+
+    return r
 
 def convert_group_policy(context, group_policy):
     return OrderedDict((
         ('type', group_policy.type_name),
         ('properties', convert_properties(context, group_policy.properties))))
+
+def convert_policy_template(context, policy_template):
+    return OrderedDict((
+        ('properties', convert_properties(context, policy_template.properties)),))
 
 #
 # Types
@@ -503,4 +514,4 @@ def iter_scaling_groups(context):
         if policy_template.type_name == SCALING_POLICY_NAME:
             for group_template_name in policy_template.target_group_template_names:
                 group_template = context.deployment.template.group_templates[group_template_name]
-                yield group_template_name, group_template
+                yield group_template_name, group_template, policy_template

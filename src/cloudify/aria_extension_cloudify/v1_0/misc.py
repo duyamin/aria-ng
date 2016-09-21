@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from .utils.plugin import validate_plugin
+from .utils.plugins import validate_plugin
 from aria import dsl_specification
 from aria.presentation import Presentation, AsIsPresentation, has_fields, primitive_field, object_field
 from aria.utils import puts, as_raw

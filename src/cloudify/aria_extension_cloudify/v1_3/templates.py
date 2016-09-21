@@ -14,12 +14,13 @@
 # under the License.
 #
 
+from .assignments import CapabilityAssignment
+from .field_validators import policy_type_validator
+from .utils.node_templates import get_node_template_scalable
 from ..v1_0 import NodeTemplate as NodeTemplate1_0, PropertyAssignment
 from ..v1_2 import ServiceTemplate as ServiceTemplate1_2
-from .assignments import CapabilityAssignment
-from .utils.node_templates import get_node_template_scalable
 from aria import dsl_specification
-from aria.presentation import Presentation, has_fields, primitive_field, primitive_list_field, object_dict_field, field_validator, list_type_validator, type_validator
+from aria.presentation import Presentation, has_fields, primitive_field, primitive_list_field, object_dict_field, field_validator, list_type_validator
 from aria.utils import ReadOnlyList, cachedmethod
 
 @has_fields
@@ -46,7 +47,7 @@ class PolicyDefinition(Presentation):
     See the `Cloudify DSL v1.3 specification <http://docs.getcloudify.org/3.4.0/blueprints/spec-policies/>`__.    
     """
     
-    @field_validator(type_validator('policy type', 'policy_types'))
+    @field_validator(policy_type_validator)
     @primitive_field(str, required=True)
     def type(self):
         """

@@ -16,6 +16,8 @@
 
 from aria.deployment import Type, RelationshipType, PolicyType, PolicyTriggerType, DeploymentTemplate, NodeTemplate, RelationshipTemplate, GroupTemplate, PolicyTemplate, GroupPolicy, GroupPolicyTrigger, Interface, Operation, Requirement, Parameter
 
+POLICY_SCALING = 'cloudify.policies.scaling'
+
 def get_deployment_template(context, presenter):
     r = DeploymentTemplate()
     
@@ -26,6 +28,11 @@ def get_deployment_template(context, presenter):
     normalize_types(context, context.deployment.relationship_types, presenter.relationship_types, normalize_relationship_type)
     normalize_types(context, context.deployment.policy_types, presenter.policy_types, normalize_policy_type)
     normalize_types(context, context.deployment.policy_trigger_types, presenter.policy_trigger_types, normalize_policy_trigger_type)
+    
+    # Built-in types
+    scaling = PolicyType(POLICY_SCALING)
+    set_policy_scaling_properties(scaling)
+    context.deployment.policy_types.children.append(scaling)
     
     normalize_property_values(r.inputs, presenter.service_template._get_input_values(context))
     normalize_property_values(r.outputs, presenter.service_template._get_output_values(context))
@@ -185,8 +192,10 @@ def normalize_group_policy_trigger(context, trigger):
 
 def normalize_policy(context, policy):
     r = PolicyTemplate(name=policy._name, type_name=policy.type)
-
+    
     normalize_property_assignments(r.properties, policy.properties)
+    if policy.type == POLICY_SCALING:
+        set_policy_scaling_properties(r)
     
     groups = policy._get_targets(context)
     for group in groups:
@@ -256,3 +265,27 @@ def normalize_interfaces(context, interfaces, source_interfaces, is_definition=F
             interface = normalize_interface(context, interface, is_definition)
             if interface is not None:
                 interfaces[interface_name] = interface
+
+def set_policy_scaling_properties(o):
+    if 'default_instances' in o.properties:
+        o.properties['default_instances'].type = 'int'
+    else:
+        o.properties['default_instances'] = Parameter('int', 1, 'The number of instances the groups referenced by this policy will have.') 
+    if 'min_instances' in o.properties:
+        o.properties['min_instances'].type = 'int'
+    else:
+        o.properties['min_instances'] = Parameter('int', 0, 'The minimum number of allowed group instances.') 
+    if 'max_instances' in o.properties:
+        o.properties['max_instances'].type = 'int'
+        if o.properties['max_instances'].value == 'UNBOUNDED':
+            o.properties['max_instances'].value = -1
+    else:
+        o.properties['max_instances'] = Parameter('int', -1, 'The maximum number of allowed group instances.') 
+    if 'planned_instances' in o.properties:
+        o.properties['planned_instances'].type = 'int'
+    else:
+        o.properties['planned_instances'] = Parameter('int', o.properties['default_instances'].value, None)
+    if 'current_instances' in o.properties:
+        o.properties['current_instances'].type = 'int'
+    else:
+        o.properties['current_instances'] = Parameter('int', o.properties['default_instances'].value, None)
