@@ -88,14 +88,16 @@ def convert_plan(context):
 
     # Aggregate deployment_plugins_to_install from nodes
     for node in r['nodes']:
-        for plugin in node['deployment_plugins_to_install']:
-            exists = False
-            for plugin in r['deployment_plugins_to_install']:
-                if plugin['name'] == plugin['name']:
-                    exists = True
-                    break
-            if not exists:
-                r['deployment_plugins_to_install'].append(plugin)
+        node_deployment_plugins_to_install = node.get('deployment_plugins_to_install')
+        if node_deployment_plugins_to_install:
+            for plugin in node_deployment_plugins_to_install:
+                exists = False
+                for p in r['deployment_plugins_to_install']:
+                    if p['name'] == plugin['name']:
+                        exists = True
+                        break
+                if not exists:
+                    r['deployment_plugins_to_install'].append(plugin)
     
     # Some code needs to access these as Python attributes
     setattr(r, 'version', r['version'])
@@ -181,16 +183,22 @@ def convert_relationship(context, relationship):
 def convert_node_template(context, node_template):
     node_type = context.deployment.node_types.get_descendant(node_template.type_name)
     host_node_template = find_host_node_template(context, node_template)
+    is_host = is_host_node_template(context, node_template)
     
     current_instances = 0
     for node in context.deployment.plan.nodes.itervalues():
         if node.template_name == node_template.name:
             current_instances += 1
+
+    plugins_to_install = [] if is_host else None
+    deployment_plugins_to_install = []
+    add_plugins_to_install_for_interface(context, plugins_to_install, node_template.interfaces, HOST_AGENT)
+    add_plugins_to_install_for_interface(context, deployment_plugins_to_install, node_template.interfaces, CENTRAL_DEPLOYMENT_AGENT)
     
     relationships = []
     for requirement in node_template.requirements:
         if requirement.relationship_template is not None:
-            relationships.append(convert_relationship_template(context, requirement))
+            relationships.append(convert_relationship_template(context, requirement, plugins_to_install, deployment_plugins_to_install))
 
     r = OrderedDict((
         ('name', node_template.name),
@@ -202,8 +210,8 @@ def convert_node_template(context, node_template):
         ('operations', convert_operations(context, node_template.interfaces)),
         ('relationships', relationships),
         ('plugins', context.deployment.plugins),
-        ('plugins_to_install', plugins_to_install_for_interface(context, node_template.interfaces, HOST_AGENT)),
-        ('deployment_plugins_to_install', plugins_to_install_for_interface(context, node_template.interfaces, CENTRAL_DEPLOYMENT_AGENT)),
+        ('plugins_to_install', plugins_to_install),
+        ('deployment_plugins_to_install', deployment_plugins_to_install),
         ('capabilities', OrderedDict((
             ('scalable', OrderedDict((
                 ('properties', OrderedDict((
@@ -214,12 +222,20 @@ def convert_node_template(context, node_template):
     
     if r['host_id'] is None:
         del r['host_id']
+    
+    if not is_host:
+        del r['plugins_to_install']
         
     return r
 
-def convert_relationship_template(context, requirement):
+def convert_relationship_template(context, requirement, plugins_to_install, deployment_plugins_to_install):
     relationship_template = requirement.relationship_template
     relationship_type = context.deployment.relationship_types.get_descendant(relationship_template.type_name)
+
+    add_plugins_to_install_for_interface(context, plugins_to_install, relationship_template.source_interfaces, HOST_AGENT)
+    add_plugins_to_install_for_interface(context, plugins_to_install, relationship_template.target_interfaces, HOST_AGENT)
+    add_plugins_to_install_for_interface(context, deployment_plugins_to_install, relationship_template.source_interfaces, CENTRAL_DEPLOYMENT_AGENT)
+    add_plugins_to_install_for_interface(context, deployment_plugins_to_install, relationship_template.target_interfaces, CENTRAL_DEPLOYMENT_AGENT)
     
     return OrderedDict((
         ('type', relationship_type.name),
@@ -409,16 +425,23 @@ def has_intrinsic_functions(context, value):
                 return True
     return False
 
-def plugins_to_install_for_interface(context, interfaces, agent):
-    install = []
+def add_plugins_to_install_for_interface(context, plugins_to_install, interfaces, agent):
+    if plugins_to_install is None:
+        return
+    
+    def has_plugin(name):
+        for plugin in plugins_to_install:
+            if plugin['name'] == name:
+                return True
+        return False
+    
     for interface in interfaces.itervalues():
         for operation in interface.operations.itervalues():
             plugin_name, plugin_executor, _, _ = parse_implementation(context, operation.implementation)
             executor = operation.executor or plugin_executor
             if executor == agent:
-                if plugin_name not in install: 
-                    install.append(plugin_name)
-    return [find_plugin(context, v) for v in install]
+                if not has_plugin(plugin_name): 
+                    plugins_to_install.append(find_plugin(context, plugin_name))
 
 def plugins_to_install_for_operations(context, operations, agent):
     install = []
@@ -442,8 +465,11 @@ def find_plugin(context, name=None):
             return plugin
     raise InvalidValueError('unknown plugin: %s' % name)
 
+def is_host_node_template(context, node_template):
+    return context.deployment.node_types.is_descendant(COMPUTE_NODE_NAME, node_template.type_name)
+
 def find_host_node_template(context, node_template):
-    if context.deployment.node_types.is_descendant(COMPUTE_NODE_NAME, node_template.type_name):
+    if is_host_node_template(context, node_template):
         return node_template
     
     for requirement in node_template.requirements:

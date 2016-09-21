@@ -108,6 +108,7 @@ plugins:
             for plugin in node['plugins_to_install']:
                 if plugin['name'] == plugin_name:
                     return plugin
+            return None
 
         self.template.version_section('cloudify_dsl', '1.0')
         self.template += """
