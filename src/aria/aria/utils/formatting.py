@@ -55,28 +55,27 @@ class YamlAsRawDumper(yaml.dumper.RoundTripDumper):
             data = as_raw(data)
         return super(YamlAsRawDumper, self).represent_data(data)
 
-def full_type_name(o):
+def full_type_name(value):
     """
     The full class name of a type or object.
     """
     
-    if not isinstance(o, type):
-        o = o.__class__
-    module = str(o.__module__)
-    name = str(o.__name__)
+    if not isinstance(value, type):
+        value = value.__class__
+    module = str(value.__module__)
+    name = str(value.__name__)
     return name if module == '__builtin__' else '%s.%s' % (module, name)
 
-def safe_str(s):
+def safe_str(value):
     """
     Like :code:`str` coercion, but makes sure that Unicode strings are properly
     encoded, and will never return None.
     """
     
     try:
-        return str(s)
+        return str(value)
     except UnicodeEncodeError:
-        s = unicode(s)
-        return s.encode('utf8')
+        return unicode(value).encode('utf8')
 
 def as_raw(value):
     """

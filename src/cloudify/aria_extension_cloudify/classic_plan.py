@@ -20,7 +20,6 @@ from aria.deployment import Parameter, Function
 from aria.utils import as_raw, as_agnostic, merge, prune, json_dumps
 from collections import OrderedDict
 import os
-from aria.utils.collections import deepcopy_with_locators
 
 COMPUTE_NODE_NAME = 'cloudify.nodes.Compute'
 CONTAINED_IN_RELATIONSHIP_NAME = 'cloudify.relationships.contained_in'
@@ -185,34 +184,31 @@ def convert_relationship(context, relationship):
 def convert_node_template(context, node_template):
     node_type = context.deployment.node_types.get_descendant(node_template.type_name)
     host_node_template = find_host_node_template(context, node_template)
-    is_host = is_host_node_template(context, node_template)
+    is_a_host = is_host(context, node_template)
     
     current_instances = 0
     for node in context.deployment.plan.nodes.itervalues():
         if node.template_name == node_template.name:
             current_instances += 1
 
-    plugins_to_install = [] if is_host else None
+    plugins_to_install = [] if is_a_host else None
     deployment_plugins_to_install = []
-    add_plugins_to_install_for_interface(context, plugins_to_install, node_template.interfaces, HOST_AGENT)
-    add_plugins_to_install_for_interface(context, deployment_plugins_to_install, node_template.interfaces, CENTRAL_DEPLOYMENT_AGENT)
+    add_plugins_to_install_for_node_template(context, node_template, plugins_to_install, deployment_plugins_to_install)
     
     relationships = []
     for requirement in node_template.requirements:
         if requirement.relationship_template is not None:
-            relationships.append(convert_relationship_template(context, requirement, plugins_to_install, deployment_plugins_to_install))
+            relationships.append(convert_relationship_template(context, requirement))
 
     r = OrderedDict((
         ('name', node_template.name),
         ('id', node_template.name),
         ('type', node_type.name),
         ('type_hierarchy', convert_type_hierarchy(context, node_type, context.deployment.node_types)),
-        ('host_id', host_node_template.name if host_node_template is not None else None),
         ('properties', convert_properties(context, node_template.properties)),
         ('operations', convert_operations(context, node_template.interfaces)),
         ('relationships', relationships),
         ('plugins', context.deployment.plugins),
-        ('plugins_to_install', plugins_to_install),
         ('deployment_plugins_to_install', deployment_plugins_to_install),
         ('capabilities', OrderedDict((
             ('scalable', OrderedDict((
@@ -222,23 +218,18 @@ def convert_node_template(context, node_template):
                     ('min_instances', node_template.min_instances),
                     ('max_instances', node_template.max_instances if node_template.max_instances is not None else -1)))),))),)))))
     
-    if r['host_id'] is None:
-        del r['host_id']
+    if host_node_template is not None:
+        r['host_id'] = host_node_template.name
     
-    if not is_host:
-        del r['plugins_to_install']
+    if is_a_host:
+        r['plugins_to_install'] = plugins_to_install
         
     return r
 
-def convert_relationship_template(context, requirement, plugins_to_install, deployment_plugins_to_install):
+def convert_relationship_template(context, requirement):
     relationship_template = requirement.relationship_template
     relationship_type = context.deployment.relationship_types.get_descendant(relationship_template.type_name)
 
-    add_plugins_to_install_for_interface(context, plugins_to_install, relationship_template.source_interfaces, HOST_AGENT)
-    add_plugins_to_install_for_interface(context, plugins_to_install, relationship_template.target_interfaces, HOST_AGENT)
-    add_plugins_to_install_for_interface(context, deployment_plugins_to_install, relationship_template.source_interfaces, CENTRAL_DEPLOYMENT_AGENT)
-    add_plugins_to_install_for_interface(context, deployment_plugins_to_install, relationship_template.target_interfaces, CENTRAL_DEPLOYMENT_AGENT)
-    
     return OrderedDict((
         ('type', relationship_type.name),
         ('type_hierarchy', convert_type_hierarchy(context, relationship_type, context.deployment.relationship_types)),
@@ -454,6 +445,20 @@ def add_plugins_to_install_for_interface(context, plugins_to_install, interfaces
                 if not has_plugin(plugin_name): 
                     plugins_to_install.append(find_plugin(context, plugin_name))
 
+def add_plugins_to_install_for_node_template(context, node_template, plugins_to_install, deployment_plugins_to_install):
+    add_plugins_to_install_for_interface(context, plugins_to_install, node_template.interfaces, HOST_AGENT)
+    add_plugins_to_install_for_interface(context, deployment_plugins_to_install, node_template.interfaces, CENTRAL_DEPLOYMENT_AGENT)
+
+    # Plugins from relationships' source interfaces
+    for requirement in node_template.requirements:
+        if requirement.relationship_template is not None:
+            add_plugins_to_install_for_interface(context, plugins_to_install, requirement.relationship_template.source_interfaces, HOST_AGENT)
+            add_plugins_to_install_for_interface(context, deployment_plugins_to_install, requirement.relationship_template.source_interfaces, CENTRAL_DEPLOYMENT_AGENT)
+
+    # Recurse into hosted node templates
+    for t in find_hosted_node_templates(context, node_template):
+        add_plugins_to_install_for_node_template(context, t, plugins_to_install, deployment_plugins_to_install)
+
 def plugins_to_install_for_operations(context, operations, agent):
     install = []
     for operation in operations.itervalues():
@@ -476,28 +481,39 @@ def find_plugin(context, name=None):
             return plugin
     raise InvalidValueError('unknown plugin: %s' % name)
 
-def is_host_node_template(context, node_template):
-    return context.deployment.node_types.is_descendant(COMPUTE_NODE_NAME, node_template.type_name)
+def is_host(context, node_or_node_template):
+    return context.deployment.node_types.is_descendant(COMPUTE_NODE_NAME, node_or_node_template.type_name)
+
+def is_contained_in(context, relationship_or_relationship_template):
+    return context.deployment.relationship_types.is_descendant(CONTAINED_IN_RELATIONSHIP_NAME, relationship_or_relationship_template.type_name)
 
 def find_host_node_template(context, node_template):
-    if is_host_node_template(context, node_template):
+    if is_host(context, node_template):
         return node_template
     
     for requirement in node_template.requirements:
         relationship_template = requirement.relationship_template
         if relationship_template is not None:
-            if context.deployment.relationship_types.is_descendant(CONTAINED_IN_RELATIONSHIP_NAME, relationship_template.type_name):
+            if is_contained_in(context, relationship_template):
                 return find_host_node_template(context, context.deployment.template.node_templates.get(requirement.target_node_template_name))
 
     return None
 
+def find_hosted_node_templates(context, node_template):
+    hosted = []
+    if is_host(context, node_template):
+        for t in context.deployment.template.node_templates.itervalues():
+            if (t is not node_template) and (find_host_node_template(context, t) is node_template):
+                hosted.append(t)
+    return hosted
+
 def find_host_node(context, node):
     node_template = context.deployment.template.node_templates.get(node.template_name)
-    if context.deployment.node_types.is_descendant(COMPUTE_NODE_NAME, node_template.type_name):
+    if is_host(context, node_template):
         return node
     
     for relationship in node.relationships:
-        if context.deployment.relationship_types.is_descendant(CONTAINED_IN_RELATIONSHIP_NAME, relationship.type_name):
+        if is_contained_in(context, relationship):
             return find_host_node(context, context.deployment.plan.nodes.get(relationship.target_node_id))
 
     return None
