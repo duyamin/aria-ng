@@ -317,10 +317,14 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
                 'targets': ['group']
             }
         }
-        self.assert_validation(expected_error_code=1,
-                               groups=groups,
-                               nodes=nodes,
-                               policies=policies)
+        self.assert_validation(
+            expected_issue_messages=[
+                'required field "type" in '
+                '"aria_extension_cloudify.v1_3.templates.PolicyDefinition" '
+                'does not have a value'],
+            groups=groups,
+            nodes=nodes,
+            policies=policies)
 
     def test_non_scaling_policy_type(self):
         nodes = {'node': None}
@@ -334,7 +338,8 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             }
         }
         self.assert_validation(
-            expected_error_code=ERROR_UNSUPPORTED_POLICY,
+            expected_issue_messages=[
+                '"type" refers to an unknown policy type in "policy": u\'some_policy\''],
             groups=groups,
             nodes=nodes,
             policies=policies)
@@ -348,7 +353,8 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             }
         }
         self.assert_validation(
-            expected_error_code=ERROR_NON_GROUP_TARGET,
+            expected_issue_messages=[
+                '"targets" refers to an unknown group in "policy": [u\'node\']'],
             policies=policies,
             nodes=nodes)
 
@@ -359,7 +365,10 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             }
         }
         self.assert_validation(
-            expected_error_code=1,
+            expected_issue_messages=[
+                'required field "targets" in '
+                '"aria_extension_cloudify.v1_3.templates.PolicyDefinition" '
+                'does not have a value'],
             policies=policies)
 
     def test_empty_targets(self):
@@ -370,7 +379,7 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             }
         }
         self.assert_validation(
-            expected_error_code=ERROR_NO_TARGETS,
+            expected_issue_messages=ERROR_NO_TARGETS,
             policies=policies)
 
     def test_invalid_min_instances_value(self):
@@ -388,7 +397,7 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             }
         }
         self.assert_validation(
-            expected_error_code=ERROR_INVALID_INSTANCES,
+            expected_issue_messages=ERROR_INVALID_INSTANCES,
             groups=groups,
             nodes=nodes,
             policies=policies)
@@ -408,7 +417,7 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             }
         }
         self.assert_validation(
-            expected_error_code=ERROR_INVALID_INSTANCES,
+            expected_issue_messages=ERROR_INVALID_INSTANCES,
             groups=groups,
             nodes=nodes,
             policies=policies)
@@ -428,7 +437,7 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             }
         }
         self.assert_validation(
-            expected_error_code=ERROR_INVALID_LITERAL_INSTANCES,
+            expected_issue_messages=ERROR_INVALID_LITERAL_INSTANCES,
             groups=groups,
             nodes=nodes,
             policies=policies)
@@ -448,7 +457,7 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             }
         }
         self.assert_validation(
-            expected_error_code=ERROR_INVALID_INSTANCES,
+            expected_issue_messages=ERROR_INVALID_INSTANCES,
             groups=groups,
             nodes=nodes,
             policies=policies)
@@ -469,7 +478,7 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             }
         }
         self.assert_validation(
-            expected_error_code=ERROR_INVALID_INSTANCES,
+            expected_issue_messages=ERROR_INVALID_INSTANCES,
             groups=groups,
             nodes=nodes,
             policies=policies)
@@ -490,7 +499,7 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             }
         }
         self.assert_validation(
-            expected_error_code=ERROR_INVALID_INSTANCES,
+            expected_issue_messages=ERROR_INVALID_INSTANCES,
             groups=groups,
             nodes=nodes,
             policies=policies)
@@ -511,7 +520,7 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             }
         }
         self.assert_validation(
-            expected_error_code=ERROR_INVALID_INSTANCES,
+            expected_issue_messages=ERROR_INVALID_INSTANCES,
             groups=groups,
             nodes=nodes,
             policies=policies)
@@ -522,7 +531,7 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             'group2': ['group1']
         }
         self.assert_validation(
-            expected_error_code=ERROR_GROUP_CYCLE,
+            expected_issue_messages=ERROR_GROUP_CYCLE,
             groups=groups)
 
     def test_validate_no_group_cycles2(self):
@@ -533,7 +542,7 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             'group4': ['group1'],
         }
         self.assert_validation(
-            expected_error_code=ERROR_GROUP_CYCLE,
+            expected_issue_messages=ERROR_GROUP_CYCLE,
             groups=groups)
 
     def test_validate_node_type_group_members_in_one_group_only(self):
@@ -545,7 +554,7 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             'node': None
         }
         self.assert_validation(
-            expected_error_code=ERROR_MULTIPLE_GROUPS,
+            expected_issue_messages=ERROR_MULTIPLE_GROUPS,
             groups=groups,
             nodes=nodes)
 
@@ -559,7 +568,7 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             'node': None
         }
         self.assert_validation(
-            expected_error_code=ERROR_MULTIPLE_GROUPS,
+            expected_issue_messages=ERROR_MULTIPLE_GROUPS,
             groups=groups,
             nodes=nodes)
 
@@ -573,7 +582,7 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             'node3': None
         }
         self.assert_validation(
-            expected_error_code=ERROR_NON_CONTAINED_GROUP_MEMBERS,
+            expected_issue_messages=ERROR_NON_CONTAINED_GROUP_MEMBERS,
             groups=groups,
             nodes=nodes)
 
@@ -588,7 +597,7 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             'node3': None
         }
         self.assert_validation(
-            expected_error_code=ERROR_NON_CONTAINED_GROUP_MEMBERS,
+            expected_issue_messages=ERROR_NON_CONTAINED_GROUP_MEMBERS,
             groups=groups,
             nodes=nodes)
 
@@ -604,7 +613,7 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             'node4': None
         }
         self.assert_validation(
-            expected_error_code=ERROR_NON_CONTAINED_GROUP_MEMBERS,
+            expected_issue_messages=ERROR_NON_CONTAINED_GROUP_MEMBERS,
             groups=groups,
             nodes=nodes)
 
@@ -639,13 +648,13 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
         }
         expected_code = ERROR_GROUP_AND_NODE_TEMPLATE_SAME_NAME
         self.assert_validation(
-            expected_error_code=expected_code,
+            expected_issue_messages=expected_code,
             groups=groups,
             nodes=nodes)
 
     def assert_validation(
             self,
-            expected_error_code,
+            expected_issue_messages,
             groups=None,
             nodes=None,
             policies=None,
@@ -663,7 +672,9 @@ class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
             nodes=nodes,
             policies=policies,
             version=version)
-        self.assert_parser_raise_exception(error_code=expected_error_code)
+        self.assert_parser_issue_messages(
+            issue_messages=expected_issue_messages
+        )
 
 
 class TestNodeTemplateDefaultScalableProperties(ParserTestCase):
@@ -717,10 +728,10 @@ tosca_definitions_version: test_scaling_policy_and_group_unbounded_literal.0
         self.template.node_type_section()
         self.template.node_template_section()
         self.template += """
-        instances:
-          deploy: 1
-        capabilities: {}
+    instances:
+      deploy: 1
+    capabilities: {}
 """
-        self.assert_parser_raise_exception(
-            exception_types=DSLParsingLogicException,
-            error_code=73)
+        self.assert_parser_issue_messages(
+            ['cannot define "instances" and capabilities together in a '
+             'node template'])
