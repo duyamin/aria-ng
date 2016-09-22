@@ -24,7 +24,9 @@ from tempfile import mkdtemp
 from testtools import TestCase
 
 from dsl_parser.parser import parse, parse_from_path
-from dsl_parser.exceptions import DSLParsingException
+
+
+PARSING_ISSUES_TITLE = 'parse failed with issues: \n\t'
 
 
 class TempDirectoryTestCase(TestCase):
@@ -101,24 +103,30 @@ class ParserTestCase(TestCase):
     def _validate_parse_no_issues(self, context):
         if not context.validation.has_issues:
             return
-        msg = 'parse failed with issues: \n\t{0}'.format('\n\t'.join(
-            issue.message for issue in context.validation.issues))
+        msg = '{title}{messages}'.format(
+            title=PARSING_ISSUES_TITLE,
+            messages='\n\t'.join(
+                issue.message for issue in context.validation.issues))
         raise CloudifyParserError(msg)
 
-    def assert_parser_raise_exception(
-            self,
-            exception_types=DSLParsingException,
-            error_code=None,
-            extra_tests=()):
-        try:
-            self.parse()
-            self.fail()
-        except exception_types as exc:
-            if error_code:
-                self.assertEquals(error_code, exc.err_code)
-            for test in extra_tests:
-                test(exc)
-        return exc
+    def assert_parser_issue_messages(self,
+                                     issue_messages,
+                                     parse_from_path=False,
+                                     parsing_arguments=None):
+        parsing_method = self.parse_from_uri if parse_from_path else self.parse
+        parsing_arguments = parsing_arguments or []
+
+        ex = self.assertRaises(CloudifyParserError,
+                               parsing_method,
+                               *parsing_arguments)
+
+        expected_error_message = '{title}{messages}'.format(
+            title=PARSING_ISSUES_TITLE,
+            messages='\n\t'.join(msg for msg in issue_messages))
+
+        self.assertEqual(expected_error_message, ex.message)
+
+
 
 
 class Template(object):

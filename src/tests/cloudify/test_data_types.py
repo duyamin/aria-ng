@@ -21,11 +21,8 @@ class TestDataTypes(ParserTestCase, TempDirectoryTestCase):
         self.template.node_template_section()
         self.template.data_types_section(
             properties_first='\n        type: unknown-type')
-        # TODO check that we get a corresponding validation issue for
-        # a data_type property type of an invalid value
-        self.assert_parser_raise_exception(
-            error_code=ERROR_UNKNOWN_TYPE,
-            exception_types=DSLParsingLogicException)
+        self.assert_parser_issue_messages(
+            ['"type" refers to an unknown data type in "first": u\'unknown-type\''])
 
     def test_simple(self):
         self.template.version_section('cloudify_dsl', '1.2')
@@ -65,12 +62,8 @@ class TestDataTypes(ParserTestCase, TempDirectoryTestCase):
             '        default:\n'
             '          head: 1\n'
         )
-        # TODO check for validation issue that indicates cyclic definition
-        # of a data type
-        print self.parse()
-        self.assert_parser_raise_exception(
-            error_code=ERROR_CODE_CYCLE,
-            exception_types=DSLParsingLogicException)
+        self.assert_parser_issue_messages(
+            ['type of property "tail" creates a circular value hierarchy: u\'list_type\''])
 
     def test_definitions_with_default_error(self):
         extras = (
@@ -89,11 +82,8 @@ class TestDataTypes(ParserTestCase, TempDirectoryTestCase):
         self.template.node_type_section()
         self.template.node_template_section()
         self.template.data_types_section(extras=extras)
-        # TODO check for a validation issue that indicates that we are trying
-        # to add a default value for a property that does not exist.
-        self.assert_parser_raise_exception(
-            error_code=106,
-            exception_types=DSLParsingLogicException)
+
+        # TODO issue #1 in the second section of test_data_types
 
     def test_unknown_type_in_datatype(self):
         self.template.version_section('cloudify_dsl', '1.2')
@@ -107,11 +97,8 @@ data_types:
         type: unknown-type
       second: {}
 """
-        # TODO check that we get a corresponding validation issue for
-        # a data_type property type of an invalid value
-        self.assert_parser_raise_exception(
-            ERROR_UNKNOWN_TYPE,
-            DSLParsingLogicException)
+        self.assert_parser_issue_messages(
+            ['"type" refers to an unknown data type in "first": u\'unknown-type\''])
 
     def test_nested_validation(self):
         self.template.version_section('cloudify_dsl', '1.2')
@@ -145,16 +132,10 @@ data_types:
       second:
         type: pair_type
 """
-        # TODO item #5 in test_data_type confluence
-        # ex = self.assertRaises(CloudifyParserError, self.parse)
-        # self.assertIn('field "n_pair" is not a valid "__builtin__.int": '
-        #                '\'invalid_type_value\'\n\t'
-        #                'required property "second" in type "pair_type" is '
-        #                'not assigned a value in "n_pair"',
-        #                  ex)
-        self.assert_parser_raise_exception(
-            error_code=ERROR_VALUE_DOES_NOT_MATCH_TYPE,
-            exception_types=DSLParsingException)
+        self.assert_parser_issue_messages(
+            ['field "n_pair" is not a valid "int": \'invalid_type_value\'',
+             'required property "second" in type "pair_type" is not assigned a value in "n_pair"'
+             ])
 
     def test_nested_defaults(self):
         self.template.version_section('cloudify_dsl', '1.2')
@@ -270,11 +251,10 @@ data_types:
         type: integer
 
 """
-        # TODO item #6 in test_data_type confluence
-        ex = self.assert_parser_raise_exception(
-            error_code=ERROR_VALUE_DOES_NOT_MATCH_TYPE,
-            exception_types=DSLParsingException)
-        self.assertIn('a.b.c.d', ex.message)
+        self.assert_parser_issue_messages(
+            ['field "a" is not a valid "int": \'should_be_int\'',
+             'required property "d" in type "c" is not assigned a value in "a"'
+             ])
 
     def test_unknown_parent(self):
         self.template.version_section('cloudify_dsl', '1.2')
@@ -303,7 +283,6 @@ data_types:
       p:
         type: string
 """
-        # TODO item #7 in test_data_types
 
     def test_subtype_override_field_type(self):
         self.template.version_section('cloudify_dsl', '1.2')
@@ -333,7 +312,6 @@ data_types:
       i:
         type: string
 """
-        # TODO item #8 in test_data_types
         self.parse()
 
     def test_nested_type_error_in_default(self):
@@ -363,8 +341,9 @@ data_types:
       e:
         type: integer
 """
-        # TODO issue #9 in test_data_types
-        self.parse()
+        self.assert_parser_issue_messages([
+            'field "b" is not a valid "int": \'should be int\'',
+        ])
 
     def test_nested_merging(self):
         self.template.version_section('cloudify_dsl', '1.2')
@@ -400,7 +379,6 @@ data_types:
         type: string
         default: 'i string'
 """
-        # TODO issue #11 in test_data_types
         parsed = self.parse()
         node = get_node_by_name(parsed, 'node')
         expected = {
@@ -527,7 +505,6 @@ node_templates:
           inner6:
             inner2_6: inner2_6_override
 """
-        # TODO item #12 in test_data_types
         parsed = self.parse()
 
         def prop1(node_name):
@@ -618,9 +595,8 @@ node_templates:
   node:
     type: type
 """
-        # TODO issue #10 in test_data_types
-        self.parse()
-        # ex = self.assertRaises(CloudifyParserError, self.parse)
+        self.assert_parser_issue_messages(
+            ['assignment to undefined property "prop2" in type "datatype" in "node"'])
 
     def test_nested_required_false(self):
         self.template.version_section('cloudify_dsl', '1.2')
@@ -705,7 +681,6 @@ node_templates:
   node1:
     type: type1
 """
-        # TODO issue #13 in test_data_types
         parsed = self.parse()
         node1 = parsed['nodes'][0]
         self.assertEqual(node1['properties']['prop1']['inner'],
@@ -740,7 +715,6 @@ node_templates:
   node:
     type: type
 """.format(import_path)
-        # TODO issue #14 in test_data_types
         properties = self.parse()['nodes'][0]['properties']
         self.assertEqual(properties['prop1']['prop1'], 'value1')
         self.assertEqual(properties['prop2']['prop2'], 'value2')
