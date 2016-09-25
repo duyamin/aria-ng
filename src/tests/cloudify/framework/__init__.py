@@ -13,8 +13,3 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-
-pytest==3.0.2
-testtools==2.2.0
-retrying==1.3.3
-networkx==1.11

@@ -294,7 +294,6 @@ class Template(object):
             '    value: test_output_value\n'
         )
 
-
 class CloudifyParserError(Exception):
     pass
 
