@@ -24,7 +24,7 @@ class PropertyAssignment(AsIsPresentation):
 
 @has_fields
 class GroupPolicyTriggerAssignment(Presentation):
-    @field_validator(type_validator('policy trigger type', 'policy_triggers'))
+    @field_validator(type_validator('group policy trigger type', 'policy_triggers'))
     @primitive_field(str, required=True)
     def type(self):
         """

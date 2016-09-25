@@ -369,7 +369,7 @@ def list_node_type_or_group_type_validator(field, presentation, context):
                 report_issue_for_unknown_type(context, presentation, 'node type or group type', field.name, value)
 
 #
-# PolicyDefinition
+# PolicyTemplate
 #
 
 def policy_targets_validator(field, presentation, context):
@@ -377,7 +377,7 @@ def policy_targets_validator(field, presentation, context):
     Makes sure that the field's elements refer to either node templates or groups, and that
     they match the node types and group types declared in the policy type.
 
-    Used with the :func:`field_validator` decorator for the :code:`targets` field in :class:`PolicyDefinition`.
+    Used with the :func:`field_validator` decorator for the :code:`targets` field in :class:`PolicyTemplate`.
     """
     
     field._validate(presentation, context)

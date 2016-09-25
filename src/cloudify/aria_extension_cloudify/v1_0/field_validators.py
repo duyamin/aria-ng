@@ -20,14 +20,14 @@ from aria.presentation import report_issue_for_unknown_type
 from aria.validation import Issue
 
 #
-# GroupDefinition
+# GroupTemplate
 #
 
 def node_templates_or_groups_validator(field, presentation, context):
     """
     Makes sure that the field's elements refer to either node templates or groups.
 
-    Used with the :func:`field_validator` decorator for the "targets" field in :class:`GroupDefinition`.
+    Used with the :func:`field_validator` decorator for the "targets" field in :class:`GroupTemplate`.
     """
     
     field._validate(presentation, context)

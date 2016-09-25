@@ -16,7 +16,7 @@
 
 from .definitions import PropertyDefinition, WorkflowDefinition
 from .assignments import PropertyAssignment, InterfaceAssignment, GroupPolicyAssignment
-from .types import NodeType, RelationshipType, PolicyType, PolicyTriggerType
+from .types import NodeType, RelationshipType, PolicyType, GroupPolicyTriggerType
 from .misc import Description, Output, Plugin, Instances
 from .field_validators import node_templates_or_groups_validator
 from .utils.properties import get_assigned_and_defined_property_values, get_parameter_values
@@ -200,7 +200,7 @@ class NodeTemplate(Presentation):
 @dsl_specification('groups', 'cloudify-1.1')
 @dsl_specification('groups', 'cloudify-1.2')
 @dsl_specification('groups', 'cloudify-1.3')
-class GroupDefinition(Presentation):
+class GroupTemplate(Presentation):
     """
     Groups provide a way of configuring shared behavior for different sets of node_templates.
     
@@ -318,10 +318,10 @@ class ServiceTemplate(Presentation):
         :rtype: dict of str, :class:`WorkflowDefinition`
         """
 
-    @object_dict_field(GroupDefinition)
+    @object_dict_field(GroupTemplate)
     def groups(self):
         """
-        :rtype: dict of str, :class:`GroupDefinition`
+        :rtype: dict of str, :class:`GroupTemplate`
         """
 
     @object_dict_field(PolicyType)
@@ -330,10 +330,10 @@ class ServiceTemplate(Presentation):
         :rtype: dict of str, :class:`GroupPolicyType`
         """
 
-    @object_dict_field(PolicyTriggerType)
+    @object_dict_field(GroupPolicyTriggerType)
     def policy_triggers(self):
         """
-        :rtype: dict of str, :class:`PolicyTriggerType`
+        :rtype: dict of str, :class:`GroupPolicyTriggerType`
         """
 
     @cachedmethod

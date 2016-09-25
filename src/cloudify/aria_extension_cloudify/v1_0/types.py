@@ -202,7 +202,7 @@ class PolicyType(Presentation):
 @dsl_specification('policy-triggers', 'cloudify-1.1')
 @dsl_specification('policy-triggers', 'cloudify-1.2')
 @dsl_specification('policy-triggers', 'cloudify-1.3')
-class PolicyTriggerType(Presentation):
+class GroupPolicyTriggerType(Presentation):
     """
     :code:`policy_triggers` specify the implementation of actions invoked by policies and declare the properties that define the trigger's behavior.
     

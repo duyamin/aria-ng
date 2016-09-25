@@ -274,7 +274,7 @@ class RelationshipTemplate(ToscaPresentation):
 
 @has_fields
 @dsl_specification('3.7.5', 'tosca-simple-profile-1.0')
-class GroupDefinition(ToscaPresentation):
+class GroupTemplate(ToscaPresentation):
     """
     A group definition defines a logical grouping of node templates, typically for management purposes, but is separate from the application's topology template.
     
@@ -336,13 +336,13 @@ class GroupDefinition(ToscaPresentation):
         return ReadOnlyDict(get_template_interfaces(context, self, 'group definition'))
     
     def _validate(self, context):
-        super(GroupDefinition, self)._validate(context)
+        super(GroupTemplate, self)._validate(context)
         self._get_property_values(context)
         self._get_interfaces(context)
 
 @has_fields
 @dsl_specification('3.7.6', 'tosca-simple-profile-1.0')
-class PolicyDefinition(ToscaPresentation):
+class PolicyTemplate(ToscaPresentation):
     """
     A policy definition defines a policy that can be associated with a TOSCA topology or top-level entity definition (e.g., group definition, node template, etc.).
     
@@ -397,7 +397,7 @@ class PolicyDefinition(ToscaPresentation):
         return ReadOnlyList(node_templates), ReadOnlyList(groups)
 
     def _validate(self, context):
-        super(PolicyDefinition, self)._validate(context)
+        super(PolicyTemplate, self)._validate(context)
         self._get_property_values(context)
 
 @has_fields
@@ -441,20 +441,20 @@ class TopologyTemplate(ToscaPresentation):
         :rtype: dict of str, :class:`RelationshipTemplate`
         """
 
-    @object_dict_field(GroupDefinition)
+    @object_dict_field(GroupTemplate)
     def groups(self):
         """
         An optional list of Group definitions whose members are node templates defined within this same Topology Template.
         
-        :class:`GroupDefinition`
+        :class:`GroupTemplate`
         """
 
-    @object_dict_field(PolicyDefinition)
+    @object_dict_field(PolicyTemplate)
     def policies(self):
         """
         An optional list of Policy definitions for the Topology Template.
         
-        :rtype: dict of str, :class:`PolicyDefinition`
+        :rtype: dict of str, :class:`PolicyTemplate`
         """
 
     @object_dict_field(ParameterDefinition)

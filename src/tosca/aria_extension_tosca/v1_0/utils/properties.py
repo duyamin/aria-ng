@@ -50,7 +50,7 @@ def get_inherited_property_definitions(context, presentation, field_name, for_pr
     return definitions
 
 #
-# NodeTemplate, RelationshipTemplate, GroupDefinition, PolicyDefinition
+# NodeTemplate, RelationshipTemplate, GroupTemplate, PolicyTemplate
 #
 
 def get_assigned_and_defined_property_values(context, presentation):

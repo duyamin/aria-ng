@@ -17,7 +17,6 @@
 from ..v1_2 import CloudifyPresenter1_2
 from .templates import ServiceTemplate
 from aria.presentation import Presenter
-from aria.validation import Issue
 from aria.utils import cachedmethod
 
 class CloudifyPresenter1_3(CloudifyPresenter1_2):
@@ -45,8 +44,5 @@ class CloudifyPresenter1_3(CloudifyPresenter1_2):
     def _validate_import(self, context, presentation):
         r = True
         if not Presenter._validate_import(self, context, presentation):
-            r = False
-        if presentation.service_template.groups is not None:
-            context.validation.report('import has forbidden "groups" section', locator=presentation._get_child_locator('groups'), level=Issue.BETWEEN_TYPES)
             r = False
         return r

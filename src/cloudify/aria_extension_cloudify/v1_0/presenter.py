@@ -68,9 +68,18 @@ class CloudifyPresenter1_0(Presenter):
         if presentation.service_template.node_templates is not None:
             context.validation.report('import has forbidden "node_templates" section', locator=presentation._get_child_locator('node_templates'), level=Issue.BETWEEN_TYPES)
             r = False
-        if presentation.service_template.groups is not None:
-            context.validation.report('import has forbidden "groups" section', locator=presentation._get_child_locator('groups'), level=Issue.BETWEEN_TYPES)
-            r = False
+            
+        # Note: The documentation specifies that importing "groups" is also not allowed:
+        #
+        # http://getcloudify.org/guide/3.1/dsl-spec-imports.html
+        #
+        # However, the documentation is *wrong*. Importing "groups" has always been allowed
+        # in the parser code.
+        #
+        # This documentation error continued all the way to DSL 1.3:
+        #
+        # http://docs.getcloudify.org/3.4.0/blueprints/spec-imports/
+
         return r
 
     @cachedmethod

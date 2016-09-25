@@ -20,7 +20,7 @@ from .assignments import PropertyAssignment, OperationAssignment, InterfaceAssig
 from .definitions import PropertyDefinition, AttributeDefinition, ParameterDefinition, OperationDefinition, InterfaceDefinition, RelationshipDefinition, RequirementDefinition, CapabilityDefinition
 from .filters import CapabilityFilter, NodeFilter
 from .misc import Description, MetaData, Repository, Import, ConstraintClause, EntrySchema, OperationImplementation, SubstitutionMappingsRequirement, SubstitutionMappingsCapability, SubstitutionMappings
-from .templates import NodeTemplate, RelationshipTemplate, GroupDefinition, PolicyDefinition, TopologyTemplate, ServiceTemplate
+from .templates import NodeTemplate, RelationshipTemplate, GroupTemplate, PolicyTemplate, TopologyTemplate, ServiceTemplate
 from .types import ArtifactType, DataType, CapabilityType, InterfaceType, RelationshipType, NodeType, GroupType, PolicyType
 from .data_types import Timestamp, Version, Range, List, Map, ScalarSize, ScalarTime, ScalarFrequency
 from .functions import Concat, Token, GetInput, GetProperty, GetAttribute, GetOperationOutput, GetNodesOfType, GetArtifact
@@ -62,8 +62,8 @@ __all__ = (
     'SubstitutionMappings',
     'NodeTemplate',
     'RelationshipTemplate',
-    'GroupDefinition',
-    'PolicyDefinition',
+    'GroupTemplate',
+    'PolicyTemplate',
     'TopologyTemplate',
     'ServiceTemplate',
     'ArtifactType',

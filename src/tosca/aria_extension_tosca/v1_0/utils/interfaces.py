@@ -115,7 +115,7 @@ def get_inherited_interface_definitions(context, presentation, type_name, for_pr
     return interfaces
 
 #
-# NodeTemplate, RelationshipTemplate, GroupDefinition
+# NodeTemplate, RelationshipTemplate, GroupTemplate
 #
 
 def get_template_interfaces(context, presentation, type_name):

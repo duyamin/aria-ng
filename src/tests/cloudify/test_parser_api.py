@@ -3484,4 +3484,4 @@ policy_types:
         expected_result['groups'].update(groups[1]['groups'])
 
         result = self.parse()
-        self.assertEqual(result['groups'], expected_result['groups'])
+        self.assertEqual(expected_result['groups'], result['groups'])

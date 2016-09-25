@@ -18,8 +18,8 @@ from .presenter import CloudifyPresenter1_0
 from .assignments import PropertyAssignment, GroupPolicyTriggerAssignment, GroupPolicyAssignment, OperationAssignment, InterfaceAssignment
 from .definitions import PropertyDefinition, OperationDefinition, InterfaceDefinition, WorkflowDefinition
 from .misc import Description, Output, Plugin, Instances
-from .templates import RelationshipTemplate, NodeTemplate, GroupDefinition, ServiceTemplate
-from .types import NodeType, RelationshipType, PolicyType, PolicyTriggerType
+from .templates import RelationshipTemplate, NodeTemplate, GroupTemplate, ServiceTemplate
+from .types import NodeType, RelationshipType, PolicyType, GroupPolicyTriggerType
 from .functions import GetInput, GetProperty, GetAttribute
 
 __all__ = (
@@ -39,12 +39,12 @@ __all__ = (
     'Instances',
     'RelationshipTemplate',
     'NodeTemplate',
-    'GroupDefinition',
+    'GroupTemplate',
     'ServiceTemplate',
     'NodeType',
     'RelationshipType',
     'PolicyType',
-    'PolicyTriggerType',
+    'GroupPolicyTriggerType',
     'GetInput',
     'GetProperty',
     'GetAttribute')

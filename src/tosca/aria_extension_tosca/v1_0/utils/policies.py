@@ -43,7 +43,7 @@ def get_inherited_targets(context, presentation):
     return node_types, group_types
 
 #
-# PolicyDefinition
+# PolicyTemplate
 #
 
 def get_policy_targets(context, presentation):
