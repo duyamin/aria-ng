@@ -34,8 +34,10 @@ plugins:
         -   item1: {}
     -   bad_format: {}
         """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, -1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["YAML ParserError: expected "
+                            "<block end>, but found '-' while parsing a block mapping"])
 
     def test_no_node_templates(self):
         yaml = """
@@ -44,8 +46,8 @@ plugins:
         executor: central_deployment_agent
         source: dummy
             """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["sss"])
 
     def test_node_templates_list_instead_of_dict(self):
         yaml = """
@@ -55,8 +57,12 @@ node_templates:
         properties:
             key: "val"
         """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["field \"node_templates\" in "
+                            "\"aria_extension_cloudify.v1_0.templates.ServiceTemplate\" is not a "
+                            "dict: [OrderedDict([('test_node', OrderedDict([('type', 'test_type'), "
+                            "('properties', OrderedDict([('key', 'val')]))]))])]"])
 
     def test_name_field_under_node_templates(self):
         yaml = """
@@ -67,8 +73,12 @@ node_templates:
     test_node:
         type: test_type
         """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["required field \"type\" in "
+                            "\"aria_extension_cloudify.v1_0.templates.NodeTemplate\" does not have "
+                            "a value",
+                            "short form not allowed for field \"name\""])
 
     def test_illegal_first_level_property(self):
         yaml = """
@@ -86,8 +96,10 @@ node_templates:
 illegal_property:
     illegal_sub_property: "some_value"
         """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["field \"illegal_property\" is not supported in"
+                            " \"aria_extension_cloudify.v1_0.templates.ServiceTemplate\""])
 
     def test_node_with_name(self):
         yaml = """
@@ -98,8 +110,8 @@ node_templates:
         name: my_node_name
         type: test_type
         """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["field \"name\" is not supported in \"test_node\""])
 
     def test_node_properties_as_list(self):
         yaml = """
@@ -109,8 +121,12 @@ node_templates:
             properties:
                 key: "val"
         """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["required field \"type\" in "
+                            "\"aria_extension_cloudify.v1_0.templates.NodeTemplate\" does not "
+                            "have a value",
+                            "short form not allowed for field \"test_node\""])
 
     def test_node_without_type_declaration(self):
         yaml = """
@@ -119,8 +135,11 @@ node_templates:
         properties:
             key: "val"
         """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["required field \"type\" in "
+                            "\"aria_extension_cloudify.v1_0.templates.NodeTemplate\" "
+                            "does not have a value"])
 
     def test_type_with_illegal_interface_declaration(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + self.BASIC_PLUGIN + """
