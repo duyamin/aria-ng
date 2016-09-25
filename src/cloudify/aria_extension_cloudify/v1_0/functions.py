@@ -37,7 +37,7 @@ class GetInput(Function):
 
         if context.presentation.presenter is not None:
             if isinstance(self.input_property_name, basestring):
-                inputs = context.presentation.presenter.inputs
+                inputs = context.presentation.get('service_template', 'inputs')
                 if (inputs is None) or (self.input_property_name not in inputs):
                     raise InvalidValueError('function "get_input" argument is not a valid input name: %s' % repr(argument), locator=self.locator)
         
@@ -152,8 +152,8 @@ def parse_modelable_entity_name(context, presentation, name, index, value):
             raise invalid_modelable_entity_name(name, index, value, presentation._locator, 'a relationship template')
     elif isinstance(value, basestring):
         if context.presentation.presenter is not None:
-            node_templates = context.presentation.presenter.node_templates or {}
-            relationship_templates = context.presentation.presenter.relationship_templates or {}
+            node_templates = context.presentation.get('service_template', 'node_templates') or {}
+            relationship_templates = context.presentation.get('service_template', 'relationships') or {}
             if (value not in node_templates) and (value not in relationship_templates):
                 raise InvalidValueError('function "%s" parameter %d is not a valid modelable entity name: %s' % (name, index + 1, repr(value)), locator=presentation._locator, level=Issue.BETWEEN_TYPES)
     return value

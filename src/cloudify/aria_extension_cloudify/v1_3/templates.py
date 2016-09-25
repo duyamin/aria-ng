@@ -75,7 +75,7 @@ class PolicyDefinition(Presentation):
     
     @cachedmethod
     def _get_type(self, context):
-        return context.presentation.presenter.policy_types.get(self.type) if context.presentation.presenter.policy_types is not None else None
+        return context.presentation.get_from_dict('service_template', 'policy_types', self.type)
 
     @cachedmethod
     def _get_targets(self, context):
@@ -83,7 +83,7 @@ class PolicyDefinition(Presentation):
         targets = self.targets
         if targets:
             for target in targets:
-                target = context.presentation.presenter.groups.get(target)
+                target = context.presentation.get_from_dict('service_template', 'groups', target)
                 if target is not None:
                     r.append(target)
         return ReadOnlyList(r)

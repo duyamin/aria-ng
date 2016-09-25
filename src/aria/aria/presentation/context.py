@@ -37,3 +37,19 @@ class PresentationContext(object):
         self.threads = 8
         self.timeout = 10 # in seconds
         self.print_exceptions = False
+
+    def get(self, *names):
+        o = self.presenter
+        if (o is not None) and names:
+            for name in names:
+                o = getattr(o, name, None)
+                if o is None:
+                    break
+        return o
+
+    def get_from_dict(self, *names):
+        if names:
+            o = self.get(*names[:-1])
+            if isinstance(o, dict):
+                return o.get(names[-1])
+        return None

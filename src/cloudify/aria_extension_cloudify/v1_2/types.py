@@ -58,7 +58,7 @@ class DataType(Presentation):
 
     @cachedmethod
     def _get_parent(self, context):
-        return context.presentation.presenter.data_types.get(self.derived_from)
+        return context.presentation.get_from_dict('service_template', 'data_types', self.derived_from)
 
     @cachedmethod
     def _get_properties(self, context):

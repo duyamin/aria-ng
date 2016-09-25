@@ -353,7 +353,7 @@ class SubstitutionMappings(ToscaPresentation):
         
     @cachedmethod
     def _get_type(self, context):
-        return context.presentation.presenter.node_types.get(self.node_type) if context.presentation.presenter.node_types is not None else None
+        return context.presentation.get_from_dict('service_template', 'node_types', self.node_type)
 
     def _validate(self, context):
         super(SubstitutionMappings, self)._validate(context)

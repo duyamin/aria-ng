@@ -46,12 +46,7 @@ class CloudifyPresenter1_3(CloudifyPresenter1_2):
         r = True
         if not Presenter._validate_import(self, context, presentation):
             r = False
-        if presentation.groups is not None:
+        if presentation.service_template.groups is not None:
             context.validation.report('import has forbidden "groups" section', locator=presentation._get_child_locator('groups'), level=Issue.BETWEEN_TYPES)
             r = False
         return r
-    
-    @property
-    @cachedmethod
-    def policies(self):
-        return self.service_template.policies

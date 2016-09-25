@@ -66,7 +66,7 @@ class NodeType(Presentation):
 
     @cachedmethod
     def _get_parent(self, context):
-        return context.presentation.presenter.node_types.get(self.derived_from)
+        return context.presentation.get_from_dict('service_template', 'node_types', self.derived_from)
 
     @cachedmethod
     def _get_properties(self, context):
@@ -98,7 +98,7 @@ class RelationshipType(Presentation):
         :rtype: str
         """
 
-    @field_validator(derived_from_validator('relationship_types'))
+    @field_validator(derived_from_validator('relationships'))
     @primitive_field(str)
     def derived_from(self):
         """
@@ -133,7 +133,7 @@ class RelationshipType(Presentation):
 
     @cachedmethod
     def _get_parent(self, context):
-        return context.presentation.presenter.relationship_types.get(self.derived_from)
+        return context.presentation.get_from_dict('service_template', 'relationships', self.derived_from)
 
     @cachedmethod
     def _get_properties(self, context):

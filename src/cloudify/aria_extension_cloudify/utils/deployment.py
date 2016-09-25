@@ -18,41 +18,43 @@ from aria.deployment import Type, RelationshipType, PolicyType, PolicyTriggerTyp
 
 POLICY_SCALING = 'cloudify.policies.scaling'
 
-def get_deployment_template(context, presenter):
+def get_deployment_template(context):
     r = DeploymentTemplate()
     
-    r.description = presenter.service_template.description.value if presenter.service_template.description is not None else None
+    r.description = context.presentation.get('service_template', 'description', 'value')
 
-    normalize_types(context, context.deployment.node_types, presenter.node_types)
-    normalize_types(context, context.deployment.group_types, presenter.group_types)
-    normalize_types(context, context.deployment.relationship_types, presenter.relationship_types, normalize_relationship_type)
-    normalize_types(context, context.deployment.policy_types, presenter.policy_types, normalize_policy_type)
-    normalize_types(context, context.deployment.policy_trigger_types, presenter.policy_trigger_types, normalize_policy_trigger_type)
+    normalize_types(context, context.deployment.node_types, context.presentation.get('service_template', 'node_types'))
+    #normalize_types(context, context.deployment.group_types, context.presentation.get('service_template', 'group_types'))
+    normalize_types(context, context.deployment.relationship_types, context.presentation.get('service_template', 'relationships'), normalize_relationship_type)
+    normalize_types(context, context.deployment.policy_types, context.presentation.get('service_template', 'policy_types'), normalize_policy_type)
+    normalize_types(context, context.deployment.policy_trigger_types, context.presentation.get('service_template', 'policy_triggers'), normalize_policy_trigger_type)
     
     # Built-in types
     scaling = PolicyType(POLICY_SCALING)
     set_policy_scaling_properties(scaling)
     context.deployment.policy_types.children.append(scaling)
     
-    normalize_property_values(r.inputs, presenter.service_template._get_input_values(context))
-    normalize_property_values(r.outputs, presenter.service_template._get_output_values(context))
-
-    node_templates = presenter.node_templates
+    service_template = context.presentation.get('service_template')
+    if service_template is not None:
+        normalize_property_values(r.inputs, service_template._get_input_values(context))
+        normalize_property_values(r.outputs, service_template._get_output_values(context))
+    
+    node_templates = context.presentation.get('service_template', 'node_templates')
     if node_templates:
         for node_template_name, node_template in node_templates.iteritems():
             r.node_templates[node_template_name] = normalize_node_template(context, node_template)
 
-    groups = presenter.groups
+    groups = context.presentation.get('service_template', 'groups')
     if groups:
         for group_name, group in groups.iteritems():
             r.group_templates[group_name] = normalize_group(context, group)
 
-    policies = presenter.policies
+    policies = context.presentation.get('service_template', 'policies')
     if policies:
         for policy_name, policy in policies.iteritems():
             r.policy_templates[policy_name] = normalize_policy(context, policy)
             
-    workflows = presenter.workflows
+    workflows = context.presentation.get('service_template', 'workflows')
     if workflows:
         for workflow_name, workflow in workflows.iteritems():
             r.operations[workflow_name] = normalize_workflow(context, workflow)

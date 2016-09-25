@@ -29,8 +29,8 @@ def get_inherited_targets(context, presentation):
     
     our_targets = presentation.targets
     if our_targets:
-        all_node_types = context.presentation.presenter.node_types or {} 
-        all_group_types = context.presentation.presenter.group_types or {}
+        all_node_types = context.presentation.get('service_template', 'node_types') or {} 
+        all_group_types = context.presentation.get('service_template', 'group_types') or {}
         node_types = []
         group_types = [] 
         
@@ -56,8 +56,8 @@ def get_policy_targets(context, presentation):
 
     our_targets = presentation.targets
     if our_targets:
-        all_node_templates = context.presentation.presenter.node_templates or {} 
-        all_groups = context.presentation.presenter.groups or {}
+        all_node_templates = context.presentation.get('service_template', 'topology_template', 'node_templates') or {} 
+        all_groups = context.presentation.get('service_template', 'topology_template', 'groups') or {}
         
         for our_target in our_targets:
             if our_target in all_node_templates:

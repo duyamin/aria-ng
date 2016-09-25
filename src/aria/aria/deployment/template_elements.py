@@ -687,7 +687,7 @@ class SubstitutionTemplate(TemplateElement):
 
     def validate(self, context):
         if context.deployment.node_types.get_descendant(self.node_type_name) is None:
-            context.validation.report('substitution template "%s" has an unknown type: %s' % (self.name, repr(self.node_type_name)), level=Issue.BETWEEN_TYPES)        
+            context.validation.report('substitution template has an unknown type: %s' % repr(self.node_type_name), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.capabilities)
         validate_dict_values(context, self.requirements)

@@ -39,8 +39,7 @@ def copy_validator(template_type_name, templates_dict_name):
         # Make sure type exists
         value = getattr(presentation, field.name)
         if value is not None:
-            types_dict = getattr(context.presentation.presenter, templates_dict_name) or {}
-            copy = types_dict.get(value)
+            copy = context.presentation.get_from_dict('service_template', 'topology_template', templates_dict_name, value)
             if copy is None:
                 report_issue_for_unknown_type(context, presentation, template_type_name, field.name)
             else:
@@ -73,7 +72,8 @@ def data_type_validator(type_name='data type'):
                 context.validation.report('type of property "%s" creates a circular value hierarchy: %s' % (presentation._fullname, repr(value)), locator=presentation._get_child_locator('type'), level=Issue.BETWEEN_TYPES)
     
             # Can be a complex data type
-            if (context.presentation.presenter.data_types is not None) and (value in context.presentation.presenter.data_types):
+            data_types = context.presentation.get('service_template', 'data_types')
+            if (data_types is not None) and (value in data_types):
                 return True
             # Can be a primitive data type
             if get_primitive_data_type(value) is None:
@@ -276,8 +276,8 @@ def node_template_or_type_validator(field, presentation, context):
     
     value = getattr(presentation, field.name)
     if value is not None:
-        node_templates = context.presentation.presenter.node_templates or {}
-        node_types = context.presentation.presenter.node_types or {}
+        node_templates = context.presentation.get('service_template', 'topology_template', 'node_templates') or {}
+        node_types = context.presentation.get('service_template', 'node_types') or {}
         if (value not in node_templates) and (value not in node_types):
             report_issue_for_unknown_type(context, presentation, 'node template or node type', field.name)
 
@@ -301,7 +301,7 @@ def capability_definition_or_type_validator(field, presentation, context):
             if value in capabilities:
                 return
 
-        capability_types = context.presentation.presenter.capability_types
+        capability_types = context.presentation.get('service_template', 'capability_types')
         if (capability_types is not None) and (value in capability_types):
             if node is not None:
                 context.validation.report('"%s" refers to a capability type even though "node" has a value in "%s"' % (presentation._name, presentation._container._fullname), locator=presentation._get_child_locator(field.name), level=Issue.BETWEEN_FIELDS)
@@ -342,8 +342,8 @@ def relationship_template_or_type_validator(field, presentation, context):
     
     value = getattr(presentation, field.name)
     if value is not None:
-        relationship_templates = context.presentation.presenter.relationship_templates or {}
-        relationship_types = context.presentation.presenter.relationship_types or {}
+        relationship_templates = context.presentation.get('service_template', 'topology_template', 'relationship_templates') or {}
+        relationship_types = context.presentation.get('service_template', 'relationship_types') or {}
         if (value not in relationship_templates) and (value not in relationship_types):
             report_issue_for_unknown_type(context, presentation, 'relationship template or relationship type', field.name)
 
@@ -363,8 +363,8 @@ def list_node_type_or_group_type_validator(field, presentation, context):
     values = getattr(presentation, field.name)
     if values is not None:
         for value in values:
-            node_types = context.presentation.presenter.node_types or {}
-            group_types = context.presentation.presenter.group_types or {}
+            node_types = context.presentation.get('service_template', 'node_types') or {}
+            group_types = context.presentation.get('service_template', 'group_types') or {}
             if (value not in node_types) and (value not in group_types):
                 report_issue_for_unknown_type(context, presentation, 'node type or group type', field.name, value)
 
@@ -385,8 +385,8 @@ def policy_targets_validator(field, presentation, context):
     values = getattr(presentation, field.name)
     if values is not None:
         for value in values:
-            node_templates = context.presentation.presenter.node_templates or {}
-            groups = context.presentation.presenter.groups or {}
+            node_templates = context.presentation.get('service_template', 'topology_template', 'node_templates') or {}
+            groups = context.presentation.get('service_template', 'topology_template', 'groups') or {}
             if (value not in node_templates) and (value not in groups):
                 report_issue_for_unknown_type(context, presentation, 'node template or group', field.name, value)
             

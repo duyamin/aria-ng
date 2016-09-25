@@ -17,7 +17,7 @@
 from .utils import report_issue_for_unknown_type, report_issue_for_parent_is_self, report_issue_for_unknown_parent_type, report_issue_for_circular_type_hierarchy
 from ..validation import Issue
 
-def type_validator(type_name, types_dict_name):
+def type_validator(type_name, *types_dict_names):
     """
     Makes sure that the field refers to an existing type defined in the root presenter.
     
@@ -30,13 +30,13 @@ def type_validator(type_name, types_dict_name):
         # Make sure type exists
         value = getattr(presentation, field.name)
         if value is not None:
-            types_dict = getattr(context.presentation.presenter, types_dict_name) or {}
+            types_dict = context.presentation.get('service_template', *types_dict_names) or {}
             if value not in types_dict:
                 report_issue_for_unknown_type(context, presentation, type_name, field.name)
         
     return validator_fn
 
-def list_type_validator(type_name, types_dict_name):
+def list_type_validator(type_name, *types_dict_names):
     """
     Makes sure that the field's elements refer to existing types defined in the root presenter.
     
@@ -51,7 +51,7 @@ def list_type_validator(type_name, types_dict_name):
         # Make sure type exists
         values = getattr(presentation, field.name)
         if values is not None:
-            types_dict = getattr(context.presentation.presenter, types_dict_name) or {}
+            types_dict = context.presentation.get('service_template', *types_dict_names) or {}
             for value in values:
                 if value not in types_dict:
                     report_issue_for_unknown_type(context, presentation, type_name, field.name)
@@ -78,7 +78,7 @@ def list_length_validator(length):
         
     return validator_fn
 
-def derived_from_validator(types_dict_name):
+def derived_from_validator(*types_dict_names):
     """
     Makes sure that the field refers to a valid parent type defined in the root presenter.
     
@@ -90,7 +90,7 @@ def derived_from_validator(types_dict_name):
     
         value = getattr(presentation, field.name)
         if value is not None:
-            types_dict = getattr(context.presentation.presenter, types_dict_name) or {}
+            types_dict = context.presentation.get('service_template', *types_dict_names) or {}
             
             # Make sure not derived from self
             if value == presentation._name:

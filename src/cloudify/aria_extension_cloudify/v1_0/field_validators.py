@@ -35,8 +35,8 @@ def node_templates_or_groups_validator(field, presentation, context):
     values = getattr(presentation, field.name)
     if values is not None:
         for value in values:
-            node_templates = context.presentation.presenter.node_templates or {}
-            groups = context.presentation.presenter.groups or {}
+            node_templates = context.presentation.get('service_template', 'node_templates') or {}
+            groups = context.presentation.get('service_template', 'groups') or {}
             if (value not in node_templates) and (value not in groups):
                 report_issue_for_unknown_type(context, presentation, 'node template or group', field.name)
 
@@ -63,7 +63,7 @@ def data_type_validator(field, presentation, context):
             context.validation.report('type of property "%s" creates a circular value hierarchy: %s' % (presentation._fullname, repr(value)), locator=presentation._get_child_locator('type'), level=Issue.BETWEEN_TYPES)
         
         # Can be a complex data type
-        if (context.presentation.presenter.data_types is not None) and (value in context.presentation.presenter.data_types):
+        if context.presentation.get_from_dict('service_template', 'data_types', value) is not None:
             return True
         # Can be a primitive data type
         if get_primitive_data_type(value) is None:

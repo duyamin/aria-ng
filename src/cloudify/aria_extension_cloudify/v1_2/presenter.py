@@ -37,10 +37,3 @@ class CloudifyPresenter1_2(CloudifyPresenter1_1):
     @cachedmethod
     def service_template(self):
         return ServiceTemplate(raw=self._raw)
-
-    # Presenter
-
-    @property
-    @cachedmethod
-    def data_types(self):
-        return self.service_template.data_types

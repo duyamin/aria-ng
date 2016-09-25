@@ -39,7 +39,7 @@ class ClassicPlan(Consumer):
             self.context.validation.report('ClassicPlan consumer: missing deployment plan')
             return
 
-        plugins = self.context.presentation.presenter.service_template.plugins
+        plugins = self.context.presentation.get('service_template', 'plugins')
         plugins = [convert_plugin(self.context, v) for v in plugins.itervalues()] if plugins is not None else []
         setattr(self.context.deployment, 'plugins', plugins)
 
@@ -81,7 +81,7 @@ def convert_plan(context):
 
         # Types
         ('policy_types', OrderedDict(
-            (v.name, convert_policy_type(context, v)) for v in context.deployment.policy_types.iter_descendants())),
+            (v.name, convert_policy_type(context, v)) for v in context.deployment.policy_types.iter_descendants() if v.name != SCALING_POLICY_NAME)),
         ('policy_triggers', OrderedDict(
             (v.name, convert_policy_trigger_type(context, v)) for v in context.deployment.policy_trigger_types.iter_descendants())),
         ('relationships', OrderedDict(
@@ -116,7 +116,7 @@ def convert_plan(context):
 #
 
 def convert_version(context):
-    number = context.presentation.presenter.service_template.tosca_definitions_version
+    number = context.presentation.get('service_template', 'tosca_definitions_version')
     number = number[len('cloudify_dsl_'):]
     number = number.split('_')
     number = tuple(int(v) for v in number)

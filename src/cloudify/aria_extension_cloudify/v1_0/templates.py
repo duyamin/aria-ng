@@ -47,7 +47,7 @@ class RelationshipTemplate(Presentation):
         :rtype: :class:`Description`
         """
 
-    @field_validator(type_validator('relationship', 'relationship_types'))
+    @field_validator(type_validator('relationship', 'relationships'))
     @primitive_field(str, required=True)
     def type(self):
         """
@@ -91,7 +91,7 @@ class RelationshipTemplate(Presentation):
 
     @cachedmethod
     def _get_type(self, context):
-        return context.presentation.presenter.relationship_types.get(self.type) if context.presentation.presenter.relationship_types is not None else None
+        return context.presentation.get_from_dict('service_template', 'relationships', self.type)
 
     @cachedmethod
     def _get_property_values(self, context):
@@ -175,7 +175,7 @@ class NodeTemplate(Presentation):
     
     @cachedmethod
     def _get_type(self, context):
-        return context.presentation.presenter.node_types.get(self.type) if context.presentation.presenter.node_types is not None else None
+        return context.presentation.get_from_dict('service_template', 'node_types', self.type)
 
     @cachedmethod
     def _get_property_values(self, context):

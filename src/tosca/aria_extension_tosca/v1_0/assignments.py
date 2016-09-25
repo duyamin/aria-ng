@@ -139,10 +139,10 @@ class RelationshipAssignment(ToscaPresentation):
     def _get_type(self, context):
         type_name = self.type
         if type_name is not None:
-            the_type = context.presentation.presenter.relationship_templates.get(type_name) if context.presentation.presenter.relationship_templates is not None else None
+            the_type = context.presentation.get_from_dict('service_template', 'topology_template', 'relationship_templates', type_name)
             if the_type is not None:
                 return the_type, 'relationship_template'
-            the_type = context.presentation.presenter.relationship_types.get(type_name) if context.presentation.presenter.relationship_types is not None else None
+            the_type = context.presentation.get_from_dict('service_template', 'relationship_types', type_name)
             if the_type is not None:
                 return the_type, 'relationship_type'
         return None, None
@@ -207,10 +207,10 @@ class RequirementAssignment(ToscaPresentation):
     def _get_node(self, context):
         node_name = self.node
         if node_name is not None:
-            node = context.presentation.presenter.node_templates.get(node_name) if context.presentation.presenter.node_templates is not None else None
+            node = context.presentation.get_from_dict('service_template', 'topology_template', 'node_templates', node_name)
             if node is not None:
                 return node, 'node_template'
-            node = context.presentation.presenter.node_types.get(node_name) if context.presentation.presenter.node_types is not None else None
+            node = context.presentation.get_from_dict('service_template', 'node_types', node_name)
             if node is not None:
                 return node, 'node_type'
         return None, None
@@ -226,7 +226,7 @@ class RequirementAssignment(ToscaPresentation):
                 if capability in capabilities:
                     return capabilities[capability], 'capability_assignment'
             else:
-                capability_types = context.presentation.presenter.capability_types
+                capability_types = context.presentation.get_from_dict('service_template', 'capability_types')
                 if (capability_types is not None) and (capability in capability_types):
                     return capability_types[capability], 'capability_type'
         
@@ -337,11 +337,11 @@ class ArtifactAssignment(ToscaPresentation):
 
     @cachedmethod
     def _get_type(self, context):
-        return context.presentation.presenter.artifact_types.get(self.type) if context.presentation.presenter.artifact_types is not None else None
+        return context.presentation.get_from_dict('service_template', 'artifact_types', self.type)
 
     @cachedmethod
     def _get_repository(self, context):
-        return context.presentation.presenter.repositories.get(self.repository) if context.presentation.presenter.repositories is not None else None
+        return context.presentation.get_from_dict('service_template', 'repositories', self.repository)
 
     @cachedmethod
     def _get_property_values(self, context):

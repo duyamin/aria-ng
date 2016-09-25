@@ -59,65 +59,20 @@ class CloudifyPresenter1_0(Presenter):
         r = True
         if not super(CloudifyPresenter1_0, self)._validate_import(context, presentation):
             r = False
-        if presentation.inputs is not None:
+        if presentation.service_template.inputs is not None:
             context.validation.report('import has forbidden "inputs" section', locator=presentation._get_child_locator('inputs'), level=Issue.BETWEEN_TYPES)
             r = False
-        if presentation.outputs is not None:
+        if presentation.service_template.outputs is not None:
             context.validation.report('import has forbidden "outputs" section', locator=presentation._get_child_locator('outputs'), level=Issue.BETWEEN_TYPES)
             r = False
-        if presentation.node_templates is not None:
+        if presentation.service_template.node_templates is not None:
             context.validation.report('import has forbidden "node_templates" section', locator=presentation._get_child_locator('node_templates'), level=Issue.BETWEEN_TYPES)
             r = False
-        if presentation.groups is not None:
+        if presentation.service_template.groups is not None:
             context.validation.report('import has forbidden "groups" section', locator=presentation._get_child_locator('groups'), level=Issue.BETWEEN_TYPES)
             r = False
         return r
 
     @cachedmethod
     def _get_deployment_template(self, context):
-        return get_deployment_template(context, self)
-
-    @property
-    @cachedmethod
-    def inputs(self):
-        return self.service_template.inputs
-            
-    @property
-    @cachedmethod
-    def outputs(self):
-        return self.service_template.outputs
-
-    @property
-    @cachedmethod
-    def node_types(self):
-        return self.service_template.node_types
-    
-    @property
-    @cachedmethod
-    def relationship_types(self):
-        return self.service_template.relationships
-    
-    @property
-    @cachedmethod
-    def policy_types(self):
-        return self.service_template.policy_types
-    
-    @property
-    @cachedmethod
-    def policy_trigger_types(self):
-        return self.service_template.policy_triggers
-
-    @property
-    @cachedmethod
-    def node_templates(self):
-        return self.service_template.node_templates
-
-    @property
-    @cachedmethod
-    def groups(self):
-        return self.service_template.groups
-
-    @property
-    @cachedmethod
-    def workflows(self):
-        return self.service_template.workflows
+        return get_deployment_template(context)

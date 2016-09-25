@@ -18,12 +18,12 @@ from aria.deployment import Type, RelationshipType, PolicyType, DeploymentTempla
 from .data_types import coerce_value
 import re
 
-def get_deployment_template(context, presenter):
+def get_deployment_template(context):
     r = DeploymentTemplate()
 
-    r.description = presenter.service_template.description.value if presenter.service_template.description is not None else None
+    r.description = context.presentation.get('service_template' ,'description', 'value')
 
-    metadata = presenter.service_template.metadata
+    metadata = context.presentation.get('service_template', 'metadata')
     if metadata is not None:
         rr = Metadata()
         rr.values['template_name'] = metadata.template_name
@@ -35,35 +35,35 @@ def get_deployment_template(context, presenter):
                 rr.values[name] = value
         r.metadata = rr
 
-    normalize_types(context, context.deployment.node_types, presenter.node_types)
-    normalize_types(context, context.deployment.group_types, presenter.group_types)
-    normalize_types(context, context.deployment.capability_types, presenter.capability_types)
-    normalize_types(context, context.deployment.relationship_types, presenter.relationship_types, normalize_relationship_type)
-    normalize_types(context, context.deployment.policy_types, presenter.policy_types, normalize_policy_type)
-    normalize_types(context, context.deployment.artifact_types, presenter.artifact_types)
-    normalize_types(context, context.deployment.interface_types, presenter.interface_types)
+    normalize_types(context, context.deployment.node_types, context.presentation.get('service_template', 'node_types'))
+    normalize_types(context, context.deployment.group_types, context.presentation.get('service_template', 'group_types'))
+    normalize_types(context, context.deployment.capability_types, context.presentation.get('service_template', 'capability_types'))
+    normalize_types(context, context.deployment.relationship_types, context.presentation.get('service_template', 'relationship_types'), normalize_relationship_type)
+    normalize_types(context, context.deployment.policy_types, context.presentation.get('service_template', 'policy_types'), normalize_policy_type)
+    normalize_types(context, context.deployment.artifact_types, context.presentation.get('service_template', 'artifact_types'))
+    normalize_types(context, context.deployment.interface_types, context.presentation.get('service_template', 'interface_types'))
     
-    topology_template = presenter.service_template.topology_template
+    topology_template = context.presentation.get('service_template', 'topology_template')
     if topology_template is not None:
         normalize_property_values(r.inputs, topology_template._get_input_values(context))
         normalize_property_values(r.outputs, topology_template._get_output_values(context))
 
-    node_templates = presenter.node_templates
+    node_templates = context.presentation.get('service_template', 'topology_template', 'node_templates')
     if node_templates:
         for node_template_name, node_template in node_templates.iteritems():
             r.node_templates[node_template_name] = normalize_node_template(context, node_template)
 
-    groups = presenter.groups
+    groups = context.presentation.get('service_template', 'topology_template', 'groups')
     if groups:
         for group_name, group in groups.iteritems():
             r.group_templates[group_name] = normalize_group(context, group)
 
-    policies = presenter.policies
+    policies = context.presentation.get('service_template', 'topology_template', 'policies')
     if policies:
         for policy_name, policy in policies.iteritems():
             r.policy_templates[policy_name] = normalize_policy(context, policy)
 
-    substitution_mappings = topology_template.substitution_mappings if topology_template is not None else None
+    substitution_mappings = context.presentation.get('service_template', 'topology_template', 'substitution_mappings')
     if substitution_mappings is not None:
         rr = SubstitutionTemplate(substitution_mappings.node_type)
         capabilities = substitution_mappings.capabilities

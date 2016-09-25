@@ -132,7 +132,7 @@ def get_data_type(context, presentation, field_name, allow_none=False):
         return None
 
     # Try complex data type
-    data_type = context.presentation.presenter.data_types.get(the_type) if context.presentation.presenter.data_types is not None else None
+    data_type = context.presentation.get_from_dict('service_template', 'data_types', the_type)
     if data_type is not None:
         return data_type 
     
@@ -270,7 +270,7 @@ def apply_constraint_to_value(context, presentation, constraint_clause, value):
 #
 
 def get_data_type_value(context, presentation, field_name, type_name):
-    the_type = context.presentation.presenter.data_types.get(type_name) if context.presentation.presenter.data_types is not None else None
+    the_type = context.presentation.get_from_dict('service_template', 'data_types', type_name)
     if the_type is not None:
         value = getattr(presentation, field_name)
         if value is not None:

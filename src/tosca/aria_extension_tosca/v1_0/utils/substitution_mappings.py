@@ -94,8 +94,7 @@ def validate_format(context, presentation, name):
 
 def get_node_template(context, presentation, name):
     node_template_name = presentation._raw[0]
-    node_templates = context.presentation.presenter.node_templates or {}
-    node_template = node_templates.get(node_template_name)
+    node_template = context.presentation.get_from_dict('service_template', 'topology_template', 'node_templates', node_template_name)
     if node_template is None:
         context.validation.report('substitution mappings %s "%s" refers to an unknown node template: %s' % (name, presentation._name, repr(node_template_name)), locator=presentation._locator, level=Issue.FIELD)
     return node_template
