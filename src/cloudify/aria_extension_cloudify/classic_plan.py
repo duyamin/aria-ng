@@ -259,10 +259,9 @@ def convert_group_policy(context, group_policy):
             (k, convert_group_policy_trigger(context, v)) for k, v in group_policy.triggers.iteritems()))))
 
 def convert_group_policy_trigger(context, group_policy_trigger):
-    # TODO
     return OrderedDict((
-        ('implementation', group_policy_trigger.implementation),
-        ('properties', convert_properties(context, group_policy_trigger.properties))))
+        ('source', group_policy_trigger.implementation),
+        ('parameters', convert_properties(context, group_policy_trigger.properties))))
 
 def convert_policy_template(context, policy_template):
     return OrderedDict((
