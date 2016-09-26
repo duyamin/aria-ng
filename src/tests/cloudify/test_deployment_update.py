@@ -14,8 +14,8 @@
 #    * limitations under the License.
 import copy
 
-from dsl_parser.multi_instance import modify_deployment
-from dsl_parser.tests.abstract_test_parser import AbstractTestParser
+from framework.multi_instance import modify_deployment
+from framework.abstract_test_parser import AbstractTestParser
 
 
 class TestDeploymentUpdate(AbstractTestParser):
