@@ -14,9 +14,10 @@
 #    * limitations under the License.
 
 from dsl_parser.tasks import prepare_deployment_plan
-from dsl_parser.exceptions import (MissingRequiredInputError,
-                                   UnknownInputError, DSLParsingLogicException)
-from dsl_parser.tests.abstract_test_parser import AbstractTestParser
+from framework.exceptions import (MissingRequiredInputError,
+                                  UnknownInputError,
+                                  DSLParsingLogicException)
+from framework.abstract_test_parser import AbstractTestParser
 
 
 class TestInputs(AbstractTestParser):
@@ -32,9 +33,9 @@ node_templates: {}
     def test_input_definition(self):
         yaml = """
 inputs:
-    port:
-        description: the port
-        default: 8080
+  port:
+    description: the port
+    default: 8080
 node_templates: {}
 """
         parsed = self.parse(yaml)
@@ -69,7 +70,10 @@ node_templates:
         properties:
             port: { get_input: port }
 """
-        self.assertRaises(UnknownInputError, self.parse, yaml)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=['function "get_input" argument is not a valid '
+                            'input name: \'port\''])
         yaml = """
 node_types:
     webserver_type:
@@ -81,7 +85,10 @@ node_templates:
         properties:
             port: { get_input: {} }
 """
-        self.assertRaises(ValueError, self.parse, yaml)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=['function "get_ifnput" argument is not a valid '
+                            'input name: OrderedDict()'])
         yaml = """
 inputs:
     port: {}
@@ -134,6 +141,9 @@ node_templates:
             port: { get_input: port }
             name: { get_input: name_i }
 """
+        plan = self.parse(yaml)
+        result = prepare_deployment_plan(plan=plan, inputs={'port': '8080'})
+        x = 3
         e = self.assertRaises(
             MissingRequiredInputError,
             prepare_deployment_plan,
