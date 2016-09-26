@@ -149,8 +149,10 @@ node_types:
             test_interface1:
                 - should: be a dict
             """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["short form not allowed for field \"test_interface1\"",
+                            "assignment to undefined property \"key\" in \"test_node\""])
 
     def test_type_with_illegal_interface_declaration_2(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + self.BASIC_PLUGIN + """
@@ -160,8 +162,10 @@ node_types:
             test_interface1:
                 1 # not a string
             """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["short form not allowed for field \"test_interface1\"",
+                            "assignment to undefined property \"key\" in \"test_node\""])
 
     def test_type_with_illegal_interface_declaration_3(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + self.BASIC_PLUGIN + """
@@ -171,8 +175,9 @@ node_types:
             test_interface1:
                 a: 1 # key not a string
             """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["assignment to undefined property \"key\" in \"test_node\""])
 
     def test_node_extra_properties(self):
         # testing for additional properties directly under node
@@ -180,31 +185,39 @@ node_types:
         yaml = self.MINIMAL_BLUEPRINT + """
         extra_property: "val"
         """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["field \"extra_property\" is not supported in \"test_node\""])
 
     def test_import_bad_syntax(self):
         yaml = """
 imports: fake-file.yaml
         """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["field \"imports\" in "
+                            "\"aria_extension_cloudify.v1_0.templates.ServiceTemplate\" "
+                            "is not a list: 'fake-file.yaml'"])
 
     def test_import_bad_syntax2(self):
         yaml = """
 imports:
     first_file: fake-file.yaml
         """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["field \"imports\" in "
+                            "\"aria_extension_cloudify.v1_0.templates.ServiceTemplate\" "
+                            "is not a list: OrderedDict([('first_file', 'fake-file.yaml')])"])
 
     def test_import_bad_syntax3(self):
         yaml = """
 imports:
     -   first_file: fake-file.yaml
         """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["location: OrderedDict([('first_file', 'fake-file.yaml')])"])
 
     def test_duplicate_import_in_same_file(self):
         yaml = """
@@ -213,8 +226,10 @@ imports:
     -   fake-file2.yaml
     -   fake-file.yaml
         """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 2, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["file not found: \"fake-file.yaml\"",
+                            "file not found: \"fake-file2.yaml\""])
 
     def test_type_multiple_derivation(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + """
@@ -236,8 +251,10 @@ node_types:
             key:
                 default: "val1_parent2"
     """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["unknown parent type \"['test_type_parent', "
+                            "'test_type_parent2']\" in \"test_type\""])
 
     def test_plugin_without_executor_field(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -245,8 +262,10 @@ plugins:
     test_plugin:
         source: dummy
             """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["required field \"executor\" in "
+                            "\"aria_extension_cloudify.v1_0.misc.Plugin\" does not have a value"])
 
     def test_plugin_extra_properties(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -256,16 +275,17 @@ plugins:
         source: dummy
         another_field: bad
             """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["field \"another_field\" is not supported in \"test_plugin\""])
 
     def test_top_level_relationships_bad_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
 relationships:
     extra_prop: "val"
                 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["short form not allowed for field \"extra_prop\""])
 
     def test_top_level_relationships_extra_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -273,8 +293,9 @@ relationships:
     test_relationship:
         extra_prop: "val"
                 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["field \"extra_prop\" is not supported in \"test_relationship\""])
 
     def test_top_level_relationships_interface_with_operations_string(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -283,8 +304,9 @@ relationships:
         source_interfaces:
             test_rel_interface: string
                 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["short form not allowed for field \"test_rel_interface\""])
 
     def test_type_relationship(self):
         # relationships are not valid under types whatsoever.
@@ -293,8 +315,9 @@ node_types:
     test_type:
         relationships: {}
         """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["field \"relationships\" is not supported in \"test_type\""])
 
     def test_instance_relationships_relationship_without_type(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -303,8 +326,11 @@ node_types:
     test_node2:
         type: test_type
             """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["required field \"type\" in "
+                            "\"aria_extension_cloudify.v1_0.templates.RelationshipTemplate\" "
+                            "does not have a value"])
 
     def test_instance_relationships_relationship_without_target(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -313,8 +339,8 @@ node_types:
 relationships:
     relationship: {}
             """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_instance_relationships_relationship_extra_prop(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -327,8 +353,8 @@ relationships:
 relationships:
     relationship: {}
             """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_instance_relationships_relationship_with_derived_from_field(self):
         # derived_from field is not valid under an instance relationship
@@ -343,8 +369,8 @@ relationships:
 relationships:
     relationship: {}
             """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_instance_relationships_relationship_object(self):
         # trying to use a dictionary instead of an array
@@ -355,8 +381,8 @@ relationships:
                 target: "fake_node"
                 derived_from: "relationship"
             """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_multiple_instances_with_extra_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -364,23 +390,23 @@ relationships:
             deploy: 2
             extra_prop: value
             """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_multiple_instances_without_deploy_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
         instances: {}
             """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_multiple_instances_string_value(self):
         yaml = self.MINIMAL_BLUEPRINT + """
         instances:
             deploy: '2'
             """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_interface_operation_mapping_no_mapping_prop(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + self.BASIC_PLUGIN + """
@@ -392,16 +418,16 @@ node_types:
                   properties:
                       key: "value"
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_workflow_mapping_invalid_value(self):
         yaml = self.BLUEPRINT_WITH_INTERFACES_AND_PLUGINS + """
 workflows:
     workflow1: 123
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_workflow_mapping_no_mapping_field(self):
         yaml = self.BLUEPRINT_WITH_INTERFACES_AND_PLUGINS + """
@@ -410,8 +436,8 @@ workflows:
         parameters:
             param: {}
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_workflow_parameters_simple_dictionary_schema_format(self):
         yaml = self.BLUEPRINT_WITH_INTERFACES_AND_PLUGINS + """
@@ -421,8 +447,8 @@ workflows:
         parameters:
             key: value
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_workflow_parameters_array_dictionary_schema_format(self):
         yaml = self.BLUEPRINT_WITH_INTERFACES_AND_PLUGINS + """
@@ -433,8 +459,8 @@ workflows:
             key:
                 - default: val1
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_workflow_parameters_schema_array_format(self):
         yaml = self.BLUEPRINT_WITH_INTERFACES_AND_PLUGINS + """
@@ -444,8 +470,8 @@ workflows:
         parameters:
             - key: value
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_workflow_parameters_extra_property(self):
         yaml = self.BLUEPRINT_WITH_INTERFACES_AND_PLUGINS + """
@@ -458,8 +484,8 @@ workflows:
                 description: property_desc1
                 extra_property: this_is_not_allowed
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_workflow_properties_instead_of_parameters(self):
         yaml = self.BLUEPRINT_WITH_INTERFACES_AND_PLUGINS + """
@@ -470,8 +496,8 @@ workflows:
             key:
                 default: value
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_interface_operation_mapping_unknown_extra_attributes(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + self.BASIC_PLUGIN + """
@@ -485,8 +511,8 @@ node_types:
                       key: 'value'
                   unknown: 'bla'
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_type_properties_simple_dictionary_schema_format(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + """
@@ -495,8 +521,8 @@ node_types:
         properties:
             key: value
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_type_properties_array_dictionary_schema_format(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + """
@@ -506,8 +532,8 @@ node_types:
             key:
                 - default: val1
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_type_properties_schema_array_format(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + """
@@ -516,8 +542,8 @@ node_types:
         properties:
             - key: value
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_type_properties_extra_property(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + """
@@ -529,8 +555,8 @@ node_types:
                 description: property_desc1
                 extra_property: this_is_not_allowed
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_relationship_properties_simple_dictionary_schema_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -539,8 +565,8 @@ relationships:
         properties:
             key: value
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_relationship_properties_array_dictionary_schema_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -550,8 +576,8 @@ relationships:
             key:
                 - default: val1
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_relationship_properties_schema_array_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -560,8 +586,8 @@ relationships:
         properties:
             - key: value
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_relationship_properties_extra_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -573,8 +599,8 @@ relationships:
                 description: property_desc1
                 extra_property: this_is_not_allowed
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_policy_type_properties_simple_dictionary_schema_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -584,8 +610,8 @@ policy_types:
         properties:
             key: value
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_policy_type_properties_array_dictionary_schema_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -596,8 +622,8 @@ policy_types:
             key:
                 - default: val1
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_policy_type_properties_schema_array_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -607,8 +633,8 @@ policy_types:
         properties:
             - key: value
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_policy_type_properties_extra_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -621,8 +647,8 @@ policy_types:
                 description: property_desc1
                 extra_property: this_is_not_allowed
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_policy_type_source_non_string(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -634,8 +660,8 @@ policy_types:
                 default: val1
                 description: property_desc1
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_policy_type_extra_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -648,8 +674,8 @@ policy_types:
                 default: val1
                 description: property_desc1
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_policy_type_missing_source(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -660,8 +686,8 @@ policy_types:
                 default: val1
                 description: property_desc1
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_policy_triggers_parameters_simple_dictionary_schema_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -671,8 +697,8 @@ policy_triggers:
         parameters:
             key: value
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_policy_triggers_parameters_array_dictionary_schema_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -683,8 +709,8 @@ policy_triggers:
             key:
                 - default: val1
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_policy_triggers_parameters_schema_array_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -694,8 +720,8 @@ policy_triggers:
         parameters:
             - key: value
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_policy_triggers_parameters_extra_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -708,8 +734,8 @@ policy_triggers:
                 description: property_desc1
                 extra_property: this_is_not_allowed
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_policy_trigger_source_non_string(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -721,8 +747,8 @@ policy_triggers:
                 default: val1
                 description: property_desc1
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_policy_trigger_extra_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -735,8 +761,8 @@ policy_triggers:
                 default: val1
                 description: property_desc1
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_policy_trigger_missing_source(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -747,8 +773,8 @@ policy_triggers:
                 default: val1
                 description: property_desc1
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_groups_missing_member(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -762,8 +788,8 @@ groups:
             policy:
                 type: type
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_groups_extra_property(self):
         yaml = """
@@ -784,8 +810,8 @@ groups:
                 type: type
         extra_property: extra_property
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_groups_policy_missing_type(self):
         yaml = """
@@ -806,8 +832,8 @@ groups:
                 properties:
                     key: value
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_groups_policy_extra_property(self):
         yaml = """
@@ -828,8 +854,8 @@ groups:
                 type: type
                 extra_property: extra_property
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_group_members_bad_type1(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -844,8 +870,8 @@ groups:
             policy:
                 type: type
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_group_members_bad_type2(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -860,8 +886,8 @@ groups:
             policy:
                 type: type
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_group_policy_type_bad_type(self):
         yaml = """
@@ -879,8 +905,8 @@ groups:
                 properties:
                     key: value
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_group_policy_type_bad_properties(self):
         yaml = """
@@ -901,8 +927,8 @@ groups:
                 type: type
                 properties: properties
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_group_no_members(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -918,8 +944,8 @@ groups:
                 type: type
                 properties: {}
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
 
     def test_unknown_property_schema_type(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + """
@@ -929,7 +955,7 @@ node_types:
             key:
                 type: unknown-type
                 """
-        self._assert_dsl_parsing_exception_error_code(
+        self.assert_parser_issue_messages(
             yaml, exceptions.ERROR_UNKNOWN_TYPE, DSLParsingLogicException)
 
     def test_invalid_version_field_format(self):
@@ -944,5 +970,5 @@ tosca_definitions_version: [cloudify_dsl_1_0]
 description:
   nested_key: value
   """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml, issue_messages=["f"])
