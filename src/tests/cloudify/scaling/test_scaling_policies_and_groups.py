@@ -1,68 +1,79 @@
-########
-# Copyright (c) 2016 GigaSpaces Technologies Ltd. All rights reserved
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#        http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-#    * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#    * See the License for the specific language governing permissions and
-#    * limitations under the License.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-import yaml
+from dsl_parser.constants import UNBOUNDED, UNBOUNDED_LITERAL, SCALING_POLICY
+from dsl_parser.exceptions import (
+    DSLParsingLogicException,
+    ERROR_UNSUPPORTED_POLICY,
+    ERROR_NON_GROUP_TARGET,
+    ERROR_NO_TARGETS,
+    ERROR_INVALID_INSTANCES,
+    ERROR_INVALID_LITERAL_INSTANCES,
+    ERROR_GROUP_CYCLE,
+    ERROR_MULTIPLE_GROUPS,
+    ERROR_NON_CONTAINED_GROUP_MEMBERS,
+    ERROR_INVALID_DICT_VALUE,
+    ERROR_GROUP_AND_NODE_TEMPLATE_SAME_NAME,
+)
 
-from dsl_parser import constants
-from dsl_parser import exceptions
-from dsl_parser.tests.abstract_test_parser import AbstractTestParser
+from .suite import ParserTestCase
 
 
-class TestScalingPoliciesAndGroups(AbstractTestParser):
-
+class TestScalingPoliciesAndGroups(ParserTestCase):
     def test_scaling_policy_and_group_default_properties(self):
         policy = {
-            'type': constants.SCALING_POLICY,
-            'targets': ['group']
+            'type': SCALING_POLICY,
+            'targets': ['group'],
         }
         expected = {
             'default_instances': 1,
             'min_instances': 0,
-            'max_instances': constants.UNBOUNDED,
+            'max_instances': UNBOUNDED,
             'current_instances': 1,
-            'planned_instances': 1
+            'planned_instances': 1,
         }
+        # TODO issue #1 in test_scaling_policies_and_groups
         self.assert_scaling_policy_and_group(policy=policy, expected=expected)
 
     def test_scaling_policy_and_group_empty_properties(self):
         policy = {
-            'type': constants.SCALING_POLICY,
+            'type': SCALING_POLICY,
             'targets': ['group'],
-            'properties': {}
+            'properties': {},
         }
         expected = {
             'default_instances': 1,
             'min_instances': 0,
-            'max_instances': constants.UNBOUNDED,
+            'max_instances': UNBOUNDED,
             'current_instances': 1,
-            'planned_instances': 1
+            'planned_instances': 1,
         }
         self.assert_scaling_policy_and_group(policy=policy, expected=expected)
 
     def test_scaling_policy_and_groups_default_instances(self):
         policy = {
-            'type': constants.SCALING_POLICY,
+            'type': SCALING_POLICY,
             'targets': ['group'],
             'properties': {
-                'default_instances': 3
-            }
+                'default_instances': 3,
+            },
         }
         expected = {
             'default_instances': 3,
             'min_instances': 0,
-            'max_instances': constants.UNBOUNDED,
+            'max_instances': UNBOUNDED,
             'current_instances': 3,
             'planned_instances': 3
         }
@@ -70,61 +81,61 @@ class TestScalingPoliciesAndGroups(AbstractTestParser):
 
     def test_scaling_policy_and_group_max_instances(self):
         policy = {
-            'type': constants.SCALING_POLICY,
+            'type': SCALING_POLICY,
             'targets': ['group'],
             'properties': {
                 'max_instances': 3,
-            }
+            },
         }
         expected = {
             'default_instances': 1,
             'min_instances': 0,
             'max_instances': 3,
             'current_instances': 1,
-            'planned_instances': 1
+            'planned_instances': 1,
         }
         self.assert_scaling_policy_and_group(policy=policy, expected=expected)
 
     def test_scaling_policy_and_group_min_instances(self):
         policy = {
-            'type': constants.SCALING_POLICY,
+            'type': SCALING_POLICY,
             'targets': ['group'],
             'properties': {
-                'min_instances': 1,
-            }
+                'min_instances': 0,
+            },
         }
         expected = {
             'default_instances': 1,
-            'min_instances': 1,
-            'max_instances': constants.UNBOUNDED,
+            'min_instances': 0,
+            'max_instances': UNBOUNDED,
             'current_instances': 1,
-            'planned_instances': 1
+            'planned_instances': 1,
         }
         self.assert_scaling_policy_and_group(policy=policy, expected=expected)
 
     def test_scaling_policy_and_group_unbounded_literal(self):
         policy = {
-            'type': constants.SCALING_POLICY,
+            'type': SCALING_POLICY,
             'targets': ['group'],
             'properties': {
-                'max_instances': constants.UNBOUNDED_LITERAL,
-            }
+                'max_instances': UNBOUNDED_LITERAL,
+            },
         }
         expected = {
             'default_instances': 1,
             'min_instances': 0,
-            'max_instances': constants.UNBOUNDED,
+            'max_instances': UNBOUNDED,
             'current_instances': 1,
-            'planned_instances': 1
+            'planned_instances': 1,
         }
         self.assert_scaling_policy_and_group(policy=policy, expected=expected)
 
     def assert_scaling_policy_and_group(self, policy, expected):
-        policies = {'policy': policy}
-        blueprint = base_blueprint(groups={'group': ['node']},
-                                   nodes={'node': None},
-                                   policies=policies)
-        plan = self.parse(blueprint)
+        self.template.from_members(
+            groups={'group': ['node']},
+            nodes={'node': None},
+            policies={'policy': policy})
+        plan = self.parse()
         self.assertEqual(
             expected,
             plan['policies']['policy']['properties'])
@@ -133,96 +144,31 @@ class TestScalingPoliciesAndGroups(AbstractTestParser):
             plan['scaling_groups']['group']['properties'])
 
 
-class TestScalingPoliciesAndGroupsExtra(AbstractTestParser):
-
-    def test_groups_parsed_with_no_policies(self):
-        groups = {'group': ['node']}
-        nodes = {'node': None}
-        blueprint = base_blueprint(groups=groups, nodes=nodes,
-                                   include_policies=False)
-        plan = self.parse(blueprint)
-        self.assertEqual({
-            'group': {
-                'members': ['node'],
-                'policies': {}
-            }
-        }, plan['groups'])
-
-    def test_groups_with_scaling_policies_and_other_policies(self):
-        groups = {'group': {
-            'members': ['node'],
-            'policies': {
-                'policy': {
-                    'type': 'other_type'
-                }
-            }
-        }}
-        nodes = {'node': None}
-        policy_types = {
-            'other_type': {
-                'properties': {},
-                'source': 'stub'
-            }
-        }
-        policies = {
-            'policy': {
-                'type': constants.SCALING_POLICY,
-                'targets': ['group']
-            }
-        }
-        blueprint = base_blueprint(groups=groups, nodes=nodes,
-                                   policy_types=policy_types,
-                                   policies=policies)
-        plan = self.parse(blueprint)
-        self.assertEqual({
-            'group': {
-                'members': ['node'],
-                'policies': {
-                    'policy': {
-                        'type': 'other_type',
-                        'properties': {},
-                        'triggers': {}
-                    }
-                }
-            }
-        }, plan['groups'])
-        self.assertEqual({
-            'group': {
-                'members': ['node'],
-                'properties': {
-                    'default_instances': 1,
-                    'min_instances': 0,
-                    'max_instances': constants.UNBOUNDED,
-                    'current_instances': 1,
-                    'planned_instances': 1
-                }
-            }
-        }, plan['scaling_groups'])
-
+class TestScalingPoliciesAndGroupsExtra(ParserTestCase):
     def test_group_as_group_member(self):
-        nodes = {'node': None}
-        groups = {
-            'group': ['node'],
-            'group2': ['group']
-        }
-        blueprint = base_blueprint(groups=groups, nodes=nodes)
-        plan = self.parse(blueprint)
+        self.template.from_members(
+            nodes={'node': None},
+            groups={
+                'group': ['node'],
+                'group2': ['group'],
+            },
+        )
+        plan = self.parse()
         self.assertEqual(['node'], plan['groups']['group']['members'])
         self.assertEqual(['group'], plan['groups']['group2']['members'])
 
 
-class TestRemovedContainedInMember(AbstractTestParser):
-
+class TestRemovedContainedInMember(ParserTestCase):
     def test_removed_contained_in_member1(self):
         groups = {
-            'group': ['node1', 'node2']
+            'group': ['node1', 'node2'],
         }
         nodes = {
             'node1': None,
-            'node2': 'node1'
+            'node2': 'node1',
         }
         expected = {
-            'group': ['node1']
+            'group': ['node1'],
         }
         self.assert_removal(groups, nodes, expected)
 
@@ -348,15 +294,19 @@ class TestRemovedContainedInMember(AbstractTestParser):
         self.assert_removal(groups, nodes, expected)
 
     def assert_removal(self, groups, nodes, expected):
-        blueprint = base_blueprint(groups=groups, nodes=nodes)
-        plan = self.parse(blueprint)
-        for group, expected_members in expected.items():
-            self.assertEqual(set(expected_members),
-                             set(plan['scaling_groups'][group]['members']))
+
+        self.template.from_members(
+            groups=groups,
+            nodes=nodes,
+            policies={'policy': {'type': SCALING_POLICY, 'targets': groups.keys()}})
+        plan = self.parse()
+        for group, expected_members in expected.iteritems():
+            self.assertEqual(
+                set(expected_members),
+                set(plan['scaling_groups'][group]['members']))
 
 
-class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
-
+class TestScalingPoliciesAndGroupsValidation(ParserTestCase):
     def test_missing_policy_type(self):
         nodes = {'node': None}
         groups = {
@@ -367,10 +317,14 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
                 'targets': ['group']
             }
         }
-        self.assert_validation(expected_error_code=1,
-                               groups=groups,
-                               nodes=nodes,
-                               policies=policies)
+        self.assert_validation(
+            expected_issue_messages=[
+                'required field "type" in '
+                '"aria_extension_cloudify.v1_3.templates.PolicyDefinition" '
+                'does not have a value'],
+            groups=groups,
+            nodes=nodes,
+            policies=policies)
 
     def test_non_scaling_policy_type(self):
         nodes = {'node': None}
@@ -384,7 +338,8 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
             }
         }
         self.assert_validation(
-            expected_error_code=exceptions.ERROR_UNSUPPORTED_POLICY,
+            expected_issue_messages=[
+                '"type" refers to an unknown policy type in "policy": u\'some_policy\''],
             groups=groups,
             nodes=nodes,
             policies=policies)
@@ -393,34 +348,38 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
         nodes = {'node': None}
         policies = {
             'policy': {
-                'type': constants.SCALING_POLICY,
+                'type': SCALING_POLICY,
                 'targets': ['node']
             }
         }
         self.assert_validation(
-            expected_error_code=exceptions.ERROR_NON_GROUP_TARGET,
+            expected_issue_messages=[
+                '"targets" refers to an unknown group in "policy": [u\'node\']'],
             policies=policies,
             nodes=nodes)
 
     def test_no_targets(self):
         policies = {
             'policy': {
-                'type': constants.SCALING_POLICY
+                'type': SCALING_POLICY
             }
         }
         self.assert_validation(
-            expected_error_code=1,
+            expected_issue_messages=[
+                'required field "targets" in '
+                '"aria_extension_cloudify.v1_3.templates.PolicyDefinition" '
+                'does not have a value'],
             policies=policies)
 
     def test_empty_targets(self):
         policies = {
             'policy': {
-                'type': constants.SCALING_POLICY,
+                'type': SCALING_POLICY,
                 'targets': []
             }
         }
         self.assert_validation(
-            expected_error_code=exceptions.ERROR_NO_TARGETS,
+            expected_issue_messages=ERROR_NO_TARGETS,
             policies=policies)
 
     def test_invalid_min_instances_value(self):
@@ -430,7 +389,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
         }
         policies = {
             'policy': {
-                'type': constants.SCALING_POLICY,
+                'type': SCALING_POLICY,
                 'targets': ['group'],
                 'properties': {
                     'min_instances': -1
@@ -438,7 +397,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
             }
         }
         self.assert_validation(
-            expected_error_code=exceptions.ERROR_INVALID_INSTANCES,
+            expected_issue_messages=ERROR_INVALID_INSTANCES,
             groups=groups,
             nodes=nodes,
             policies=policies)
@@ -450,7 +409,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
         }
         policies = {
             'policy': {
-                'type': constants.SCALING_POLICY,
+                'type': SCALING_POLICY,
                 'targets': ['group'],
                 'properties': {
                     'max_instances': 0
@@ -458,7 +417,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
             }
         }
         self.assert_validation(
-            expected_error_code=exceptions.ERROR_INVALID_INSTANCES,
+            expected_issue_messages=ERROR_INVALID_INSTANCES,
             groups=groups,
             nodes=nodes,
             policies=policies)
@@ -470,7 +429,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
         }
         policies = {
             'policy': {
-                'type': constants.SCALING_POLICY,
+                'type': SCALING_POLICY,
                 'targets': ['group'],
                 'properties': {
                     'max_instances': 'illegal_value'
@@ -478,7 +437,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
             }
         }
         self.assert_validation(
-            expected_error_code=exceptions.ERROR_INVALID_LITERAL_INSTANCES,
+            expected_issue_messages=ERROR_INVALID_LITERAL_INSTANCES,
             groups=groups,
             nodes=nodes,
             policies=policies)
@@ -490,7 +449,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
         }
         policies = {
             'policy': {
-                'type': constants.SCALING_POLICY,
+                'type': SCALING_POLICY,
                 'targets': ['group'],
                 'properties': {
                     'default_instances': -1
@@ -498,7 +457,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
             }
         }
         self.assert_validation(
-            expected_error_code=exceptions.ERROR_INVALID_INSTANCES,
+            expected_issue_messages=ERROR_INVALID_INSTANCES,
             groups=groups,
             nodes=nodes,
             policies=policies)
@@ -510,7 +469,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
         }
         policies = {
             'policy': {
-                'type': constants.SCALING_POLICY,
+                'type': SCALING_POLICY,
                 'targets': ['group'],
                 'properties': {
                     'min_instances': 5,
@@ -519,7 +478,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
             }
         }
         self.assert_validation(
-            expected_error_code=exceptions.ERROR_INVALID_INSTANCES,
+            expected_issue_messages=ERROR_INVALID_INSTANCES,
             groups=groups,
             nodes=nodes,
             policies=policies)
@@ -531,7 +490,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
         }
         policies = {
             'policy': {
-                'type': constants.SCALING_POLICY,
+                'type': SCALING_POLICY,
                 'targets': ['group'],
                 'properties': {
                     'default_instances': 5,
@@ -540,7 +499,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
             }
         }
         self.assert_validation(
-            expected_error_code=exceptions.ERROR_INVALID_INSTANCES,
+            expected_issue_messages=ERROR_INVALID_INSTANCES,
             groups=groups,
             nodes=nodes,
             policies=policies)
@@ -552,7 +511,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
         }
         policies = {
             'policy': {
-                'type': constants.SCALING_POLICY,
+                'type': SCALING_POLICY,
                 'targets': ['group'],
                 'properties': {
                     'default_instances': 2,
@@ -561,7 +520,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
             }
         }
         self.assert_validation(
-            expected_error_code=exceptions.ERROR_INVALID_INSTANCES,
+            expected_issue_messages=ERROR_INVALID_INSTANCES,
             groups=groups,
             nodes=nodes,
             policies=policies)
@@ -572,7 +531,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
             'group2': ['group1']
         }
         self.assert_validation(
-            expected_error_code=exceptions.ERROR_GROUP_CYCLE,
+            expected_issue_messages=ERROR_GROUP_CYCLE,
             groups=groups)
 
     def test_validate_no_group_cycles2(self):
@@ -583,7 +542,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
             'group4': ['group1'],
         }
         self.assert_validation(
-            expected_error_code=exceptions.ERROR_GROUP_CYCLE,
+            expected_issue_messages=ERROR_GROUP_CYCLE,
             groups=groups)
 
     def test_validate_node_type_group_members_in_one_group_only(self):
@@ -595,7 +554,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
             'node': None
         }
         self.assert_validation(
-            expected_error_code=exceptions.ERROR_MULTIPLE_GROUPS,
+            expected_issue_messages=ERROR_MULTIPLE_GROUPS,
             groups=groups,
             nodes=nodes)
 
@@ -609,7 +568,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
             'node': None
         }
         self.assert_validation(
-            expected_error_code=exceptions.ERROR_MULTIPLE_GROUPS,
+            expected_issue_messages=ERROR_MULTIPLE_GROUPS,
             groups=groups,
             nodes=nodes)
 
@@ -623,7 +582,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
             'node3': None
         }
         self.assert_validation(
-            expected_error_code=exceptions.ERROR_NON_CONTAINED_GROUP_MEMBERS,
+            expected_issue_messages=ERROR_NON_CONTAINED_GROUP_MEMBERS,
             groups=groups,
             nodes=nodes)
 
@@ -638,7 +597,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
             'node3': None
         }
         self.assert_validation(
-            expected_error_code=exceptions.ERROR_NON_CONTAINED_GROUP_MEMBERS,
+            expected_issue_messages=ERROR_NON_CONTAINED_GROUP_MEMBERS,
             groups=groups,
             nodes=nodes)
 
@@ -654,22 +613,9 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
             'node4': None
         }
         self.assert_validation(
-            expected_error_code=exceptions.ERROR_NON_CONTAINED_GROUP_MEMBERS,
+            expected_issue_messages=ERROR_NON_CONTAINED_GROUP_MEMBERS,
             groups=groups,
             nodes=nodes)
-
-    def test_validate_policies_spec_version(self):
-        nodes = {
-            'node': None
-        }
-        groups = {
-            'group': ['node']
-        }
-        for version in ['1_0', '1_1', '1_2']:
-            self.assert_validation(
-                exceptions.ERROR_CODE_DSL_DEFINITIONS_VERSION_MISMATCH,
-                groups=groups, nodes=nodes,
-                version=version)
 
     def test_validate_illegal_instances_dict_value(self):
         nodes = {
@@ -681,7 +627,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
         for instances in ['default', 'min', 'max']:
             policies = {
                 'policy': {
-                    'type': constants.SCALING_POLICY,
+                    'type': SCALING_POLICY,
                     'targets': ['group'],
                     'properties': {
                         '{0}_instances'.format(instances): {},
@@ -689,7 +635,7 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
                 }
             }
             self.assert_validation(
-                exceptions.ERROR_INVALID_DICT_VALUE,
+                ERROR_INVALID_DICT_VALUE,
                 groups=groups, nodes=nodes, policies=policies)
 
     def test_validate_group_and_node_template_same_name(self):
@@ -700,123 +646,92 @@ class TestScalingPoliciesAndGroupsValidation(AbstractTestParser):
             'node1': None,
             'node2': None,
         }
-        expected_code = exceptions.ERROR_GROUP_AND_NODE_TEMPLATE_SAME_NAME
+        expected_code = ERROR_GROUP_AND_NODE_TEMPLATE_SAME_NAME
         self.assert_validation(
-            expected_error_code=expected_code,
+            expected_issue_messages=expected_code,
             groups=groups,
             nodes=nodes)
 
-    def assert_validation(self, expected_error_code,
-                          groups=None, nodes=None, policies=None,
-                          version=None):
-        blueprint = base_blueprint(groups=groups, nodes=nodes,
-                                   policies=policies,
-                                   version=version)
-        self._assert_dsl_parsing_exception_error_code(
-            blueprint, expected_error_code=expected_error_code)
+    def assert_validation(
+            self,
+            expected_issue_messages,
+            groups=None,
+            nodes=None,
+            policies=None,
+            version=None):
+        if policies is None:
+            policies = {
+                'policy': {
+                    'type': SCALING_POLICY,
+                    'targets': groups.keys(),
+                },
+            }
+
+        self.template.from_members(
+            groups=groups,
+            nodes=nodes,
+            policies=policies,
+            version=version)
+        self.assert_parser_issue_messages(
+            issue_messages=expected_issue_messages
+        )
 
 
-class TestNodeTemplateDefaultScalableProperties(AbstractTestParser):
-
+class TestNodeTemplateDefaultScalableProperties(ParserTestCase):
     def test_default_scalable(self):
-        self.assert_scalable_properties(self.MINIMAL_BLUEPRINT)
+        self.assert_scalable_properties()
 
     def test_default_scalable_empty_capabilities(self):
-        self.assert_scalable_properties(self.MINIMAL_BLUEPRINT + """
-        capabilities: {}
+        self.assert_scalable_properties("""
+    capabilities: {}
 """)
 
     def test_default_scalable_empty_scalable(self):
-        self.assert_scalable_properties(self.MINIMAL_BLUEPRINT + """
-        capabilities:
+        self.assert_scalable_properties("""
+    capabilities:
             scalable: {}
 """)
 
     def test_default_scalable_single_property_defined(self):
-        self.assert_scalable_properties(self.MINIMAL_BLUEPRINT + """
-        capabilities:
+        self.assert_scalable_properties("""
+    capabilities:
             scalable:
                 properties:
                     default_instances: 2
 """, expected_default=2)
 
     def test_instances_deploy_fallback(self):
-        # tests backwards compatibility
-        self.assert_scalable_properties(self.MINIMAL_BLUEPRINT + """
-        instances:
-            deploy: 2
+        """tests backwards compatibility """
+        self.assert_scalable_properties("""
+    instances:
+        deploy: 2
 """, expected_default=2)
 
-    def assert_scalable_properties(self, blueprint, expected_default=1):
-        plan = self.parse_1_3(blueprint)
+    def assert_scalable_properties(self, extra='', expected_default=1):
+        self.template.version_section('cloudify_dsl', '1.3')
+        self.template.node_type_section()
+        self.template.node_template_section()
+        self.template += extra
+        plan = self.parse()
         self.assertEquals({
             'default_instances': expected_default,
             'min_instances': 0,
-            'max_instances': constants.UNBOUNDED,
+            'max_instances': UNBOUNDED,
             'current_instances': expected_default,
-            'planned_instances': expected_default
+            'planned_instances': expected_default,
         }, plan['nodes'][0]['capabilities']['scalable']['properties'])
 
-    def test_capabilities_spec_version_validation(self):
-        blueprint = self.MINIMAL_BLUEPRINT + """
-        capabilities: {}
-"""
-        for parsing_method in [self.parse_1_0, self.parse_1_1, self.parse_1_2]:
-            self._assert_dsl_parsing_exception_error_code(
-                blueprint,
-                exceptions.ERROR_CODE_DSL_DEFINITIONS_VERSION_MISMATCH,
-                parsing_method=parsing_method)
-
     def test_capabilities_and_instances_deploy_validation(self):
-        blueprint = self.MINIMAL_BLUEPRINT + """
-        instances:
-          deploy: 1
-        capabilities: {}
+        self.template += """
+tosca_definitions_version: test_scaling_policy_and_group_unbounded_literal.0
+        """
+        self.template.node_type_section()
+        self.template.node_template_section()
+        self.template += """
+    instances:
+      deploy: 1
+    capabilities: {}
 """
-        self._assert_dsl_parsing_exception_error_code(
-            blueprint,
-            exceptions.ERROR_INSTANCES_DEPLOY_AND_CAPABILITIES,
-            parsing_method=self.parse_1_3)
-
-
-def base_blueprint(groups=None,
-                   nodes=None,
-                   policies=None,
-                   include_policies=True,
-                   policy_types=None,
-                   version=None):
-    version = version or '1_3'
-    version = 'cloudify_dsl_{0}'.format(version)
-    groups = groups or {}
-    nodes = nodes or {'node': None}
-    node_templates = {}
-    for node, contained_in in nodes.items():
-        node_template = {'type': 'type'}
-        if contained_in:
-            node_template['relationships'] = [
-                {'type': 'cloudify.relationships.contained_in',
-                 'target': contained_in}
-            ]
-        node_templates[node] = node_template
-    blueprint_groups = {}
-    for group, item in groups.items():
-        if isinstance(item, dict):
-            group_obj = item
-        else:
-            group_obj = {'members': item}
-        blueprint_groups[group] = group_obj
-    if policies is None:
-        policies = {'policy': {'type': constants.SCALING_POLICY,
-                               'targets': groups.keys()}}
-    blueprint = {
-        'tosca_definitions_version': version,
-        'node_types': {'type': {}},
-        'relationships': {'cloudify.relationships.contained_in': {}},
-        'node_templates': node_templates,
-        'groups': blueprint_groups,
-    }
-    if include_policies:
-        blueprint['policies'] = policies
-    if policy_types is not None:
-        blueprint['policy_types'] = policy_types
-    return yaml.safe_dump(blueprint)
+        self.assert_parser_issue_messages(
+            ['cannot define "instances" and capabilities together in a '
+             'node template'])
