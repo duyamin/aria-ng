@@ -16,7 +16,7 @@
 
 from aria.utils import deepcopy_with_locators
 
-def prepare_deployment_plan(context, inputs=None, **kwargs):
+def prepare_deployment_plan(plan, inputs=None, **kwargs):
     """
     Prepare a plan for deployment
     """
@@ -25,9 +25,9 @@ def prepare_deployment_plan(context, inputs=None, **kwargs):
     
     if inputs:
         for input_name, the_input in inputs.iteritems():
-            context.deployment.classic_plan['inputs'][input_name] = deepcopy_with_locators(the_input)
+            plan['inputs'][input_name] = deepcopy_with_locators(the_input)
             
     # TODO: now that we have inputs, we should scan properties and inputs
     # and evaluate functions
     
-    return context.deployment.classic_plan
+    return plan

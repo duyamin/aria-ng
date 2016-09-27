@@ -14,9 +14,9 @@
 #    * limitations under the License.
 
 from dsl_parser import exceptions
-from dsl_parser import functions
 from dsl_parser.tasks import prepare_deployment_plan
 from framework.abstract_test_parser import AbstractTestParser
+from framework import functions
 
 
 class TestOutputs(AbstractTestParser):
@@ -72,8 +72,11 @@ outputs:
     port:
         description: p0
 """
-        self.assertRaises(exceptions.DSLParsingFormatException,
-                          self.parse, yaml)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=['required field "value" in '
+                            '"aria_extension_cloudify.v1_0.misc.Output" '
+                            'does not have a value'])
 
     def test_valid_get_attribute(self):
         yaml = """
@@ -100,74 +103,71 @@ outputs:
         yaml = """
 node_templates: {}
 outputs:
-    port:
-        description: p0
-        value: { get_attribute: [ webserver, port ] }
+  port:
+    description: p0
+    value: { get_attribute: [ webserver, port ] }
 """
-        try:
-            self.parse(yaml)
-            self.fail('Expected exception.')
-        except KeyError, e:
-            self.assertTrue('does not exist' in str(e))
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=['function "get_attribute" parameter 1 is not a '
+                            'valid modelable entity name: \'webserver\''])
         yaml = """
 node_templates: {}
 outputs:
-    port:
-        description: p0
-        value: { get_attribute: aaa }
+  port:
+    description: p0
+    value: { get_attribute: aaa }
 """
-        try:
-            self.parse(yaml)
-            self.fail('Expected exception.')
-        except ValueError, e:
-            self.assertTrue('Illegal arguments passed' in str(e))
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=['function "get_attribute" argument must be a list '
+                            'of at least 2 string expressions: \'aaa\''])
 
     def test_invalid_nested_get_attribute(self):
         yaml = """
 node_types:
-    webserver_type: {}
+  webserver_type: {}
 node_templates:
-    webserver:
-        type: webserver_type
+  webserver:
+    type: webserver_type
 outputs:
-    endpoint:
-        description: p0
-        value:
-            ip: 10.0.0.1
-            port: { get_attribute: [ aaa, port ] }
+  endpoint:
+    description: p0
+    value:
+      ip: 10.0.0.1
+      port: { get_attribute: [ aaa, port ] }
 """
-        try:
-            self.parse(yaml)
-            self.fail('Expected exception.')
-        except KeyError, e:
-            self.assertTrue('does not exist' in str(e))
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=['function "get_attribute" parameter 1 is not a '
+                            'valid modelable entity name: \'aaa\''])
 
     def test_valid_evaluation(self):
         yaml = """
 inputs:
-    input:
-        default: input_value
+  input:
+    default: input_value
 node_types:
-    webserver_type:
-        properties:
-            property:
-                default: property_value
+  webserver_type:
+    properties:
+      property:
+        default: property_value
 node_templates:
-    webserver:
-        type: webserver_type
+  webserver:
+    type: webserver_type
 outputs:
-    port:
-        description: p0
-        value: { get_attribute: [ webserver, port ] }
-    endpoint:
-        value:
-            port: { get_attribute: [ webserver, port ] }
-    concatenated:
-        value: { concat: [one,
-                          {get_property: [webserver, property]},
-                          {get_attribute: [webserver, attribute]},
-                          {get_input: input},
-                          five] }
+  port:
+    description: p0
+    value: { get_attribute: [ webserver, port ] }
+  endpoint:
+    value:
+      port: { get_attribute: [ webserver, port ] }
+  concatenated:
+    value: { concat: [one,
+              {get_property: [webserver, property]},
+              {get_attribute: [webserver, attribute]},
+              {get_input: input},
+              five] }
 """
 
         def assertion(tested):
@@ -238,14 +238,14 @@ outputs:
     def test_invalid_multi_instance_evaluation(self):
         yaml = """
 node_types:
-    webserver_type: {}
+   webserver_type: {}
 node_templates:
-    webserver:
-        type: webserver_type
+   webserver:
+      type: webserver_type
 outputs:
-    port:
-        description: p0
-        value: { get_attribute: [ webserver, port ] }
+   port:
+      description: p0
+      value: { get_attribute: [ webserver, port ] }
 """
         parsed = self.parse(yaml)
 
