@@ -153,7 +153,7 @@ def merge_property_definition_default(context, definition):
     
     if default:
         # Make sure we have a dict
-        if definition._raw.get('default') is None:
+        if 'default' not in definition._raw:
             definition._raw['default'] = OrderedDict()
         
         # Merge our default over the type's default

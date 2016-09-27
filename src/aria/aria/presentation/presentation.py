@@ -19,6 +19,10 @@ from .utils import get_locator, validate_no_short_form, validate_no_unknown_fiel
 from ..utils import HasCachedMethods, full_type_name, deepcopy_with_locators, puts
 
 class Value(object):
+    """
+    Encapsulates a typed value assignment.
+    """
+    
     def __init__(self, the_type, value):
         self.type = deepcopy_with_locators(the_type)
         self.value = deepcopy_with_locators(value)
@@ -158,7 +162,7 @@ class AsIsPresentation(PresentationBase):
     Base class for trivial ARIA presentations that provide the raw value as is.
     """
     
-    # TODO: support type coersion
+    # TODO: support type coercion
     
     @property
     def value(self):

@@ -24,7 +24,6 @@ def get_deployment_template(context):
     r.description = context.presentation.get('service_template', 'description', 'value')
 
     normalize_types(context, context.deployment.node_types, context.presentation.get('service_template', 'node_types'))
-    #normalize_types(context, context.deployment.group_types, context.presentation.get('service_template', 'group_types'))
     normalize_types(context, context.deployment.relationship_types, context.presentation.get('service_template', 'relationships'), normalize_relationship_type)
     normalize_types(context, context.deployment.policy_types, context.presentation.get('service_template', 'policy_types'), normalize_policy_type)
     normalize_types(context, context.deployment.policy_trigger_types, context.presentation.get('service_template', 'policy_triggers'), normalize_policy_trigger_type)

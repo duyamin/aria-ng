@@ -26,32 +26,37 @@ yaml.representer.RoundTripRepresenter.add_representer(LocatableString, yaml.repr
 yaml.representer.RoundTripRepresenter.add_representer(LocatableInt, yaml.representer.RoundTripRepresenter.represent_int)
 yaml.representer.RoundTripRepresenter.add_representer(LocatableFloat, yaml.representer.RoundTripRepresenter.represent_float)
 
+MERGE_TAG = u'tag:yaml.org,2002:merge'
+MAP_TAG = u'tag:yaml.org,2002:map'
+
 class YamlLocator(Locator):
     """
     Map for agnostic raw data read from YAML.
     """
     
-    def parse(self, yaml_loader, node, location):
-        def child(n, k=None):
-            locator = YamlLocator(location, n.start_mark.line + 1, n.start_mark.column + 1)
-            if k is not None:
-                if k.tag == u'tag:yaml.org,2002:merge':
-                    for merge_k, merge_n in n.value:
-                        child(merge_n, merge_k)
-                else:
-                    self.children[k.value] = locator
-            else:
-                self.children.append(locator)
-            locator.parse(yaml_loader, n, location)
-        
+    def add_children(self, node):
         if isinstance(node, yaml.SequenceNode):
             self.children = []
             for n in node.value:
-                child(n)
+                self.add_child(n)
         elif isinstance(node, yaml.MappingNode):
             self.children = {}
             for k, n in node.value:
-                child(n, k)
+                self.add_child(n, k)
+    
+    def add_child(self, node, key=None):
+        locator = YamlLocator(self.location, node.start_mark.line + 1, node.start_mark.column + 1)
+        if key is not None:
+            # Dict
+            if key.tag == MERGE_TAG:
+                for merge_key, merge_node in node.value:
+                    self.add_child(merge_node, merge_key)
+            else:
+                self.children[key.value] = locator
+        else:
+            # List
+            self.children.append(locator)
+        locator.add_children(node)
 
 def construct_yaml_map(self, node):
     data = OrderedDict()
@@ -59,7 +64,7 @@ def construct_yaml_map(self, node):
     value = self.construct_mapping(node)
     data.update(value)
 
-yaml.constructor.SafeConstructor.add_constructor(u'tag:yaml.org,2002:map', construct_yaml_map)
+yaml.constructor.SafeConstructor.add_constructor(MAP_TAG, construct_yaml_map)
 
 class YamlReader(Reader):
     """
@@ -76,7 +81,7 @@ class YamlReader(Reader):
                 node = yaml_loader.get_single_node()
                 locator = YamlLocator(self.loader.location, 0, 0)
                 if node is not None:
-                    locator.parse(yaml_loader, node, self.loader.location)
+                    locator.add_children(node)
                     raw = yaml_loader.construct_document(node)
                 else:
                     raw = OrderedDict()

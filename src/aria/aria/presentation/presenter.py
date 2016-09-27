@@ -41,9 +41,11 @@ class Presenter(Presentation):
         if hasattr(self._raw, '_locator') and hasattr(presentation._raw, '_locator'):
             self._raw._locator.merge(presentation._raw._locator)
 
-    def _link(self):
-        locator = self._raw._locator
-        locator.link(self._raw)
+    def _link_locators(self):
+        if hasattr(self._raw, '_locator'):
+            locator = self._raw._locator
+            delattr(self._raw, '_locator')
+            locator.link(self._raw)
 
     def _get_import_locations(self):
         return None

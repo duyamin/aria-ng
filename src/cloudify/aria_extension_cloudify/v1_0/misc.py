@@ -21,9 +21,7 @@ from aria.utils import puts, as_raw
 
 class Description(AsIsPresentation):
     def _dump(self, context):
-        value = self.value
-        if hasattr(value, 'as_raw'):
-            value = as_raw(value) 
+        value = as_raw(self.value)
         puts(context.style.meta(value))
 
 @has_fields

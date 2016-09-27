@@ -103,8 +103,8 @@ class Read(Consumer):
         
         presentation = presenter_class(raw=raw)
 
-        if presentation is not None and hasattr(presentation, '_link'):
-            presentation._link()
+        if presentation is not None and hasattr(presentation, '_link_locators'):
+            presentation._link_locators()
             
         # Submit imports to executor
         if hasattr(presentation, '_get_import_locations'):
