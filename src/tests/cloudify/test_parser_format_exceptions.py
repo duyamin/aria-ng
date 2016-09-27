@@ -340,7 +340,10 @@ relationships:
     relationship: {}
             """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["required field \"target\" in "
+                            "\"aria_extension_cloudify.v1_0.templates.RelationshipTemplate\" "
+                            "does not have a value"])
 
     def test_instance_relationships_relationship_extra_prop(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -354,7 +357,8 @@ relationships:
     relationship: {}
             """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"extra_prop\" is not supported in \"test_node\""])
 
     def test_instance_relationships_relationship_with_derived_from_field(self):
         # derived_from field is not valid under an instance relationship
@@ -370,7 +374,8 @@ relationships:
     relationship: {}
             """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"derived_from\" is not supported in \"test_node\""])
 
     def test_instance_relationships_relationship_object(self):
         # trying to use a dictionary instead of an array
@@ -382,7 +387,12 @@ relationships:
                 derived_from: "relationship"
             """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"relationships\" in "
+                            "\"aria_extension_cloudify.v1_0.templates.NodeTemplate\" "
+                            "is not a list: OrderedDict([('test_relationship', "
+                            "OrderedDict([('type', 'fake_relationship'), "
+                            "('target', 'fake_node'), ('derived_from', 'relationship')]))])"])
 
     def test_multiple_instances_with_extra_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -391,14 +401,16 @@ relationships:
             extra_prop: value
             """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"extra_prop\" is not supported in \"test_node\""])
 
     def test_multiple_instances_without_deploy_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
         instances: {}
             """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["f"])
 
     def test_multiple_instances_string_value(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -406,7 +418,8 @@ relationships:
             deploy: '2'
             """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["f"])
 
     def test_interface_operation_mapping_no_mapping_prop(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + self.BASIC_PLUGIN + """
@@ -419,7 +432,8 @@ node_types:
                       key: "value"
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"properties\" is not supported in \"install\""])
 
     def test_workflow_mapping_invalid_value(self):
         yaml = self.BLUEPRINT_WITH_INTERFACES_AND_PLUGINS + """
@@ -437,7 +451,10 @@ workflows:
             param: {}
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["required field \"mapping\" in "
+                            "\"aria_extension_cloudify.v1_0.definitions.WorkflowDefinition\" "
+                            "does not have a value"])
 
     def test_workflow_parameters_simple_dictionary_schema_format(self):
         yaml = self.BLUEPRINT_WITH_INTERFACES_AND_PLUGINS + """
@@ -448,7 +465,8 @@ workflows:
             key: value
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["short form not allowed for field \"key\""])
 
     def test_workflow_parameters_array_dictionary_schema_format(self):
         yaml = self.BLUEPRINT_WITH_INTERFACES_AND_PLUGINS + """
@@ -460,7 +478,8 @@ workflows:
                 - default: val1
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["short form not allowed for field \"key\""])
 
     def test_workflow_parameters_schema_array_format(self):
         yaml = self.BLUEPRINT_WITH_INTERFACES_AND_PLUGINS + """
