@@ -14,10 +14,31 @@
 # under the License.
 #
 
-from aria.presentation import type_validator
+from aria.presentation import type_validator, report_issue_for_unknown_type
 
 #
-# PolicyDefinition
+# GroupTemplate
+#
+
+def node_templates_or_groups_validator(field, presentation, context):
+    """
+    Makes sure that the field's elements refer to either node templates or groups.
+
+    Used with the :func:`field_validator` decorator for the "targets" field in :class:`GroupTemplate`.
+    """
+    
+    field._validate(presentation, context)
+    
+    values = getattr(presentation, field.name)
+    if values is not None:
+        for value in values:
+            node_templates = context.presentation.get('service_template', 'node_templates') or {}
+            groups = context.presentation.get('service_template', 'groups') or {}
+            if (value not in node_templates) and (value not in groups):
+                report_issue_for_unknown_type(context, presentation, 'node template or group', field.name)
+
+#
+# PolicyTemplate
 #
 
 _policy_type_validator = type_validator('policy type', 'policy_types')
@@ -26,7 +47,7 @@ def policy_type_validator(field, presentation, context):
     """
     Makes sure that the field refers to an existing type defined in the root presenter.
     
-    Used with the :func:`field_validator` decorator for the "type" field in :class:`PolicyDefinition`.
+    Used with the :func:`field_validator` decorator for the "type" field in :class:`PolicyTemplate`.
     """
     
     field._validate(presentation, context)

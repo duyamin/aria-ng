@@ -161,11 +161,17 @@ def normalize_relationship(context, relationship):
 
 def normalize_group(context, group):
     r = GroupTemplate(name=group._name)
+
+    node_templates = context.presentation.get('service_template', 'node_templates') or {}
     
     members = group.members
     if members:
         for member in members:
-            r.member_node_template_names.append(member)
+            if member in node_templates:
+                r.member_node_template_names.append(member)
+            else:
+                # Note: groups inside groups are only supported since Cloudify DSL 1.3
+                r.member_group_template_names.append(member)
             
     policies = group.policies
     if policies:

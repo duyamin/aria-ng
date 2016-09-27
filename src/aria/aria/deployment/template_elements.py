@@ -497,6 +497,7 @@ class GroupTemplate(TemplateElement):
     * :code:`interfaces`: Dict of :class:`Interface`
     * :code:`policies`: Dict of :class:`GroupPolicy`
     * :code:`member_node_template_names`: Must be represented in the :class:`DeploymentTemplate`
+    * :code:`member_group_template_names`: Must be represented in the :class:`DeploymentTemplate`
     """
     
     def __init__(self, name, type_name=None):
@@ -511,6 +512,7 @@ class GroupTemplate(TemplateElement):
         self.interfaces = StrictDict(key_class=basestring, value_class=Interface)
         self.policies = StrictDict(key_class=basestring, value_class=GroupPolicy)
         self.member_node_template_names = StrictList(value_class=basestring)
+        self.member_group_template_names = StrictList(value_class=basestring)
 
     @property
     def as_raw(self):
@@ -518,9 +520,10 @@ class GroupTemplate(TemplateElement):
             ('name', self.name),
             ('type_name', self.type_name),
             ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
-            ('interfaces', [as_raw(v) for v in self.interfaces.itervalues()]),            
-            ('policies', [as_raw(v) for v in self.policies.itervalues()]),            
-            ('member_node_template_names', self.member_node_template_names)))
+            ('interfaces', [as_raw(v) for v in self.interfaces.itervalues()]),
+            ('policies', [as_raw(v) for v in self.policies.itervalues()]),
+            ('member_node_template_names', self.member_node_template_names),
+            ('member_group_template_names', self.member_group_template_names)))
 
     def instantiate(self, context, container):
         r = Group(context, self.type_name, self.name)
@@ -529,6 +532,8 @@ class GroupTemplate(TemplateElement):
         instantiate_dict(context, self, r.policies, self.policies)
         for member_node_template_name in self.member_node_template_names:
             r.member_node_ids += context.deployment.plan.get_node_ids(member_node_template_name)
+        for member_group_template_name in self.member_group_template_names:
+            r.member_group_ids += context.deployment.plan.get_group_ids(member_group_template_name)
         return r
 
     def validate(self, context):

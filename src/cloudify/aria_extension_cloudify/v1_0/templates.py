@@ -18,13 +18,12 @@ from .definitions import PropertyDefinition, WorkflowDefinition
 from .assignments import PropertyAssignment, InterfaceAssignment, GroupPolicyAssignment
 from .types import NodeType, RelationshipType, PolicyType, GroupPolicyTriggerType
 from .misc import Description, Output, Plugin, Instances
-from .field_validators import node_templates_or_groups_validator
 from .utils.properties import get_assigned_and_defined_property_values, get_parameter_values
 from .utils.interfaces import get_template_interfaces
 from .utils.node_templates import get_node_template_scalable
 from .utils.relationships import get_relationship_assigned_and_defined_property_values
 from aria import dsl_specification
-from aria.presentation import Presentation, has_fields, primitive_field, primitive_list_field, object_field, object_list_field, object_dict_field, field_validator, type_validator
+from aria.presentation import Presentation, has_fields, primitive_field, primitive_list_field, object_field, object_list_field, object_dict_field, field_validator, type_validator, list_type_validator
 from aria.utils import ReadOnlyDict, cachedmethod
 
 @has_fields
@@ -199,19 +198,18 @@ class NodeTemplate(Presentation):
 @dsl_specification('groups', 'cloudify-1.0')
 @dsl_specification('groups', 'cloudify-1.1')
 @dsl_specification('groups', 'cloudify-1.2')
-@dsl_specification('groups', 'cloudify-1.3')
 class GroupTemplate(Presentation):
     """
-    Groups provide a way of configuring shared behavior for different sets of node_templates.
+    Groups provide a way of configuring shared behavior for different sets of :code:`node_templates`.
     
-    See the `Cloudify DSL v1.3 specification <http://docs.getcloudify.org/3.4.0/blueprints/spec-groups/>`__.
+    See the `Cloudify DSL v1.2 specification <http://docs.getcloudify.org/3.3.1/blueprints/spec-groups/>`__.
     """
 
-    @field_validator(node_templates_or_groups_validator)
+    @field_validator(list_type_validator('node template', 'node_templates'))
     @primitive_list_field(str, required=True)
     def members(self):
         """
-        A list of group members. Members are node template names or other group names. 
+        A list of group members. Members are node template names. 
         
         :rtype: list of str
         """

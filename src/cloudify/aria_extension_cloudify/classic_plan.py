@@ -241,8 +241,11 @@ def convert_relationship_template(context, requirement):
         ('target_operations', convert_operations(context, relationship_template.target_interfaces))))
 
 def convert_group_template(context, group_template, policy_template=None):
+    node_members = [v for v in group_template.member_node_template_names if is_top_level_node_template(context, v)]
+    group_members = [v for v in group_template.member_group_template_names if is_top_level_group_template(context, v)]
+    
     r = OrderedDict((
-        ('members', group_template.member_node_template_names),
+        ('members', node_members + group_members),
         ('policies', OrderedDict(
             (k, convert_group_policy(context, v)) for k, v in group_template.policies.iteritems()))))
 
@@ -492,17 +495,42 @@ def is_host(context, node_or_node_template):
     return context.deployment.node_types.is_descendant(COMPUTE_NODE_NAME, node_or_node_template.type_name)
 
 def is_contained_in(context, relationship_or_relationship_template):
+    if relationship_or_relationship_template is None:
+        return False
     return context.deployment.relationship_types.is_descendant(CONTAINED_IN_RELATIONSHIP_NAME, relationship_or_relationship_template.type_name)
+
+def get_container_node_template(context, node_template):
+    for requirement in node_template.requirements:
+        if is_contained_in(context, requirement.relationship_template):
+            return context.deployment.template.node_templates.get(requirement.target_node_template_name)
+    return None
+
+def is_top_level_node_template(context, name):
+    node_template = context.deployment.template.node_templates.get(name)
+    if node_template is None:
+        return False
+    return get_container_node_template(context, node_template) is None
+
+def get_container_group_template(context, group_template):
+    for g in context.deployment.template.group_templates.itervalues():
+        for member_group_template_name in g.member_group_template_names:
+            if member_group_template_name == group_template.name:
+                return g  
+    return None
+
+def is_top_level_group_template(context, name):
+    group_template = context.deployment.template.group_templates.get(name)
+    if group_template is None:
+        return False
+    return get_container_group_template(context, group_template) is None
 
 def find_host_node_template(context, node_template):
     if is_host(context, node_template):
         return node_template
     
     for requirement in node_template.requirements:
-        relationship_template = requirement.relationship_template
-        if relationship_template is not None:
-            if is_contained_in(context, relationship_template):
-                return find_host_node_template(context, context.deployment.template.node_templates.get(requirement.target_node_template_name))
+        if is_contained_in(context, requirement.relationship_template):
+            return find_host_node_template(context, context.deployment.template.node_templates.get(requirement.target_node_template_name))
 
     return None
 

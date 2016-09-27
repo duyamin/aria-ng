@@ -451,6 +451,7 @@ class Group(Element):
     * :code:`interfaces`: Dict of :class:`Interface`
     * :code:`policies`: Dict of :class:`GroupPolicy`
     * :code:`member_node_ids`: Must be represented in the :class:`DeploymentPlan`
+    * :code:`member_group_ids`: Must be represented in the :class:`DeploymentPlan`
     """    
     
     def __init__(self, context, type_name, template_name):
@@ -464,6 +465,7 @@ class Group(Element):
         self.interfaces = StrictDict(key_class=basestring, value_class=Interface)
         self.policies = StrictDict(key_class=basestring, value_class=GroupPolicy)
         self.member_node_ids = StrictList(value_class=basestring)
+        self.member_group_ids = StrictList(value_class=basestring)
 
     @property
     def as_raw(self):
@@ -474,7 +476,8 @@ class Group(Element):
             ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
             ('interfaces', [as_raw(v) for v in self.interfaces.itervalues()]),
             ('policies', [as_raw(v) for v in self.policies.itervalues()]),
-            ('member_node_ids', self.member_node_ids)))
+            ('member_node_ids', self.member_node_ids),
+            ('member_group_ids', self.member_group_ids)))
 
     def validate(self, context):
         if context.deployment.group_types.get_descendant(self.type_name) is None:
