@@ -12,12 +12,7 @@
 #    * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    * See the License for the specific language governing permissions and
 #    * limitations under the License.
-import dsl_parser.exceptions as exceptions
 
-from dsl_parser.exceptions import (
-    DSLParsingFormatException,
-    DSLParsingLogicException)
-from dsl_parser.parser import parse as dsl_parse
 from framework.abstract_test_parser import AbstractTestParser
 
 
