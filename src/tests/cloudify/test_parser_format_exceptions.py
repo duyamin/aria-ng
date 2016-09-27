@@ -817,7 +817,8 @@ policy_triggers:
                 description: property_desc1
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"extra_property\" is not supported in \"test_trigger\""])
 
     def test_policy_trigger_missing_source(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -829,7 +830,10 @@ policy_triggers:
                 description: property_desc1
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["required field \"source\" in "
+                            "\"aria_extension_cloudify.v1_0.types.GroupPolicyTriggerType\" "
+                            "does not have a value"])
 
     def test_groups_missing_member(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -844,7 +848,10 @@ groups:
                 type: type
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["required field \"members\" in"
+                            " \"aria_extension_cloudify.v1_0.templates.GroupTemplate\" "
+                            "does not have a value"])
 
     def test_groups_extra_property(self):
         yaml = """
@@ -866,7 +873,8 @@ groups:
         extra_property: extra_property
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"extra_property\" is not supported in \"group\""])
 
     def test_groups_policy_missing_type(self):
         yaml = """
@@ -888,7 +896,10 @@ groups:
                     key: value
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["required field \"type\" in "
+                            "\"aria_extension_cloudify.v1_0.assignments.GroupPolicyAssignment\" "
+                            "does not have a value"])
 
     def test_groups_policy_extra_property(self):
         yaml = """
@@ -910,7 +921,8 @@ groups:
                 extra_property: extra_property
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"extra_property\" is not supported in \"policy\""])
 
     def test_group_members_bad_type1(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -926,7 +938,9 @@ groups:
                 type: type
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["\"members\" refers to an unknown node template "
+                            "or group in \"group\": [u'1']"])
 
     def test_group_members_bad_type2(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -942,7 +956,10 @@ groups:
                 type: type
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"members\" in "
+                            "\"aria_extension_cloudify.v1_0.templates.GroupTemplate\" "
+                            "is not a list: 1"])
 
     def test_group_policy_type_bad_type(self):
         yaml = """
@@ -961,7 +978,9 @@ groups:
                     key: value
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["\"type\" refers to an unknown policy type in \"policy\": u'1'",
+                            "assignment to undefined property \"key\" in \"policy\""])
 
     def test_group_policy_type_bad_properties(self):
         yaml = """
@@ -983,7 +1002,10 @@ groups:
                 properties: properties
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"properties\" in "
+                            "\"aria_extension_cloudify.v1_0.assignments.GroupPolicyAssignment\" "
+                            "is not a dict: \'properties\'"])
 
     def test_group_no_members(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -1000,7 +1022,8 @@ groups:
                 properties: {}
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["f"])
 
     def test_unknown_property_schema_type(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + """
@@ -1011,14 +1034,17 @@ node_types:
                 type: unknown-type
                 """
         self.assert_parser_issue_messages(
-            yaml, exceptions.ERROR_UNKNOWN_TYPE, DSLParsingLogicException)
+            dsl_string=yaml,
+            issue_messages=["\"type\" refers to an unknown data type "
+                            "in \"key\": u\'unknown-type\'"])
 
     def test_invalid_version_field_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
 tosca_definitions_version: [cloudify_dsl_1_0]
     """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 1, DSLParsingFormatException, dsl_parse)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["s"])
 
     def test_invalid_blueprint_description_field_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -1026,4 +1052,5 @@ description:
   nested_key: value
   """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["f"])
