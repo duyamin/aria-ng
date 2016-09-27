@@ -490,7 +490,10 @@ workflows:
             - key: value
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"parameters\" in"
+                            " \"aria_extension_cloudify.v1_0.definitions.WorkflowDefinition\" "
+                            "is not a dict: [OrderedDict([('key', 'value')])]"])
 
     def test_workflow_parameters_extra_property(self):
         yaml = self.BLUEPRINT_WITH_INTERFACES_AND_PLUGINS + """
@@ -504,7 +507,8 @@ workflows:
                 extra_property: this_is_not_allowed
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"extra_property\" is not supported in \"key\""])
 
     def test_workflow_properties_instead_of_parameters(self):
         yaml = self.BLUEPRINT_WITH_INTERFACES_AND_PLUGINS + """
@@ -516,7 +520,8 @@ workflows:
                 default: value
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"properties\" is not supported in \"workflow1\""])
 
     def test_interface_operation_mapping_unknown_extra_attributes(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + self.BASIC_PLUGIN + """
@@ -531,7 +536,9 @@ node_types:
                   unknown: 'bla'
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"unknown\" is not supported in \"install\"",
+                            "short form not allowed for field \"key\""])
 
     def test_type_properties_simple_dictionary_schema_format(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + """
@@ -541,7 +548,8 @@ node_types:
             key: value
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["short form not allowed for field \"key\""])
 
     def test_type_properties_array_dictionary_schema_format(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + """
@@ -552,7 +560,8 @@ node_types:
                 - default: val1
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["short form not allowed for field \"key\""])
 
     def test_type_properties_schema_array_format(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + """
@@ -562,7 +571,10 @@ node_types:
             - key: value
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"properties\" in "
+                            "\"aria_extension_cloudify.v1_0.types.NodeType\" "
+                            "is not a dict: [OrderedDict([('key', 'value')])]"])
 
     def test_type_properties_extra_property(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + """
@@ -575,7 +587,8 @@ node_types:
                 extra_property: this_is_not_allowed
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"extra_property\" is not supported in \"key\""])
 
     def test_relationship_properties_simple_dictionary_schema_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -585,7 +598,8 @@ relationships:
             key: value
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["short form not allowed for field \"key\""])
 
     def test_relationship_properties_array_dictionary_schema_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -596,7 +610,8 @@ relationships:
                 - default: val1
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["short form not allowed for field \"key\""])
 
     def test_relationship_properties_schema_array_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -606,7 +621,10 @@ relationships:
             - key: value
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"properties\" in "
+                            "\"aria_extension_cloudify.v1_0.types.RelationshipType\" "
+                            "is not a dict: [OrderedDict([('key', 'value')])]"])
 
     def test_relationship_properties_extra_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -619,7 +637,8 @@ relationships:
                 extra_property: this_is_not_allowed
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"extra_property\" is not supported in \"key\""])
 
     def test_policy_type_properties_simple_dictionary_schema_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -630,7 +649,8 @@ policy_types:
             key: value
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["short form not allowed for field \"key\""])
 
     def test_policy_type_properties_array_dictionary_schema_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -642,7 +662,8 @@ policy_types:
                 - default: val1
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["short form not allowed for field \"key\""])
 
     def test_policy_type_properties_schema_array_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -653,7 +674,10 @@ policy_types:
             - key: value
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"properties\" in "
+                            "\"aria_extension_cloudify.v1_0.types.PolicyType\" "
+                            "is not a dict: [OrderedDict([('key', 'value')])]"])
 
     def test_policy_type_properties_extra_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -667,7 +691,8 @@ policy_types:
                 extra_property: this_is_not_allowed
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"extra_property\" is not supported in \"key\""])
 
     def test_policy_type_source_non_string(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -694,7 +719,8 @@ policy_types:
                 description: property_desc1
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"extra_property\" is not supported in \"test_policy\""])
 
     def test_policy_type_missing_source(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -706,7 +732,10 @@ policy_types:
                 description: property_desc1
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["required field \"source\" in "
+                            "\"aria_extension_cloudify.v1_0.types.PolicyType\" "
+                            "does not have a value"])
 
     def test_policy_triggers_parameters_simple_dictionary_schema_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -717,7 +746,8 @@ policy_triggers:
             key: value
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["short form not allowed for field \"key\""])
 
     def test_policy_triggers_parameters_array_dictionary_schema_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -729,7 +759,8 @@ policy_triggers:
                 - default: val1
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["short form not allowed for field \"key\""])
 
     def test_policy_triggers_parameters_schema_array_format(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -740,7 +771,10 @@ policy_triggers:
             - key: value
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"parameters\" in "
+                            "\"aria_extension_cloudify.v1_0.types.GroupPolicyTriggerType\" "
+                            "is not a dict: [OrderedDict([('key', 'value')])]"])
 
     def test_policy_triggers_parameters_extra_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -754,7 +788,8 @@ policy_triggers:
                 extra_property: this_is_not_allowed
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"extra_property\" is not supported in \"key\""])
 
     def test_policy_trigger_source_non_string(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -767,7 +802,8 @@ policy_triggers:
                 description: property_desc1
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["f"])
 
     def test_policy_trigger_extra_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
