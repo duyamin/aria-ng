@@ -14,8 +14,8 @@
 # under the License.
 #
 
-from .utils.data_types import get_primitive_data_type, get_container_data_type
-from .utils.properties import coerce_value
+from ..deployment.data_types import get_primitive_data_type, get_container_data_type
+from ..deployment.properties import coerce_value
 from aria.presentation import report_issue_for_unknown_type
 from aria.validation import Issue
 

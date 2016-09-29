@@ -16,7 +16,7 @@
 
 from .assignments import CapabilityAssignment
 from .field_validators import node_templates_or_groups_validator, policy_type_validator
-from .utils.node_templates import get_node_template_scalable
+from .deployment.node_templates import get_node_template_scalable
 from ..v1_0 import NodeTemplate as NodeTemplate1_0, GroupTemplate as GroupTemplate1_0, PropertyAssignment
 from ..v1_2 import ServiceTemplate as ServiceTemplate1_2
 from aria import dsl_specification

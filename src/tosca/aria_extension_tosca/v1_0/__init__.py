@@ -15,7 +15,6 @@
 #
 
 from .presenter import ToscaSimplePresenter1_0
-from .presentation import ToscaPresentation
 from .assignments import PropertyAssignment, OperationAssignment, InterfaceAssignment, RelationshipAssignment, RequirementAssignment, AttributeAssignment, CapabilityAssignment, ArtifactAssignment
 from .definitions import PropertyDefinition, AttributeDefinition, ParameterDefinition, OperationDefinition, InterfaceDefinition, RelationshipDefinition, RequirementDefinition, CapabilityDefinition
 from .filters import CapabilityFilter, NodeFilter
@@ -31,7 +30,6 @@ MODULES = (
 __all__ = (
     'MODULES',
     'ToscaSimplePresenter1_0',
-    'ToscaPresentation',
     'PropertyAssignment',
     'OperationAssignment',
     'InterfaceAssignment',

@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from ...v1_0.utils.data_types import coerce_value, get_primitive_data_type
+from ...v1_0.deployment.data_types import coerce_value, get_primitive_data_type
 from aria.validation import Issue
 from aria.presentation import get_locator
 from collections import OrderedDict

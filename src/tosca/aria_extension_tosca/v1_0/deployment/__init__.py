@@ -14,8 +14,8 @@
 # under the License.
 #
 
+from ..data_types import coerce_value
 from aria.deployment import Type, RelationshipType, PolicyType, DeploymentTemplate, NodeTemplate, RelationshipTemplate, CapabilityTemplate, GroupTemplate, PolicyTemplate, SubstitutionTemplate, MappingTemplate, Interface, Operation, Artifact, Requirement, Metadata, Parameter
-from .data_types import coerce_value
 import re
 
 def get_deployment_template(context):

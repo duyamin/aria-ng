@@ -15,9 +15,9 @@
 #
 
 from .definitions import InterfaceDefinition, PropertyDefinition
-from .utils.properties import get_inherited_property_definitions
-from .utils.interfaces import get_inherited_interface_definitions
-from .utils.relationships import get_relationship_inherited_property_definitions
+from .deployment.properties import get_inherited_property_definitions
+from .deployment.interfaces import get_inherited_interface_definitions
+from .deployment.relationships import get_relationship_inherited_property_definitions
 from aria import dsl_specification
 from aria.presentation import Presentation, has_fields, primitive_field, object_dict_field, field_validator, derived_from_validator
 from aria.utils import ReadOnlyDict, cachedmethod

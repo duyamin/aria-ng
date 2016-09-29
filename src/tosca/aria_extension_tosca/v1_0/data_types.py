@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from .utils.data_types import coerce_to_data_type_class, report_issue_for_bad_format, coerce_value
+from .deployment.data_types import coerce_to_data_type_class, report_issue_for_bad_format, coerce_value
 from aria import dsl_specification
 from aria.utils import StrictDict
 from functools import total_ordering

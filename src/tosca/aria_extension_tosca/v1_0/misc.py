@@ -14,10 +14,10 @@
 # under the License.
 #
 
-from .presentation import ToscaPresentation
-from .field_validators import constraint_clause_field_validator, constraint_clause_in_range_validator, constraint_clause_valid_values_validator, constraint_clause_pattern_validator, data_type_validator
-from .utils.data_types import get_data_type, get_data_type_value, get_property_constraints, apply_constraint_to_value
-from .utils.substitution_mappings import validate_subtitution_mappings_requirement, validate_subtitution_mappings_capability
+from .presentation.extensible import ExtensiblePresentation
+from .presentation.field_validators import constraint_clause_field_validator, constraint_clause_in_range_validator, constraint_clause_valid_values_validator, constraint_clause_pattern_validator, data_type_validator
+from .deployment.data_types import get_data_type, get_data_type_value, get_property_constraints, apply_constraint_to_value
+from .deployment.substitution_mappings import validate_subtitution_mappings_requirement, validate_subtitution_mappings_capability
 from aria import dsl_specification
 from aria.utils import cachedmethod, puts, as_raw
 from aria.presentation import AsIsPresentation, has_fields, allow_unknown_fields, short_form_field, primitive_field, primitive_list_field, primitive_dict_unknown_fields, object_field, object_list_field, object_dict_field, field_validator, type_validator
@@ -35,7 +35,7 @@ class Description(AsIsPresentation):
 @allow_unknown_fields
 @has_fields
 @dsl_specification('3.9.3.2', 'tosca-simple-profile-1.0')
-class MetaData(ToscaPresentation):
+class MetaData(ExtensiblePresentation):
     @primitive_field(str)
     @dsl_specification('3.9.3.3', 'tosca-simple-profile-1.0')
     def template_name(self):
@@ -65,7 +65,7 @@ class MetaData(ToscaPresentation):
 
 @has_fields
 @dsl_specification('3.5.5', 'tosca-simple-profile-1.0')
-class Repository(ToscaPresentation):
+class Repository(ExtensiblePresentation):
     """
     A repository definition defines a named external repository which contains deployment and implementation artifacts that are referenced within the TOSCA Service Template.
     
@@ -103,7 +103,7 @@ class Repository(ToscaPresentation):
 @short_form_field('file')
 @has_fields
 @dsl_specification('3.5.7', 'tosca-simple-profile-1.0')
-class Import(ToscaPresentation):
+class Import(ExtensiblePresentation):
     """
     An import definition is used within a TOSCA Service Template to locate and uniquely name another TOSCA Service Template file which has type and template definitions to be imported (included) and referenced within another Service Template.
     
@@ -144,7 +144,7 @@ class Import(ToscaPresentation):
 
 @has_fields
 @dsl_specification('3.5.2', 'tosca-simple-profile-1.0')
-class ConstraintClause(ToscaPresentation):
+class ConstraintClause(ExtensiblePresentation):
     """
     A constraint clause defines an operation along with one or more compatible values that can be used to define a constraint on a property or parameter's allowed values when it is defined in a TOSCA Service Template or one of its entities.
     
@@ -246,7 +246,7 @@ class ConstraintClause(ToscaPresentation):
 
 @short_form_field('type')
 @has_fields
-class EntrySchema(ToscaPresentation):
+class EntrySchema(ExtensiblePresentation):
     """
     ARIA NOTE: The specification does not properly explain this type, however it is implied by examples.
     """
@@ -280,7 +280,7 @@ class EntrySchema(ToscaPresentation):
 
 @short_form_field('primary')
 @has_fields
-class OperationImplementation(ToscaPresentation):
+class OperationImplementation(ExtensiblePresentation):
     @primitive_field(str)
     def primary(self):
         """
@@ -329,7 +329,7 @@ class SubstitutionMappingsCapability(AsIsPresentation):
 
 @has_fields
 @dsl_specification('2.10', 'tosca-simple-profile-1.0')
-class SubstitutionMappings(ToscaPresentation):
+class SubstitutionMappings(ExtensiblePresentation):
     @field_validator(type_validator('node type', 'node_types'))
     @primitive_field(str, required=True)
     def node_type(self):

@@ -33,8 +33,8 @@ class UriLocation(Location):
 
     @property
     def search_path(self):
-        file = self.as_file
-        return os.path.dirname(file) if file is not None else None
+        the_file = self.as_file
+        return os.path.dirname(the_file) if the_file is not None else None
     
     @property
     def as_file(self):

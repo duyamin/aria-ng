@@ -18,10 +18,10 @@ from .definitions import PropertyDefinition, WorkflowDefinition
 from .assignments import PropertyAssignment, InterfaceAssignment, GroupPolicyAssignment
 from .types import NodeType, RelationshipType, PolicyType, GroupPolicyTriggerType
 from .misc import Description, Output, Plugin, Instances
-from .utils.properties import get_assigned_and_defined_property_values, get_parameter_values
-from .utils.interfaces import get_template_interfaces
-from .utils.node_templates import get_node_template_scalable
-from .utils.relationships import get_relationship_assigned_and_defined_property_values
+from .deployment.properties import get_assigned_and_defined_property_values, get_parameter_values
+from .deployment.interfaces import get_template_interfaces
+from .deployment.relationships import get_relationship_assigned_and_defined_property_values
+from ..deployment.node_templates import get_node_template_scalable
 from aria import dsl_specification
 from aria.presentation import Presentation, has_fields, primitive_field, primitive_list_field, object_field, object_list_field, object_dict_field, field_validator, type_validator, list_type_validator
 from aria.utils import ReadOnlyDict, cachedmethod
@@ -346,7 +346,6 @@ class ServiceTemplate(Presentation):
         super(ServiceTemplate, self)._validate(context)
         self._get_input_values(context)
         self._get_output_values(context)
-
 
     def _dump(self, context):
         self._dump_content(context, (

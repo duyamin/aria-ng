@@ -14,27 +14,27 @@
 # under the License.
 #
 
-from .presentation import ToscaPresentation
 from .misc import Description, MetaData, Repository, Import, SubstitutionMappings
 from .definitions import ParameterDefinition
 from .assignments import PropertyAssignment, AttributeAssignment, RequirementAssignment, CapabilityAssignment, InterfaceAssignment, ArtifactAssignment
 from .types import ArtifactType, DataType, CapabilityType, InterfaceType, RelationshipType, NodeType, GroupType, PolicyType
 from .filters import NodeFilter
-from .field_validators import copy_validator, policy_targets_validator
-from .utils.properties import get_assigned_and_defined_property_values, get_parameter_values
-from .utils.interfaces import get_template_interfaces
-from .utils.requirements import get_template_requirements
-from .utils.capabilities import get_template_capabilities
-from .utils.artifacts import get_inherited_artifact_definitions
-from .utils.policies import get_policy_targets
-from .utils.copy import get_default_raw_from_copy
+from .presentation.extensible import ExtensiblePresentation
+from .presentation.field_validators import copy_validator, policy_targets_validator
+from .deployment.properties import get_assigned_and_defined_property_values, get_parameter_values
+from .deployment.interfaces import get_template_interfaces
+from .deployment.requirements import get_template_requirements
+from .deployment.capabilities import get_template_capabilities
+from .deployment.artifacts import get_inherited_artifact_definitions
+from .deployment.policies import get_policy_targets
+from .deployment.copy import get_default_raw_from_copy
 from aria import dsl_specification
 from aria.utils import ReadOnlyDict, ReadOnlyList, cachedmethod
 from aria.presentation import has_fields, primitive_field, primitive_list_field, object_field, object_list_field, object_dict_field, object_sequenced_list_field, field_validator, type_validator, list_type_validator
 
 @has_fields
 @dsl_specification('3.7.3', 'tosca-simple-profile-1.0')
-class NodeTemplate(ToscaPresentation):
+class NodeTemplate(ExtensiblePresentation):
     """
     A Node Template specifies the occurrence of a manageable software component as part of an application's topology model which is defined in a TOSCA Service Template. A Node template is an instance of a specified Node Type and can provide customized properties, constraints or operations which override the defaults provided by its Node Type and its implementations.
     
@@ -183,7 +183,7 @@ class NodeTemplate(ToscaPresentation):
 
 @has_fields
 @dsl_specification('3.7.4', 'tosca-simple-profile-1.0')
-class RelationshipTemplate(ToscaPresentation):
+class RelationshipTemplate(ExtensiblePresentation):
     """
     A Relationship Template specifies the occurrence of a manageable relationship between node templates as part of an application's topology model that is defined in a TOSCA Service Template. A Relationship template is an instance of a specified Relationship Type and can provide customized properties, constraints or operations which override the defaults provided by its Relationship Type and its implementations.
     
@@ -274,7 +274,7 @@ class RelationshipTemplate(ToscaPresentation):
 
 @has_fields
 @dsl_specification('3.7.5', 'tosca-simple-profile-1.0')
-class GroupTemplate(ToscaPresentation):
+class GroupTemplate(ExtensiblePresentation):
     """
     A group definition defines a logical grouping of node templates, typically for management purposes, but is separate from the application's topology template.
     
@@ -342,7 +342,7 @@ class GroupTemplate(ToscaPresentation):
 
 @has_fields
 @dsl_specification('3.7.6', 'tosca-simple-profile-1.0')
-class PolicyTemplate(ToscaPresentation):
+class PolicyTemplate(ExtensiblePresentation):
     """
     A policy definition defines a policy that can be associated with a TOSCA topology or top-level entity definition (e.g., group definition, node template, etc.).
     
@@ -402,7 +402,7 @@ class PolicyTemplate(ToscaPresentation):
 
 @has_fields
 @dsl_specification('3.8', 'tosca-simple-profile-1.0')
-class TopologyTemplate(ToscaPresentation):
+class TopologyTemplate(ExtensiblePresentation):
     """
     This section defines the topology template of a cloud application. The main ingredients of the topology template are node templates representing components of the application and relationship templates representing links between the components. These elements are defined in the nested node_templates section and the nested relationship_templates sections, respectively. Furthermore, a topology template allows for defining input parameters, output parameters as well as grouping of node templates.
     
@@ -499,7 +499,7 @@ class TopologyTemplate(ToscaPresentation):
 
 @has_fields
 @dsl_specification('3.9', 'tosca-simple-profile-1.0')
-class ServiceTemplate(ToscaPresentation):
+class ServiceTemplate(ExtensiblePresentation):
     """
     See the `TOSCA Simple Profile v1.0 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#DEFN_ELEMENT_SERVICE_TEMPLATE>`__.
     """

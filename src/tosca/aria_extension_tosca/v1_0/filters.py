@@ -14,15 +14,15 @@
 # under the License.
 #
 
-from .presentation import ToscaPresentation
 from .misc import ConstraintClause
-from .field_validators import node_filter_properties_validator, node_filter_capabilities_validator
+from .presentation.extensible import ExtensiblePresentation
+from .presentation.field_validators import node_filter_properties_validator, node_filter_capabilities_validator
 from aria import dsl_specification
 from aria.presentation import has_fields, object_sequenced_list_field, field_validator
 from aria.utils import cachedmethod
 
 @has_fields
-class CapabilityFilter(ToscaPresentation):
+class CapabilityFilter(ExtensiblePresentation):
     @object_sequenced_list_field(ConstraintClause)
     def properties(self):
         pass
@@ -45,7 +45,7 @@ class CapabilityFilter(ToscaPresentation):
 
 @has_fields
 @dsl_specification('3.5.4', 'tosca-simple-profile-1.0')
-class NodeFilter(ToscaPresentation):
+class NodeFilter(ExtensiblePresentation):
     """
     A node filter definition defines criteria for selection of a TOSCA Node Template based upon the template's property values, capabilities and capability properties.
     

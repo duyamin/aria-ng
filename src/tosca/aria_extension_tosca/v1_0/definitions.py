@@ -14,20 +14,20 @@
 # under the License.
 #
 
-from .presentation import ToscaPresentation
 from .misc import Description, ConstraintClause, OperationImplementation, EntrySchema
 from .data_types import Range
-from .field_getters import data_type_class_getter
-from .field_validators import data_type_validator, data_value_validator, entry_schema_validator
-from .utils.data_types import get_data_type, get_property_constraints
-from .utils.interfaces import get_and_override_input_definitions_from_type, get_and_override_operation_definitions_from_type
+from .presentation.extensible import ExtensiblePresentation
+from .presentation.field_getters import data_type_class_getter
+from .presentation.field_validators import data_type_validator, data_value_validator, entry_schema_validator
+from .deployment.data_types import get_data_type, get_property_constraints
+from .deployment.interfaces import get_and_override_input_definitions_from_type, get_and_override_operation_definitions_from_type
 from aria import dsl_specification
 from aria.utils import ReadOnlyDict, cachedmethod
 from aria.presentation import has_fields, short_form_field, allow_unknown_fields, primitive_field, primitive_list_field, object_field, object_list_field, object_dict_field, object_dict_unknown_fields, field_validator, field_getter, type_validator, list_type_validator
 
 @has_fields
 @dsl_specification('3.5.8', 'tosca-simple-profile-1.0')
-class PropertyDefinition(ToscaPresentation):
+class PropertyDefinition(ExtensiblePresentation):
     """
     A property definition defines a named, typed value and related data that can be associated with an entity defined in this specification (e.g., Node Types, Relationship Types, Capability Types, etc.). Properties are used by template authors to provide input values to TOSCA entities which indicate their "desired state" when they are instantiated. The value of a property can be retrieved using the get_property function within TOSCA Service Templates.
     
@@ -104,7 +104,7 @@ class PropertyDefinition(ToscaPresentation):
 
 @has_fields
 @dsl_specification('3.5.10', 'tosca-simple-profile-1.0')
-class AttributeDefinition(ToscaPresentation):
+class AttributeDefinition(ExtensiblePresentation):
     """
     An attribute definition defines a named, typed value that can be associated with an entity defined in this specification (e.g., a Node, Relationship or Capability Type). Specifically, it is used to expose the "actual state" of some property of a TOSCA entity after it has been deployed and instantiated (as set by the TOSCA orchestrator). Attribute values can be retrieved via the get_attribute function from the instance model and used as values to other entities within TOSCA Service Templates.
     
@@ -190,7 +190,7 @@ class ParameterDefinition(PropertyDefinition):
 @short_form_field('implementation')
 @has_fields
 @dsl_specification('3.5.13-1', 'tosca-simple-profile-1.0')
-class OperationDefinition(ToscaPresentation):
+class OperationDefinition(ExtensiblePresentation):
     """
     An operation definition defines a named function or procedure that can be bound to an implementation artifact (e.g., a script).
     
@@ -224,7 +224,7 @@ class OperationDefinition(ToscaPresentation):
 @allow_unknown_fields
 @has_fields
 @dsl_specification('3.5.14-1', 'tosca-simple-profile-1.0')
-class InterfaceDefinition(ToscaPresentation):
+class InterfaceDefinition(ExtensiblePresentation):
     """
     An interface definition defines a named interface that can be associated with a Node or Relationship Type.
     
@@ -274,7 +274,7 @@ class InterfaceDefinition(ToscaPresentation):
 
 @short_form_field('type')
 @has_fields
-class RelationshipDefinition(ToscaPresentation):
+class RelationshipDefinition(ExtensiblePresentation):
     @field_validator(type_validator('relationship type', 'relationship_types'))
     @primitive_field(str, required=True)
     def type(self):
@@ -299,7 +299,7 @@ class RelationshipDefinition(ToscaPresentation):
 @short_form_field('capability')    
 @has_fields
 @dsl_specification('3.6.2', 'tosca-simple-profile-1.0')
-class RequirementDefinition(ToscaPresentation):
+class RequirementDefinition(ExtensiblePresentation):
     """
     The Requirement definition describes a named requirement (dependencies) of a TOSCA Node Type or Node template which needs to be fulfilled by a matching Capability definition declared by another TOSCA modelable entity. The requirement definition may itself include the specific name of the fulfilling entity (explicitly) or provide an abstract type, along with additional filtering characteristics, that a TOSCA orchestrator can use to fulfill the capability at runtime (implicitly).
     
@@ -354,7 +354,7 @@ class RequirementDefinition(ToscaPresentation):
 @short_form_field('type')
 @has_fields
 @dsl_specification('3.6.1', 'tosca-simple-profile-1.0')
-class CapabilityDefinition(ToscaPresentation):
+class CapabilityDefinition(ExtensiblePresentation):
     """
     A capability definition defines a named, typed set of data that can be associated with Node Type or Node Template to describe a transparent capability or feature of the software component the node describes.
     
