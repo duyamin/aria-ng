@@ -201,7 +201,7 @@ imports:"""
             parsing_method = self.parse_from_path
         else:
             parsing_method = self.parse
-            parsing_arguments.insert(0, dsl_string)
+        parsing_arguments.insert(0, dsl_string)
 
         ex = self.assertRaises(CloudifyParserError,
                                parsing_method,
@@ -240,7 +240,9 @@ imports:"""
         raise CloudifyParserError(msg)
 
     def parse_from_path(self, dsl_path, resources_base_url=None):
-        return dsl_parse_from_path(dsl_path, resources_base_url)
+        context = dsl_parse_from_path(dsl_path, resources_base_url)
+        self._validate_parse_no_issues(context)
+        return context
 
     def parse_multi(self, yaml):
         return create_deployment_plan(self.parse_1_3(yaml))
