@@ -19,9 +19,8 @@ from dsl_parser.parser import parse_from_path
 from dsl_parser.parser import parse as dsl_parse
 from dsl_parser import exceptions
 from dsl_parser.exceptions import DSLParsingLogicException
-from dsl_parser import version
+from framework import version
 from framework.abstract_test_parser import AbstractTestParser
-# from framework.import_resolver.default_import_resolver import DefaultImportResolver
 
 
 class TestParserLogicExceptions(AbstractTestParser):
@@ -573,11 +572,12 @@ node_types:
         test_type_with_value('float', 'inf')
 
     def test_no_version_field(self):
-        # TODO version is always added. need to change that.
         yaml = self.MINIMAL_BLUEPRINT
+        additional_parsing_arguments = {'add_version': False}
         self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["l"])
+            additional_parsing_arguments=additional_parsing_arguments,
+            issue_messages=["f"])
 
     def test_no_version_field_in_main_blueprint_file(self):
         imported_yaml = self.BASIC_VERSION_SECTION_DSL_1_0
@@ -586,8 +586,11 @@ node_types:
 imports:
     -   {0}""".format(imported_yaml_filename) + self.MINIMAL_BLUEPRINT
 
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 27, DSLParsingLogicException, dsl_parse)
+        additional_parsing_arguments = {'add_version': False}
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            additional_parsing_arguments=additional_parsing_arguments,
+            issue_messages=["f"])
 
     def test_mismatching_version_in_import(self):
         imported_yaml = """
@@ -600,15 +603,20 @@ imports:
                self.BASIC_VERSION_SECTION_DSL_1_0 +\
                self.MINIMAL_BLUEPRINT
 
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 28, DSLParsingLogicException, dsl_parse)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["import \"tosca_definitions_version\" "
+                            "is not one of 'cloudify_dsl_1_0': cloudify_1_1"])
 
     def test_unsupported_version(self):
         yaml = """
 tosca_definitions_version: unsupported_version
         """ + self.MINIMAL_BLUEPRINT
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 29, DSLParsingLogicException, dsl_parse)
+        additional_parsing_arguments = {'add_version': False}
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            additional_parsing_arguments=additional_parsing_arguments,
+            issue_messages=["f"])
 
     def test_script_mapping_illegal_script_path_override(self):
         yaml = self.BASIC_VERSION_SECTION_DSL_1_0 + """
@@ -659,13 +667,15 @@ node_templates:
                                              filename='blueprint.yaml')
         self.assert_parser_issue_messages(
             yaml_path,
-            issue_messages=["f"],
+            issue_messages=["unknown plugin: None"],
             parse_from_path=True)
 
     def test_plugin_with_install_args_wrong_dsl_version(self):
         yaml = self.PLUGIN_WITH_INTERFACES_AND_PLUGINS_WITH_INSTALL_ARGS
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, exceptions.ERROR_CODE_DSL_DEFINITIONS_VERSION_MISMATCH,
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["field \"install_arguments\" is not "
+                            "supported in \"test_plugin\""],
             parsing_method=self.parse_1_0)
 
     def test_parse_empty_or_none_dsl_version(self):
@@ -768,10 +778,12 @@ node_templates:
         self.parse(yaml_template.format(self.BASIC_VERSION_SECTION_DSL_1_2))
         self.assert_parser_issue_messages(
             dsl_string=yaml_template.format(self.BASIC_VERSION_SECTION_DSL_1_1),
-            issue_messages=["f"])
+            issue_messages=["field \"dsl_definitions\" is not supported "
+                            "in \"aria_extension_cloudify.v1_1.templates.ServiceTemplate\""])
         self.assert_parser_issue_messages(
             dsl_string=yaml_template.format(self.BASIC_VERSION_SECTION_DSL_1_0),
-            issue_messages=["f"])
+            issue_messages=["field \"dsl_definitions\" is not supported in "
+                            "\"aria_extension_cloudify.v1_0.templates.ServiceTemplate\""])
 
     def test_blueprint_description_version_validation(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -798,16 +810,14 @@ node_templates:
     type: type
 """
         self.parse_1_2(yaml)
-        self._assert_dsl_parsing_exception_error_code(
-            yaml,
-            exceptions.ERROR_CODE_DSL_DEFINITIONS_VERSION_MISMATCH,
-            DSLParsingLogicException,
-            self.parse_1_1)
-        self._assert_dsl_parsing_exception_error_code(
-            yaml,
-            exceptions.ERROR_CODE_DSL_DEFINITIONS_VERSION_MISMATCH,
-            DSLParsingLogicException,
-            self.parse_1_0)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            parsing_method=self.parse_1_1,
+            issue_messages=["f"])
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            parsing_method=self.parse_1_0,
+            issue_messages=["f"])
 
     def test_missing_required_property(self):
         yaml = """
@@ -820,8 +830,10 @@ node_templates:
   node:
     type: type
 """
-        self._assert_dsl_parsing_exception_error_code(
-            yaml, 107, DSLParsingLogicException, self.parse_1_2)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            parsing_method=self.parse_1_2,
+            issue_messages=["required property \"property\" is not assigned a value in \"node\""])
 
     def test_plugin_fields_version_validation(self):
         base_yaml = """
@@ -843,16 +855,14 @@ plugins:
         def test_field(_key, _value):
             yaml = base_yaml.format(_key, _value)
             self.parse_1_2(yaml)
-            self._assert_dsl_parsing_exception_error_code(
-                yaml,
-                exceptions.ERROR_CODE_DSL_DEFINITIONS_VERSION_MISMATCH,
-                DSLParsingLogicException,
-                self.parse_1_1)
-            self._assert_dsl_parsing_exception_error_code(
-                yaml,
-                exceptions.ERROR_CODE_DSL_DEFINITIONS_VERSION_MISMATCH,
-                DSLParsingLogicException,
-                self.parse_1_0)
+            self.assert_parser_issue_messages(
+                dsl_string=yaml,
+                parsing_method=self.parse_1_1,
+                issue_messages=["field \"{0}\" is not supported in \"plugin\"".format(_key)])
+            self.assert_parser_issue_messages(
+                dsl_string=yaml,
+                parsing_method=self.parse_1_0,
+                issue_messages=["field \"{0}\" is not supported in \"plugin\"".format(_key)])
         fields = {
             'package_name': 'name',
             'package_version': 'version',

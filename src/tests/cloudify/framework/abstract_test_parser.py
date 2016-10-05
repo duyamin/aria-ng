@@ -175,12 +175,13 @@ imports:"""
         return yaml
 
     def parse(self, dsl_string,
+              add_version=True,
               resources_base_url=None,
               dsl_version=BASIC_VERSION_SECTION_DSL_1_0,
               validate_version=True):
 
-        # add dsl version if missing
-        if DSL_VERSION_PREFIX not in dsl_string:
+        # add dsl version if missing and required
+        if add_version and DSL_VERSION_PREFIX not in dsl_string:
             dsl_string = dsl_version + dsl_string
 
         context = parse(
@@ -194,18 +195,22 @@ imports:"""
     def assert_parser_issue_messages(self,
                                      dsl_string,
                                      issue_messages,
+                                     parsing_method=None,
                                      parse_from_path=False,
                                      additional_parsing_arguments=None):
-        parsing_arguments = additional_parsing_arguments or []
-        if parse_from_path:
-            parsing_method = self.parse_from_path
-        else:
-            parsing_method = self.parse
-        parsing_arguments.insert(0, dsl_string)
+        parsing_arguments = additional_parsing_arguments or {}
+        dsl_property = 'dsl_string'
+        if not parsing_method:
+            if parse_from_path:
+                parsing_method = self.parse_from_path
+                dsl_property = 'dsl_path'
+            else:
+                parsing_method = self.parse
+        parsing_arguments[dsl_property] = dsl_string
 
         ex = self.assertRaises(CloudifyParserError,
                                parsing_method,
-                               *parsing_arguments)
+                               **parsing_arguments)
 
         expected_error_message = '{title}{messages}'.format(
             title=PARSING_ISSUES_TITLE,
@@ -213,21 +218,20 @@ imports:"""
 
         self.assertEqual(expected_error_message, ex.message)
 
-
     def parse_1_0(self, dsl_string, resources_base_url=None):
-        return self.parse(dsl_string, resources_base_url,
+        return self.parse(dsl_string, resources_base_url=resources_base_url,
                           dsl_version=self.BASIC_VERSION_SECTION_DSL_1_0)
 
     def parse_1_1(self, dsl_string, resources_base_url=None):
-        return self.parse(dsl_string, resources_base_url,
+        return self.parse(dsl_string, resources_base_url=resources_base_url,
                           dsl_version=self.BASIC_VERSION_SECTION_DSL_1_1)
 
     def parse_1_2(self, dsl_string, resources_base_url=None):
-        return self.parse(dsl_string, resources_base_url,
+        return self.parse(dsl_string, resources_base_url=resources_base_url,
                           dsl_version=self.BASIC_VERSION_SECTION_DSL_1_2)
 
     def parse_1_3(self, dsl_string, resources_base_url=None):
-        return self.parse(dsl_string, resources_base_url,
+        return self.parse(dsl_string, resources_base_url=resources_base_url,
                           dsl_version=self.BASIC_VERSION_SECTION_DSL_1_3)
 
     def _validate_parse_no_issues(self, context):
