@@ -28,7 +28,7 @@ from dsl_parser.exceptions import (
     ERROR_GROUP_AND_NODE_TEMPLATE_SAME_NAME,
 )
 
-from .suite import ParserTestCase
+from ..suite import ParserTestCase
 
 
 class TestScalingPoliciesAndGroups(ParserTestCase):
@@ -247,7 +247,7 @@ class TestRemovedContainedInMember(ParserTestCase):
             'node4': None
         }
         expected = {
-            'group1': ['group2', 'node4'],
+            'group1': ['group2', 'node4'],###
             'group2': ['node1'],
             'group3': ['node2', 'node3']
         }

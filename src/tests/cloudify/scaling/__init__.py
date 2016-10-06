@@ -15,9 +15,8 @@
 
 import itertools
 
-from dsl_parser import rel_graph
-from dsl_parser.tests.abstract_test_parser import AbstractTestParser
-
+from ..framework import rel_graph
+from ..framework.abstract_test_parser import AbstractTestParser
 
 class BaseTestMultiInstance(AbstractTestParser):
 

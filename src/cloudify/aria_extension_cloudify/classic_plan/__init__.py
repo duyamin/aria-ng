@@ -14,20 +14,15 @@
 # under the License.
 #
 
-from aria import InvalidValueError
+from .elements import find_by_name, get_type_parent_name
+from .parameters import has_intrinsic_functions
+from .nodes import is_host, find_host_node_template, find_host_node
+from .groups import find_groups, iter_scaling_groups, remove_redundant_members
+from .plugins import plugins_to_install_for_operations, add_plugins_to_install_for_node_template, parse_implementation, CENTRAL_DEPLOYMENT_AGENT
+from .policies import SCALING_POLICY_NAME
 from aria.consumption import Consumer
-from aria.deployment import Parameter, Function
 from aria.utils import as_raw, as_agnostic, merge, prune, json_dumps
 from collections import OrderedDict
-import os
-
-COMPUTE_NODE_NAME = 'cloudify.nodes.Compute'
-CONTAINED_IN_RELATIONSHIP_NAME = 'cloudify.relationships.contained_in'
-SCALING_POLICY_NAME = 'cloudify.policies.scaling'
-SCRIPT_RUNNER_RUN_OPERATION = 'script_runner.tasks.run'
-SCRIPT_RUNNER_EXECUTE_WORKFLOW_OPERATION = 'script_runner.tasks.execute_workflow'
-CENTRAL_DEPLOYMENT_AGENT = 'central_deployment_agent'
-HOST_AGENT = 'host_agent'
 
 class ClassicPlan(Consumer):
     """
@@ -236,11 +231,13 @@ def convert_relationship_template(context, requirement):
         ('target_operations', convert_operations(context, relationship_template.target_interfaces))))
 
 def convert_group_template(context, group_template, policy_template=None):
-    node_members = [v for v in group_template.member_node_template_names if not is_node_template_contained_in(context, v, group_template.member_node_template_names)] # TODO and not is_node_template_member_of(context, v, group_template.member_group_template_names)]
-    group_members = [v for v in group_template.member_group_template_names if not is_group_template_member_of(context, v, group_template.member_group_template_names)]
+    node_members = set(group_template.member_node_template_names)
+    group_members = set(group_template.member_group_template_names)
     
+    remove_redundant_members(context, node_members, group_members)
+
     r = OrderedDict((
-        ('members', node_members + group_members),
+        ('members', list(node_members | group_members)),
         ('policies', OrderedDict(
             (k, convert_group_policy(context, v)) for k, v in group_template.policies.iteritems()))))
 
@@ -374,199 +371,3 @@ def convert_type_hierarchy(context, the_type, hierarchy):
         type_hierarchy.insert(0, the_type.name)
         the_type = hierarchy.get_parent(the_type.name)
     return type_hierarchy
-
-#
-# Utils
-#
-
-def parse_implementation(context, implementation, is_workflow=False):
-    parsed = False
-
-    if not implementation:
-        plugin_name = None
-        plugin_executor = None
-        operation_name = None
-        inputs = OrderedDict()
-        parsed = True
-    
-    if not parsed:
-        for search_path in context.loading.search_paths:
-            path = os.path.join(search_path, implementation)
-            if os.path.isfile(path):
-                # Explicit script
-                plugin = find_plugin(context)
-                plugin_name = plugin['name'] 
-                plugin_executor = plugin['executor']
-                if is_workflow:
-                    operation_name = SCRIPT_RUNNER_EXECUTE_WORKFLOW_OPERATION
-                    inputs = OrderedDict((
-                        ('script_path', OrderedDict((('default', implementation),))),)) 
-                else:
-                    operation_name = SCRIPT_RUNNER_RUN_OPERATION
-                    inputs = OrderedDict((('script_path', implementation),))
-                parsed = True
-                break
-
-    if not parsed:
-        # plugin.operation
-        plugin_name, operation_name = implementation.split('.', 1)
-        plugin = find_plugin(context, plugin_name)
-        plugin_executor = plugin['executor']
-        inputs = OrderedDict()
-
-    return plugin_name, plugin_executor, operation_name, inputs
-
-def find_by_name(values, name):
-    for v in values:
-        if v['name'] == name:
-            return v
-    return None
-
-def has_intrinsic_functions(context, value):
-    if isinstance(value, Parameter):
-        value = value.value
-
-    if isinstance(value, Function):
-        return True
-    elif isinstance(value, dict):
-        for v in value.itervalues():
-            if has_intrinsic_functions(context, v):
-                return True
-    elif isinstance(value, list):
-        for v in value:
-            if has_intrinsic_functions(context, v):
-                return True
-    return False
-
-def add_plugins_to_install_for_interface(context, plugins_to_install, interfaces, agent):
-    if plugins_to_install is None:
-        return
-    
-    for interface in interfaces.itervalues():
-        for operation in interface.operations.itervalues():
-            plugin_name, plugin_executor, _, _ = parse_implementation(context, operation.implementation)
-            executor = operation.executor or plugin_executor
-            if executor == agent:
-                if find_by_name(plugins_to_install, plugin_name) is None: 
-                    plugins_to_install.append(find_plugin(context, plugin_name))
-
-def add_plugins_to_install_for_node_template(context, node_template, plugins_to_install, deployment_plugins_to_install):
-    add_plugins_to_install_for_interface(context, plugins_to_install, node_template.interfaces, HOST_AGENT)
-    add_plugins_to_install_for_interface(context, deployment_plugins_to_install, node_template.interfaces, CENTRAL_DEPLOYMENT_AGENT)
-
-    # Plugins from relationships' source interfaces
-    for requirement in node_template.requirements:
-        if requirement.relationship_template is not None:
-            add_plugins_to_install_for_interface(context, plugins_to_install, requirement.relationship_template.source_interfaces, HOST_AGENT)
-            add_plugins_to_install_for_interface(context, deployment_plugins_to_install, requirement.relationship_template.source_interfaces, CENTRAL_DEPLOYMENT_AGENT)
-
-    # Recurse into hosted node templates
-    for t in find_hosted_node_templates(context, node_template):
-        add_plugins_to_install_for_node_template(context, t, plugins_to_install, deployment_plugins_to_install)
-
-def plugins_to_install_for_operations(context, operations, agent):
-    plugin_names_to_install = []
-    for operation in operations.itervalues():
-        plugin_name, plugin_executor, _, _ = parse_implementation(context, operation.implementation)
-        executor = operation.executor or plugin_executor
-        if executor == agent:
-            if plugin_name not in plugin_names_to_install: 
-                plugin_names_to_install.append(plugin_name)
-    return [find_plugin(context, v) for v in plugin_names_to_install]
-
-def get_type_parent_name(the_type, hierarchy):
-    the_type = hierarchy.get_parent(the_type.name)
-    return the_type.name if the_type is not None else None
-
-def find_plugin(context, name=None):
-    for plugin in context.deployment.plugins:
-        if name is None:
-            # The first one is fine
-            return plugin
-        elif plugin['name'] == name:
-            return plugin
-    raise InvalidValueError('unknown plugin: %s' % name)
-
-def is_host(context, node_or_node_template):
-    return context.deployment.node_types.is_descendant(COMPUTE_NODE_NAME, node_or_node_template.type_name)
-
-def is_contained_in(context, relationship_or_relationship_template):
-    if relationship_or_relationship_template is None:
-        return False
-    return context.deployment.relationship_types.is_descendant(CONTAINED_IN_RELATIONSHIP_NAME, relationship_or_relationship_template.type_name)
-
-def get_node_template_owners(context, node_template):
-    owners = []
-    for requirement in node_template.requirements:
-        if is_contained_in(context, requirement.relationship_template):
-            owner_node_template = context.deployment.template.node_templates.get(requirement.target_node_template_name)
-            owners.append(owner_node_template)
-            owners += get_node_template_owners(context, owner_node_template)
-    return owners
-
-def is_node_template_contained_in(context, name, node_template_names):
-    node_template = context.deployment.template.node_templates.get(name)
-    node_template_owners = get_node_template_owners(context, node_template)
-    for node_template_owner in node_template_owners:
-        if node_template_owner in node_template_names:
-            return True
-    return False
-
-def get_group_template_owners(context, group_template):
-    owners = []
-    for g in context.deployment.template.group_templates.itervalues():
-        if group_template.name in g.member_group_template_names:
-            owners.append(g)
-            owners += get_group_template_owners(context, g)
-    return owners
-
-def is_group_template_member_of(context, group_template_name, group_template_names):
-    group_template = context.deployment.template.group_templates.get(group_template_name)
-    group_template_owners = get_group_template_owners(context, group_template)
-    for group_template_owner in group_template_owners:
-        if group_template_owner in group_template_names:
-            return True
-    return False
-
-def find_host_node_template(context, node_template):
-    if is_host(context, node_template):
-        return node_template
-    
-    for requirement in node_template.requirements:
-        if is_contained_in(context, requirement.relationship_template):
-            return find_host_node_template(context, context.deployment.template.node_templates.get(requirement.target_node_template_name))
-
-    return None
-
-def find_hosted_node_templates(context, node_template):
-    hosted = []
-    if is_host(context, node_template):
-        for t in context.deployment.template.node_templates.itervalues():
-            if (t is not node_template) and (find_host_node_template(context, t) is node_template):
-                hosted.append(t)
-    return hosted
-
-def find_host_node(context, node):
-    node_template = context.deployment.template.node_templates.get(node.template_name)
-    if is_host(context, node_template):
-        return node
-    
-    for relationship in node.relationships:
-        if is_contained_in(context, relationship):
-            return find_host_node(context, context.deployment.plan.nodes.get(relationship.target_node_id))
-
-    return None
-
-def find_groups(context, node):
-    groups = []
-    for group in context.deployment.plan.groups.itervalues():
-        if node.id in group.member_node_ids:
-            groups.append(group)
-    return groups
-
-def iter_scaling_groups(context):
-    for policy_template in context.deployment.template.policy_templates.itervalues():
-        if policy_template.type_name == SCALING_POLICY_NAME:
-            for group_template_name in policy_template.target_group_template_names:
-                group_template = context.deployment.template.group_templates[group_template_name]
-                yield group_template_name, group_template, policy_template
