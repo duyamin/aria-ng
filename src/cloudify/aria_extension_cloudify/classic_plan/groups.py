@@ -68,14 +68,17 @@ def remove_redundant_members(context, node_template_names, group_template_names=
     # Remove groups that don't add any new nodes
     redundant_group_template_names = set()
     for group_template_name in group_template_names:
+        # Our nodes
         our_implied_node_template_names = _get_node_templates_implied_by_group_template(context, group_template_name)
+        remove_redundant_members(context, our_implied_node_template_names)
+        
+        # The other nodes
         other_implied_node_template_names = set(node_template_names)
         for other_group_template_name in group_template_names:
             if (other_group_template_name == group_template_name) or (other_group_template_name in redundant_group_template_names): 
                 continue
             other_implied_node_template_names |= _get_node_templates_implied_by_group_template(context, other_group_template_name)
-        remove_redundant_members(context, our_implied_node_template_names)
-        remove_redundant_members(context, other_implied_node_template_names)
+        
         if other_implied_node_template_names and our_implied_node_template_names <= other_implied_node_template_names:
             redundant_group_template_names.add(group_template_name)
     group_template_names -= redundant_group_template_names
