@@ -25,8 +25,10 @@ import urllib, os
 
 API_VERSION = 1
 PATH_PREFIX = 'openoapi/tosca/v%d' % API_VERSION
-INDIRECT_VALIDATE_PATH = '%s/indirect/validate' % PATH_PREFIX
 VALIDATE_PATH = '%s/validate' % PATH_PREFIX
+INDIRECT_VALIDATE_PATH = '%s/indirect/validate' % PATH_PREFIX
+MODEL_PATH = '%s/model' % PATH_PREFIX
+INDIRECT_MODEL_PATH = '%s/indirect/model' % PATH_PREFIX
 INSTANCE_PATH = '%s/instance' % PATH_PREFIX
 INDIRECT_INSTANCE_PATH = '%s/indirect/instance' % PATH_PREFIX
 
@@ -66,6 +68,11 @@ def validate(uri):
     ConsumerChain(context, (Read, Validate)).consume()
     return context
 
+def model(uri):
+    context = create_context_from_namespace(args, uri=uri)
+    ConsumerChain(context, (Read, Validate, Model)).consume()
+    return context
+
 def instance(uri, inputs):
     context = create_context_from_namespace(args, uri=uri)
     if inputs:
@@ -84,6 +91,8 @@ def issues(context):
 # Handlers
 #
 
+# Validate
+
 def validate_get(handler):
     path, _ = parse_path(handler)
     uri = path[len(VALIDATE_PATH) + 2:]
@@ -101,6 +110,28 @@ def indirect_validate_post(handler):
         return None  
     context = validate(uri)
     return issues(context) if context.validation.has_issues else {}
+
+# Model
+
+def model_get(handler):
+    path, _ = parse_path(handler)
+    uri = path[len(MODEL_PATH) + 2:]
+    context = model(uri)
+    return issues(context) if context.validation.has_issues else context.modeling.model_as_raw
+
+def model_post(handler):
+    payload = handler.payload
+    context = model(LiteralLocation(payload))
+    return issues(context) if context.validation.has_issues else context.modeling.model_as_raw
+
+def indirect_model_post(handler):
+    uri, _ = parse_indirect_payload(handler)
+    if uri is None:
+        return None
+    context = model(uri)
+    return issues(context) if context.validation.has_issues else context.modeling.model_as_raw
+
+# Instance
 
 def instance_get(handler):
     path, query = parse_path(handler)
@@ -134,9 +165,11 @@ def indirect_instance_post(handler):
 ROUTES = OrderedDict((
     ('^/$', {'file': 'index.html', 'media_type': 'text/html'}),
     ('^/' + VALIDATE_PATH, {'GET': validate_get, 'POST': validate_post, 'media_type': 'application/json'}),
+    ('^/' + MODEL_PATH, {'GET': model_get, 'POST': model_post, 'media_type': 'application/json'}),
     ('^/' + INSTANCE_PATH, {'GET': instance_get, 'POST': instance_post, 'media_type': 'application/json'}),
     ('^/' + INDIRECT_VALIDATE_PATH, {'POST': indirect_validate_post, 'media_type': 'application/json'}),
-    ('^/' + INDIRECT_INSTANCE_PATH, {'POST': indirect_instance_post, 'media_type': 'application/json'})))
+    ('^/' + INDIRECT_INSTANCE_PATH, {'POST': indirect_instance_post, 'media_type': 'application/json'}),
+    ('^/' + INDIRECT_MODEL_PATH, {'POST': indirect_model_post, 'media_type': 'application/json'})))
 
 class ArgumentParser(CommonArgumentParser):
     def __init__(self):

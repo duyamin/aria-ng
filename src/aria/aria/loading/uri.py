@@ -16,6 +16,7 @@
 
 from .loader import Loader
 from .exceptions import LoaderError, DocumentNotFoundError
+from ..utils import StrictList
 from requests import Session
 from requests.exceptions import ConnectionError
 from cachecontrol import CacheControl
@@ -23,6 +24,8 @@ from cachecontrol.caches import FileCache
 
 SESSION = None
 SESSION_CACHE_PATH = '/tmp'
+
+URI_LOADER_SEARCH_PATHS = StrictList(value_class=basestring)
 
 class UriLoader(Loader):
     """
@@ -34,10 +37,28 @@ class UriLoader(Loader):
     be used instead.
     """
 
-    def __init__(self, location, headers={}):
+    def __init__(self, context, location, origin_location, headers={}):
+        self.context = context
         self.location = location
         self.headers = headers
+        self.search_paths = StrictList(value_class=basestring) 
         self.response = None
+
+        def add_search_path(search_path):
+            if search_path not in self.search_paths:
+                self.search_paths.append(search_path)
+
+        def add_search_paths(search_paths):
+            for search_path in search_paths:
+                add_search_path(search_path)
+
+        if origin_location is not None:
+            origin_search_path = origin_location.uri_search_path
+            if origin_search_path is not None:
+                add_search_path(origin_search_path)
+
+        add_search_paths(context.uri_search_paths)
+        add_search_paths(URI_LOADER_SEARCH_PATHS)
     
     def open(self):
         global SESSION

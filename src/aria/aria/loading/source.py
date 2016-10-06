@@ -48,6 +48,6 @@ class DefaultLoaderSource(LoaderSource):
             if location.as_file is not None:
                 return FileTextLoader(context, location, origin_location)
             else:
-                return UriTextLoader(location)
+                return UriTextLoader(context, location, origin_location)
             
         return super(DefaultLoaderSource, self).get_loader(context, location, origin_location)

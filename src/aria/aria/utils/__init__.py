@@ -21,6 +21,7 @@ from .collections import ReadOnlyList, EMPTY_READ_ONLY_LIST, ReadOnlyDict, EMPTY
 from .exceptions import print_exception, print_traceback
 from .imports import import_fullname, import_modules
 from .threading import ExecutorException, FixedThreadPoolExecutor, LockedList
+from .uris import as_file
 from .argparse import ArgumentParser
 from .console import puts, colored, indent
 from .rest_server import RestServer, RestRequestHandler
@@ -56,6 +57,7 @@ __all__ = (
     'ExecutorException',
     'FixedThreadPoolExecutor',
     'LockedList',
+    'as_file',
     'ArgumentParser',
     'puts',
     'colored',

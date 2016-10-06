@@ -37,7 +37,7 @@ def parse(dsl_string, resources_base_url=None, validate_version=True, **legacy):
     paths = [resources_base_url] if resources_base_url is not None else []
     return _parse(LiteralLocation(dsl_string), paths, validate_version)
 
-def _parse(location, search_paths, validate_version):
+def _parse(location, file_search_paths, validate_version):
     context = ConsumptionContext()
     context.presentation.print_exceptions = True # Developers, developers, developers, developers
     context.presentation.location = location
@@ -45,8 +45,8 @@ def _parse(location, search_paths, validate_version):
     if not validate_version:
         context.presentation.presenter_class = CloudifyPresenter1_3
     
-    if search_paths:
-        context.loading.search_paths += search_paths
+    if file_search_paths:
+        context.loading.file_search_paths += file_search_paths
     
     consumer = ConsumerChain(context, (Read, Validate, Model, Instance, ClassicDeploymentPlan))
     consumer.consume()

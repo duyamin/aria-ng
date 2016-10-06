@@ -14,14 +14,19 @@
 # under the License.
 #
 
-import urlparse, os
+from ..utils import as_file
+import os
 
 class Location(object):
     def is_equivalent(self, location):
         return False
     
     @property
-    def search_path(self):
+    def file_search_path(self):
+        return None
+
+    @property
+    def uri_search_path(self):
         return None
 
 class UriLocation(Location):
@@ -32,16 +37,19 @@ class UriLocation(Location):
         return isinstance(location, UriLocation) and (location.uri == self.uri)
 
     @property
-    def search_path(self):
+    def file_search_path(self):
         the_file = self.as_file
         return os.path.dirname(the_file) if the_file is not None else None
+
+    @property
+    def uri_search_path(self):
+        the_file = self.as_file
+        return os.path.dirname(self.uri) if the_file is None else None
+        # Yes, it's weird, but dirname handles URIs, too: http://stackoverflow.com/a/35616478/849021
     
     @property
     def as_file(self):
-        url = urlparse.urlparse(self.uri)
-        if (not url.scheme) or (url.scheme == 'file'):
-            return url.path
-        return None
+        return as_file(self.uri)
 
     def __str__(self):
         return self.uri

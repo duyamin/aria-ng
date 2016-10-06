@@ -20,7 +20,7 @@ from .loader import Loader
 from .source import LoaderSource, DefaultLoaderSource
 from .location import Location, UriLocation, LiteralLocation
 from .literal import LiteralLoader
-from .uri import SESSION, SESSION_CACHE_PATH, UriLoader, UriTextLoader
+from .uri import SESSION, SESSION_CACHE_PATH, URI_LOADER_SEARCH_PATHS, UriLoader, UriTextLoader
 from .file import FILE_LOADER_SEARCH_PATHS, FileTextLoader
 
 __all__ = (
@@ -37,6 +37,7 @@ __all__ = (
     'LiteralLoader',
     'SESSION',
     'SESSION_CACHE_PATH',
+    'URI_LOADER_SEARCH_PATHS',
     'UriLoader',
     'UriTextLoader',
     'FILE_LOADER_SEARCH_PATHS',

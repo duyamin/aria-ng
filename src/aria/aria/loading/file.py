@@ -52,11 +52,11 @@ class FileTextLoader(Loader):
                 add_search_path(search_path)
 
         if origin_location is not None:
-            origin_search_path = origin_location.search_path
+            origin_search_path = origin_location.file_search_path
             if origin_search_path is not None:
                 add_search_path(origin_search_path)
         
-        add_search_paths(context.search_paths)
+        add_search_paths(context.file_search_paths)
         add_search_paths(FILE_LOADER_SEARCH_PATHS)
     
     def open(self):

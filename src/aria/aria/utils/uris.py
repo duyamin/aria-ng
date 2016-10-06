@@ -14,19 +14,15 @@
 # under the License.
 #
 
-from .source import DefaultLoaderSource 
-from ..utils import StrictList
+import urlparse
 
-class LoadingContext(object):
+def as_file(uri):
     """
-    Properties:
-    
-    * :code:`loader_source`: For finding loader instances
-    * :code:`file_search_paths`: List of additional search paths for :class:`FileTextLoader`
-    * :code:`uri_search_paths`: List of additional search paths for :class:`UriLoader`
+    If the URI is a file (either the :code:`file` scheme or no scheme), then returns the path.
+    Otherwise, returns None.
     """
     
-    def __init__(self):
-        self.loader_source = DefaultLoaderSource()
-        self.file_search_paths = StrictList(value_class=basestring)
-        self.uri_search_paths = StrictList(value_class=basestring)
+    url = urlparse.urlparse(uri)
+    if (not url.scheme) or (url.scheme == 'file'):
+        return url.path
+    return None
