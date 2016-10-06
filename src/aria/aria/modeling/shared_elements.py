@@ -41,7 +41,7 @@ class Function(object):
 
 class Element(object):
     """
-    Base class for :class:`DeploymentPlan` elements.
+    Base class for :class:`ServiceInstance` elements.
     
     All elements support validation, diagnostic dumping, and representation as
     raw data (which can be translated into JSON or YAML) via :code:`as_raw`.
@@ -60,21 +60,21 @@ class Element(object):
     def dump(self, context):
         pass
 
-class TemplateElement(Element):
+class ModelElement(Element):
     """
-    Base class for :class:`DeploymentTemplate` elements.
+    Base class for :class:`ServiceModel` elements.
     
-    All template elements can be instantiated into :class:`DeploymentPlan` elements. 
+    All template elements can be instantiated into :class:`ServiceInstance` elements. 
     """
 
     def instantiate(self, context, container):
         pass
 
-class Parameter(TemplateElement):
+class Parameter(ModelElement):
     """
     Represents a typed value.
 
-    Used by both :class:`DeploymentTemplate` and :class:`DeploymentPlan` elements.
+    This class is used by both service model and service instance elements.
     """
     
     def __init__(self, type_name, value, description):
@@ -96,9 +96,11 @@ class Parameter(TemplateElement):
         if self.value is not None:
             self.value = coerce_value(context, container, self.value, report_issues)
 
-class Metadata(TemplateElement):
+class Metadata(ModelElement):
     """
     Custom values associated with the deployment template and its plans.
+
+    This class is used by both service model and service instance elements.
 
     Properties:
     
@@ -123,16 +125,16 @@ class Metadata(TemplateElement):
             for name, value in self.values.iteritems():
                 puts('%s: %s' % (name, context.style.meta(value)))
 
-class Interface(TemplateElement):
+class Interface(ModelElement):
     """
     A typed set of operations.
     
-    This class is used by both deployment template and deployment plan elements.
+    This class is used by both service model and service instance elements.
     
     Properties:
     
     * :code:`name`: Name
-    * :code:`type_name`: Must be represented in the :class:`DeploymentContext`
+    * :code:`type_name`: Must be represented in the :class:`ModelingContext`
     * :code:`inputs`: Dict of :class:`Parameter`
     * :code:`operations`: Dict of :class:`Operation`
     """
@@ -162,7 +164,7 @@ class Interface(TemplateElement):
 
     def validate(self, context):
         if self.type_name:
-            if context.deployment.interface_types.get_descendant(self.type_name) is None:
+            if context.modeling.interface_types.get_descendant(self.type_name) is None:
                 context.validation.report('interface "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.inputs)
@@ -179,11 +181,11 @@ class Interface(TemplateElement):
             dump_properties(context, self.inputs, 'Inputs')
             dump_dict_values(context, self.operations, 'Operations')
 
-class Operation(TemplateElement):
+class Operation(ModelElement):
     """
     A typed set of operations.
     
-    This class is used by both deployment template and deployment plan elements.
+    This class is used by both service model and service instance elements.
     
     Properties:
     
@@ -250,16 +252,16 @@ class Operation(TemplateElement):
                 puts('Retry interval: %s' % context.style.literal(self.retry_interval))
             dump_properties(context, self.inputs, 'Inputs')
 
-class Artifact(TemplateElement):
+class Artifact(ModelElement):
     """
     A file associated with a node.
 
-    This class is used by both deployment template and deployment plan elements.
+    This class is used by both service model and service instance elements.
 
     Properties:
     
     * :code:`name`: Name
-    * :code:`type_name`: Must be represented in the :class:`DeploymentContext`
+    * :code:`type_name`: Must be represented in the :class:`ModelingContext`
     * :code:`source_path`: Source path (CSAR or repository)
     * :code:`target_path`: Path at destination machine
     * :code:`repository_url`: Repository URL
@@ -303,7 +305,7 @@ class Artifact(TemplateElement):
         return r
 
     def validate(self, context):
-        if context.deployment.artifact_types.get_descendant(self.type_name) is None:
+        if context.modeling.artifact_types.get_descendant(self.type_name) is None:
             context.validation.report('artifact "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
@@ -324,16 +326,16 @@ class Artifact(TemplateElement):
                 puts('Repository credential: %s' % context.style.literal(self.repository_credential))
             dump_properties(context, self.properties)
 
-class GroupPolicy(TemplateElement):
+class GroupPolicy(ModelElement):
     """
     Policies applied to groups.
 
-    This class is used by both deployment template and deployment plan elements.
+    This class is used by both service model and service instance elements.
 
     Properties:
     
     * :code:`name`: Name
-    * :code:`type_name`: Must be represented in the :class:`DeploymentContext`
+    * :code:`type_name`: Must be represented in the :class:`ModelingContext`
     * :code:`properties`: Dict of :class:`Parameter`
     * :code:`triggers`: Dict of :class:`GroupPolicyTrigger`
     """
@@ -364,7 +366,7 @@ class GroupPolicy(TemplateElement):
         return r
 
     def validate(self, context):
-        if context.deployment.policy_types.get_descendant(self.type_name) is None:
+        if context.modeling.policy_types.get_descendant(self.type_name) is None:
             context.validation.report('group policy "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
@@ -381,10 +383,12 @@ class GroupPolicy(TemplateElement):
             dump_properties(context, self.properties)
             dump_dict_values(context, self.triggers, 'Triggers')
 
-class GroupPolicyTrigger(TemplateElement):
+class GroupPolicyTrigger(ModelElement):
     """
     Triggers for :class:`GroupPolicy`.
     
+    This class is used by both service model and service instance elements.
+
     Properties:
     
     * :code:`name`: Name

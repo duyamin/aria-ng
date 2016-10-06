@@ -190,7 +190,7 @@ imports:"""
             validate_version=validate_version)
         self._validate_parse_no_issues(context)
 
-        return context.deployment.classic_plan
+        return context.modeling.classic_deployment_plan
 
     def assert_parser_issue_messages(self,
                                      dsl_string,

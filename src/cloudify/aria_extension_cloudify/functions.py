@@ -31,7 +31,7 @@ class GetInput(object):
         self.input_property_name = value
     
     def evaluate(self, context):
-        inputs = self.context.deployment.classic_plan['inputs']
+        inputs = self.context.modeling.classic_deployment_plan['inputs']
         if self.input_property_name not in inputs:
             raise InvalidValueError('input does not exist for function "get_input": %s' % repr(self.input_property_name), locator=self.locator)
         return deepcopy_with_locators(inputs[self.input_property_name])

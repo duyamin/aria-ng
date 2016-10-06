@@ -15,18 +15,18 @@
 #
 
 from .exceptions import CannotEvaluateFunction
-from .context import IdType, DeploymentContext
-from .shared_elements import Element, TemplateElement, Function, Parameter, Metadata, Interface, Operation, Artifact, GroupPolicy, GroupPolicyTrigger
-from .plan_elements import DeploymentPlan, Node, Capability, Relationship, Group, Policy, Mapping, Substitution
-from .template_elements import DeploymentTemplate, NodeTemplate, Requirement, CapabilityTemplate, RelationshipTemplate, GroupTemplate, PolicyTemplate, MappingTemplate, SubstitutionTemplate
+from .context import IdType, ModelingContext
+from .shared_elements import Element, ModelElement, Function, Parameter, Metadata, Interface, Operation, Artifact, GroupPolicy, GroupPolicyTrigger
+from .instance_elements import ServiceInstance, Node, Capability, Relationship, Group, Policy, Mapping, Substitution
+from .model_elements import ServiceModel, NodeTemplate, Requirement, CapabilityTemplate, RelationshipTemplate, GroupTemplate, PolicyTemplate, MappingTemplate, SubstitutionTemplate
 from .types import TypeHierarchy, Type, RelationshipType, PolicyType, PolicyTriggerType
 
 __all__ = (
     'CannotEvaluateFunction',
     'IdType',
-    'DeploymentContext',
+    'ModelingContext',
     'Element',
-    'TemplateElement',
+    'ModelElement',
     'Function',
     'Parameter',
     'Metadata',
@@ -35,7 +35,7 @@ __all__ = (
     'Artifact',
     'GroupPolicy',
     'GroupPolicyTrigger',
-    'DeploymentPlan',
+    'ServiceInstance',
     'Node',
     'Capability',
     'Relationship',
@@ -43,7 +43,7 @@ __all__ = (
     'Policy',
     'Mapping',
     'Substitution',
-    'DeploymentTemplate',
+    'ServiceModel',
     'NodeTemplate',
     'Requirement',
     'CapabilityTemplate',

@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from .utils import generate_id_string 
+from .utils import generate_id_string
 from .types import TypeHierarchy
 from ..utils import StrictDict, prune, puts
 import itertools
@@ -35,15 +35,15 @@ class IdType(object):
     Universally unique ID (UUID): 25 random safe characters.
     """
 
-class DeploymentContext(object):
+class ModelingContext(object):
     """
     Properties:
     
+    * :code:`model`: The generated service model
+    * :code:`instance`: The generated service instance
     * :code:`id_type`: Type of IDs to use for instances
     * :code:`id_max_length`: Maximum allowed instance ID length
     * :code:`inputs`: Dict of inputs values
-    * :code:`template`: The generated deployment template
-    * :code:`plan`: The generated deployment plan
     * :code:`node_types`: The generated hierarchy of node types
     * :code:`group_types`: The generated hierarchy of group types
     * :code:`capability_types`: The generated hierarchy of capability types
@@ -55,13 +55,13 @@ class DeploymentContext(object):
     """
 
     def __init__(self):
+        self.model = None
+        self.instance = None
         #self.id_type = IdType.LOCAL_SERIAL
         #self.id_type = IdType.LOCAL_RANDOM
         self.id_type = IdType.UNIVERSAL_RANDOM
         self.id_max_length = 63 # See: http://www.faqs.org/rfcs/rfc1035.html
         self.inputs = StrictDict(key_class=basestring)
-        self.template = None
-        self.plan = None
         self.node_types = TypeHierarchy()
         self.group_types = TypeHierarchy()
         self.capability_types = TypeHierarchy()
@@ -92,14 +92,14 @@ class DeploymentContext(object):
         # TODO: coerce to validate type
 
     @property
-    def template_as_raw(self):
-        raw = self.template.as_raw
+    def model_as_raw(self):
+        raw = self.model.as_raw
         prune(raw)
         return raw
 
     @property
-    def plan_as_raw(self):
-        raw = self.plan.as_raw
+    def instance_as_raw(self):
+        raw = self.instance.as_raw
         prune(raw)
         return raw
 

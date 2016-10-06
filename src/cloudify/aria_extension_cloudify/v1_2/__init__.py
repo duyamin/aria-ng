@@ -19,7 +19,11 @@ from .templates import ServiceTemplate
 from .types import DataType
 from .misc import Plugin, PluginResource, UploadResources
 
+MODULES = (
+    'modeling',)
+
 __all__ = (
+    'MODULES',
     'CloudifyPresenter1_2',
     'ServiceTemplate',
     'DataType',

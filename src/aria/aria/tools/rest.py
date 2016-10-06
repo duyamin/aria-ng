@@ -15,7 +15,7 @@
 #
 
 from .. import install_aria_extensions
-from ..consumption import ConsumerChain, Read, Validate, Template, Inputs, Plan
+from ..consumption import ConsumerChain, Read, Validate, Model, Inputs, Instance
 from ..utils import RestServer, JsonAsRawEncoder, print_exception, as_raw
 from ..loading import LiteralLocation
 from .utils import CommonArgumentParser, create_context_from_namespace
@@ -27,8 +27,8 @@ API_VERSION = 1
 PATH_PREFIX = 'openoapi/tosca/v%d' % API_VERSION
 INDIRECT_VALIDATE_PATH = '%s/indirect/validate' % PATH_PREFIX
 VALIDATE_PATH = '%s/validate' % PATH_PREFIX
-PLAN_PATH = '%s/plan' % PATH_PREFIX
-INDIRECT_PLAN_PATH = '%s/indirect/plan' % PATH_PREFIX
+INSTANCE_PATH = '%s/instance' % PATH_PREFIX
+INDIRECT_INSTANCE_PATH = '%s/indirect/instance' % PATH_PREFIX
 
 #
 # Utils
@@ -66,15 +66,15 @@ def validate(uri):
     ConsumerChain(context, (Read, Validate)).consume()
     return context
 
-def plan(uri, inputs):
+def instance(uri, inputs):
     context = create_context_from_namespace(args, uri=uri)
     if inputs:
         if isinstance(inputs, dict):
             for name, value in inputs.iteritems():
-                context.deployment.set_input(name, value)
+                context.modeling.set_input(name, value)
         else:
             context.args.append('--inputs=%s' % inputs)
-    ConsumerChain(context, (Read, Validate, Template, Inputs, Plan)).consume()
+    ConsumerChain(context, (Read, Validate, Model, Inputs, Instance)).consume()
     return context
 
 def issues(context):
@@ -102,30 +102,30 @@ def indirect_validate_post(handler):
     context = validate(uri)
     return issues(context) if context.validation.has_issues else {}
 
-def plan_get(handler):
+def instance_get(handler):
     path, query = parse_path(handler)
-    uri = path[len(PLAN_PATH) + 2:]
+    uri = path[len(INSTANCE_PATH) + 2:]
     inputs = query.get('inputs')
     if inputs:
         inputs = inputs[0]
-    context = plan(uri, inputs)
-    return issues(context) if context.validation.has_issues else context.deployment.plan_as_raw
+    context = instance(uri, inputs)
+    return issues(context) if context.validation.has_issues else context.modeling.instance_as_raw
 
-def plan_post(handler):
+def instance_post(handler):
     _, query = parse_path(handler)
     inputs = query.get('inputs')
     if inputs:
         inputs = inputs[0]
     payload = handler.payload
-    context = plan(LiteralLocation(payload), inputs)
-    return issues(context) if context.validation.has_issues else context.deployment.plan_as_raw
+    context = instance(LiteralLocation(payload), inputs)
+    return issues(context) if context.validation.has_issues else context.modeling.instance_as_raw
 
-def indirect_plan_post(handler):
+def indirect_instance_post(handler):
     uri, inputs = parse_indirect_payload(handler)
     if uri is None:
         return None
-    context = plan(uri, inputs)
-    return issues(context) if context.validation.has_issues else context.deployment.plan_as_raw
+    context = instance(uri, inputs)
+    return issues(context) if context.validation.has_issues else context.modeling.instance_as_raw
 
 #
 # Server
@@ -134,9 +134,9 @@ def indirect_plan_post(handler):
 ROUTES = OrderedDict((
     ('^/$', {'file': 'index.html', 'media_type': 'text/html'}),
     ('^/' + VALIDATE_PATH, {'GET': validate_get, 'POST': validate_post, 'media_type': 'application/json'}),
-    ('^/' + PLAN_PATH, {'GET': plan_get, 'POST': plan_post, 'media_type': 'application/json'}),
+    ('^/' + INSTANCE_PATH, {'GET': instance_get, 'POST': instance_post, 'media_type': 'application/json'}),
     ('^/' + INDIRECT_VALIDATE_PATH, {'POST': indirect_validate_post, 'media_type': 'application/json'}),
-    ('^/' + INDIRECT_PLAN_PATH, {'POST': indirect_plan_post, 'media_type': 'application/json'})))
+    ('^/' + INDIRECT_INSTANCE_PATH, {'POST': indirect_instance_post, 'media_type': 'application/json'})))
 
 class ArgumentParser(CommonArgumentParser):
     def __init__(self):

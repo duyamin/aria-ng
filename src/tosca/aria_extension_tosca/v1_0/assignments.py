@@ -18,7 +18,7 @@ from .filters import NodeFilter
 from .misc import Description, OperationImplementation
 from .presentation.extensible import ExtensiblePresentation
 from .presentation.field_validators import node_template_or_type_validator, relationship_template_or_type_validator, capability_definition_or_type_validator, node_filter_validator
-from .deployment.properties import get_assigned_and_defined_property_values
+from .modeling.properties import get_assigned_and_defined_property_values
 from aria import dsl_specification
 from aria.utils import ReadOnlyDict, cachedmethod
 from aria.presentation import AsIsPresentation, has_fields, allow_unknown_fields, short_form_field, primitive_field, object_field, object_dict_field, object_dict_unknown_fields, field_validator, type_validator

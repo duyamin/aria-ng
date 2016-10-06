@@ -19,7 +19,7 @@ from ..utils import json_dumps, yaml_dumps
 
 class Derive(Consumer):
     """
-    Derives the deployment template.
+    Derives the service model.
     """
     
     def consume(self):
@@ -27,104 +27,104 @@ class Derive(Consumer):
             self.context.validation.report('Derive consumer: missing presenter')
             return
         
-        if not hasattr(self.context.presentation.presenter, '_get_deployment_template'):
-            self.context.validation.report('Derive consumer: presenter does not support "_get_deployment_template"')
+        if not hasattr(self.context.presentation.presenter, '_get_service_model'):
+            self.context.validation.report('Derive consumer: presenter does not support "_get_service_model"')
             return
 
-        self.context.deployment.template = self.context.presentation.presenter._get_deployment_template(self.context)
+        self.context.modeling.model = self.context.presentation.presenter._get_service_model(self.context)
 
-class ValidateTemplate(Consumer):
+class ValidateModel(Consumer):
     """
-    Validates the deployment template.
+    Validates the service model.
     """
 
     def consume(self):
-        self.context.deployment.template.validate(self.context)
+        self.context.modeling.model.validate(self.context)
 
-class Template(ConsumerChain):
+class Model(ConsumerChain):
     """
-    Generates the deployment template by deriving it from the presentation.
+    Generates the service model by deriving it from the presentation.
     """
 
     def __init__(self, context):
-        super(Template, self).__init__(context, (Derive, ValidateTemplate))
+        super(Model, self).__init__(context, (Derive, ValidateModel))
 
     def dump(self):
         if self.context.has_arg_switch('types'):
-            self.context.deployment.dump_types(self.context)
+            self.context.modeling.dump_types(self.context)
         elif self.context.has_arg_switch('yaml'):
             indent = self.context.get_arg_value_int('indent', 2)
-            raw = self.context.deployment.template_as_raw
+            raw = self.context.modeling.model_as_raw
             self.context.write(yaml_dumps(raw, indent=indent))
         elif self.context.has_arg_switch('json'):
             indent = self.context.get_arg_value_int('indent', 2)
-            raw = self.context.deployment.template_as_raw
+            raw = self.context.modeling.model_as_raw
             self.context.write(json_dumps(raw, indent=indent))
         else:
-            self.context.deployment.template.dump(self.context)
+            self.context.modeling.model.dump(self.context)
 
 class Instantiate(Consumer):
     """
-    Instantiates the deployment plan.
+    Instantiates the service model.
     """
     
     def consume(self):
-        if self.context.deployment.template is None:
-            self.context.validation.report('Instantiate consumer: missing deployment template')
+        if self.context.modeling.model is None:
+            self.context.validation.report('Instantiate consumer: missing service model')
             return
 
-        self.context.deployment.template.instantiate(self.context, None)
+        self.context.modeling.model.instantiate(self.context, None)
 
 class CoerceValues(Consumer):
     """
-    Coerces values in the deployment plan.
+    Coerces values in the service instance.
     """
 
     def consume(self):
-        self.context.deployment.plan.coerce_values(self.context, None, True)
+        self.context.modeling.instance.coerce_values(self.context, None, True)
 
-class ValidatePlan(Consumer):
+class ValidateInstance(Consumer):
     """
-    Validates the deployment plan.
+    Validates the service instance.
     """
 
     def consume(self):
-        self.context.deployment.plan.validate(self.context)
+        self.context.modeling.instance.validate(self.context)
 
 class SatisfyRequirements(Consumer):
     """
-    Satisfies node requirements in the deployment plan.
+    Satisfies node requirements in the service instance.
     """
 
     def consume(self):
-        self.context.deployment.plan.satisfy_requirements(self.context)
+        self.context.modeling.instance.satisfy_requirements(self.context)
         
 class ValidateCapabilities(Consumer):
     """
-    Validates capabilities in the deployment plan.
+    Validates capabilities in the service instance.
     """
 
     def consume(self):
-        self.context.deployment.plan.validate_capabilities(self.context)
+        self.context.modeling.instance.validate_capabilities(self.context)
 
-class Plan(ConsumerChain):
+class Instance(ConsumerChain):
     """
-    Generates the deployment plan by instantiating the deployment template.
+    Generates the service instance by instantiating the service model.
     """
     
     def __init__(self, context):
-        super(Plan, self).__init__(context, (Instantiate, CoerceValues, ValidatePlan, CoerceValues, SatisfyRequirements, CoerceValues, ValidateCapabilities, CoerceValues))
+        super(Instance, self).__init__(context, (Instantiate, CoerceValues, ValidateInstance, CoerceValues, SatisfyRequirements, CoerceValues, ValidateCapabilities, CoerceValues))
 
     def dump(self):
         if self.context.has_arg_switch('graph'):
-            self.context.deployment.plan.dump_graph(self.context)
+            self.context.modeling.instance.dump_graph(self.context)
         elif self.context.has_arg_switch('yaml'):
             indent = self.context.get_arg_value_int('indent', 2)
-            raw = self.context.deployment.plan_as_raw
+            raw = self.context.modeling.instance_as_raw
             self.context.write(yaml_dumps(raw, indent=indent))
         elif self.context.has_arg_switch('json'):
             indent = self.context.get_arg_value_int('indent', 2)
-            raw = self.context.deployment.plan_as_raw
+            raw = self.context.modeling.instance_as_raw
             self.context.write(json_dumps(raw, indent=indent))
         else:
-            self.context.deployment.plan.dump(self.context)
+            self.context.modeling.instance.dump(self.context)

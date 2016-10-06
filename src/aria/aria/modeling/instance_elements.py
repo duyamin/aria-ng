@@ -20,12 +20,12 @@ from ..validation import Issue
 from ..utils import StrictList, StrictDict, ReadOnlyList, puts, indent, as_raw 
 from collections import OrderedDict
 
-class DeploymentPlan(Element):
+class ServiceInstance(Element):
     """
-    A deployment plan is an instance of a :class:`DeploymentTemplate`.
+    A service instance is an instance of a :class:`ServiceModel`.
     
     You will usually not create it programmatically, but instead instantiate
-    it from the template.
+    it from the model.
     
     Properties:
     
@@ -97,7 +97,7 @@ class DeploymentPlan(Element):
                 if relationship.target_node_id == target_node.id:
                     return True
                 else:
-                    node = context.deployment.plan.nodes.get(relationship.target_node_id)
+                    node = context.modeling.instance.nodes.get(relationship.target_node_id)
                     if node is not None:
                         if self._is_node_a_target(context, node, target_node):
                             return True
@@ -186,8 +186,8 @@ class Node(Element):
     Properties:
     
     * :code:`id`: Unique ID (prefixed with the template name)
-    * :code:`type_name`: Must be represented in the :class:`DeploymentContext`
-    * :code:`template_name`: Must be represented in the :class:`DeploymentTemplate`
+    * :code:`type_name`: Must be represented in the :class:`ModelingContext`
+    * :code:`template_name`: Must be represented in the :class:`ServiceModel`
     * :code:`properties`: Dict of :class:`Parameter`
     * :code:`interfaces`: Dict of :class:`Interface`
     * :code:`artifacts`: Dict of :class:`Artifact`
@@ -201,7 +201,7 @@ class Node(Element):
         if not isinstance(template_name, basestring):
             raise ValueError('must set template_name (string)')
 
-        self.id = '%s_%s' % (template_name, context.deployment.generate_id())
+        self.id = '%s_%s' % (template_name, context.modeling.generate_id())
         self.type_name = type_name
         self.template_name = template_name
         self.properties = StrictDict(key_class=basestring, value_class=Parameter)
@@ -211,14 +211,14 @@ class Node(Element):
         self.relationships = StrictList(value_class=Relationship)
     
     def satisfy_requirements(self, context):
-        node_template = context.deployment.template.node_templates.get(self.template_name)
+        node_template = context.modeling.model.node_templates.get(self.template_name)
         satisfied = True
         for requirement in node_template.requirements:
             # Find target template
             target_node_template, target_node_capability = requirement.find_target(context, node_template)
             if target_node_template is not None:
                 # Find target nodes
-                target_nodes = context.deployment.plan.find_nodes(target_node_template.name)
+                target_nodes = context.modeling.instance.find_nodes(target_node_template.name)
                 if target_nodes:
                     target_node = None
                     target_capability = None
@@ -273,8 +273,8 @@ class Node(Element):
             ('relationships', [as_raw(v) for v in self.relationships])))
             
     def validate(self, context):
-        if len(self.id) > context.deployment.id_max_length:
-            context.validation.report('"%s" has an ID longer than the limit of %d characters: %d' % (self.id, context.deployment.id_max_length, len(self.id)), level=Issue.BETWEEN_INSTANCES)
+        if len(self.id) > context.modeling.id_max_length:
+            context.validation.report('"%s" has an ID longer than the limit of %d characters: %d' % (self.id, context.modeling.id_max_length, len(self.id)), level=Issue.BETWEEN_INSTANCES)
         
         # TODO: validate that node template is of type?
         
@@ -311,7 +311,7 @@ class Capability(Element):
     Properties:
     
     * :code:`name`: Name
-    * :code:`type_name`: Must be represented in the :class:`DeploymentContext`
+    * :code:`type_name`: Must be represented in the :class:`ModelingContext`
     * :code:`min_occurrences`: Minimum number of requirement matches required
     * :code:`max_occurrences`: Maximum number of requirement matches allowed
     * :code:`properties`: Dict of :class:`Parameter`
@@ -352,7 +352,7 @@ class Capability(Element):
             ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()})))
 
     def validate(self, context):
-        if context.deployment.capability_types.get_descendant(self.type_name) is None:
+        if context.modeling.capability_types.get_descendant(self.type_name) is None:
             context.validation.report('capability "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)
         
         validate_dict_values(context, self.properties)
@@ -375,10 +375,10 @@ class Relationship(Element):
 
     Properties:
 
-    * :code:`target_node_id`: Must be represented in the :class:`DeploymentPlan`
+    * :code:`target_node_id`: Must be represented in the :class:`ServiceInstance`
     * :code:`target_capability_name`: The matches capability at the target node
-    * :code:`type_name`: Must be represented in the :class:`DeploymentContext`
-    * :code:`template_name`: Must be represented in the :class:`DeploymentTemplate`
+    * :code:`type_name`: Must be represented in the :class:`ModelingContext`
+    * :code:`template_name`: Must be represented in the :class:`ServiceModel`
     * :code:`properties`: Dict of :class:`Parameter`
     * :code:`source_interfaces`: Dict of :class:`Interface`
     * :code:`target_interfaces`: Dict of :class:`Interface`
@@ -413,7 +413,7 @@ class Relationship(Element):
 
     def validate(self, context):
         if self.type_name:
-            if context.deployment.relationship_types.get_descendant(self.type_name) is None:
+            if context.modeling.relationship_types.get_descendant(self.type_name) is None:
                 context.validation.report('relationship "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
@@ -445,20 +445,20 @@ class Group(Element):
     Properties:
     
     * :code:`id`: Unique ID (prefixed with the template name)
-    * :code:`type_name`: Must be represented in the :class:`DeploymentContext`
-    * :code:`template_name`: Must be represented in the :class:`DeploymentTemplate`
+    * :code:`type_name`: Must be represented in the :class:`ModelingContext`
+    * :code:`template_name`: Must be represented in the :class:`ServiceModel`
     * :code:`properties`: Dict of :class:`Parameter`
     * :code:`interfaces`: Dict of :class:`Interface`
     * :code:`policies`: Dict of :class:`GroupPolicy`
-    * :code:`member_node_ids`: Must be represented in the :class:`DeploymentPlan`
-    * :code:`member_group_ids`: Must be represented in the :class:`DeploymentPlan`
+    * :code:`member_node_ids`: Must be represented in the :class:`ServiceInstance`
+    * :code:`member_group_ids`: Must be represented in the :class:`ServiceInstance`
     """    
     
     def __init__(self, context, type_name, template_name):
         if not isinstance(template_name, basestring):
             raise ValueError('must set template_name (string)')
 
-        self.id = '%s_%s' % (template_name, context.deployment.generate_id())
+        self.id = '%s_%s' % (template_name, context.modeling.generate_id())
         self.type_name = type_name
         self.template_name = template_name
         self.properties = StrictDict(key_class=basestring, value_class=Parameter)
@@ -480,7 +480,7 @@ class Group(Element):
             ('member_group_ids', self.member_group_ids)))
 
     def validate(self, context):
-        if context.deployment.group_types.get_descendant(self.type_name) is None:
+        if context.modeling.group_types.get_descendant(self.type_name) is None:
             context.validation.report('group "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
@@ -513,10 +513,10 @@ class Policy(Element):
     Properties:
     
     * :code:`name`: Name
-    * :code:`type_name`: Must be represented in the :class:`DeploymentContext`
+    * :code:`type_name`: Must be represented in the :class:`ModelingContext`
     * :code:`properties`: Dict of :class:`Parameter`
-    * :code:`target_node_ids`: Must be represented in the :class:`DeploymentPlan`
-    * :code:`target_group_ids`: Must be represented in the :class:`DeploymentPlan`
+    * :code:`target_node_ids`: Must be represented in the :class:`ServiceInstance`
+    * :code:`target_group_ids`: Must be represented in the :class:`ServiceInstance`
     """
     
     def __init__(self, name, type_name):
@@ -541,7 +541,7 @@ class Policy(Element):
             ('target_group_ids', self.target_group_ids)))
 
     def validate(self, context):
-        if context.deployment.policy_types.get_descendant(self.type_name) is None:
+        if context.modeling.policy_types.get_descendant(self.type_name) is None:
             context.validation.report('policy "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
@@ -572,7 +572,7 @@ class Mapping(Element):
     Properties:
     
     * :code:`mapped_name`: Exposed capability or requirement name
-    * :code:`node_id`: Must be represented in the :class:`DeploymentPlan`
+    * :code:`node_id`: Must be represented in the :class:`ServiceInstance`
     * :code:`name`: Name of capability or requirement at the node
     """
     
@@ -604,7 +604,7 @@ class Substitution(Element):
     
     Properties:
     
-    * :code:`node_type_name`: Must be represented in the :class:`DeploymentContext`
+    * :code:`node_type_name`: Must be represented in the :class:`ModelingContext`
     * :code:`capabilities`: Dict of :class:`Mapping`
     * :code:`requirements`: Dict of :class:`Mapping`
     """
@@ -625,7 +625,7 @@ class Substitution(Element):
             ('requirements', [as_raw(v) for v in self.requirements.itervalues()])))
 
     def validate(self, context):
-        if context.deployment.node_types.get_descendant(self.node_type_name) is None:
+        if context.modeling.node_types.get_descendant(self.node_type_name) is None:
             context.validation.report('substitution "%s" has an unknown type: %s' % (self.name, repr(self.node_type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.capabilities)

@@ -18,20 +18,33 @@ from .relationships import is_contained_in
 from .policies import SCALING_POLICY_NAME
 
 def find_groups(context, node):
+    """
+    Returns a list of all groups that contain the node.
+    """
+    
     groups = []
-    for group in context.deployment.plan.groups.itervalues():
+    for group in context.modeling.instance.groups.itervalues():
         if node.id in group.member_node_ids:
             groups.append(group)
     return groups
 
 def iter_scaling_groups(context):
-    for policy_template in context.deployment.template.policy_templates.itervalues():
+    """
+    Iterates the groups referred to by scaling policies.
+    """
+    
+    for policy_template in context.modeling.model.policy_templates.itervalues():
         if policy_template.type_name == SCALING_POLICY_NAME:
             for group_template_name in policy_template.target_group_template_names:
-                group_template = context.deployment.template.group_templates[group_template_name]
+                group_template = context.modeling.model.group_templates[group_template_name]
                 yield group_template_name, group_template, policy_template
 
-def remove_redundant_members(context, node_template_names, group_template_names=set()):
+def prune_redundant_members(context, node_template_names, group_template_names=set()):
+    """
+    Makes sure the set of group members is the most minimal by removing redundant members.
+    The final result will produce exactly the same list of nodes as the original.
+    """
+    
     # Remove groups that are implied by other groups
     redundant_group_template_names = set()
     for group_template_name in group_template_names:
@@ -70,7 +83,7 @@ def remove_redundant_members(context, node_template_names, group_template_names=
     for group_template_name in group_template_names:
         # Our nodes
         our_implied_node_template_names = _get_node_templates_implied_by_group_template(context, group_template_name)
-        remove_redundant_members(context, our_implied_node_template_names)
+        prune_redundant_members(context, our_implied_node_template_names)
         
         # The other nodes
         other_implied_node_template_names = set(node_template_names)
@@ -88,7 +101,7 @@ def remove_redundant_members(context, node_template_names, group_template_names=
 #
 
 def _is_node_template_implied_by_node_template(context, node_template_name, other_node_template_name):
-    node_template = context.deployment.template.node_templates.get(node_template_name)
+    node_template = context.modeling.model.node_templates.get(node_template_name)
     for requirement in node_template.requirements:
         if is_contained_in(context, requirement.relationship_template):
             if requirement.target_node_template_name == other_node_template_name:
@@ -98,7 +111,7 @@ def _is_node_template_implied_by_node_template(context, node_template_name, othe
     return False
 
 def _is_node_template_implied_by_group_template(context, node_template_name, group_template_name):
-    group_template = context.deployment.template.group_templates.get(group_template_name)
+    group_template = context.modeling.model.group_templates.get(group_template_name)
     for member_node_template_name in group_template.member_node_template_names:
         if node_template_name == member_node_template_name:
             return True
@@ -110,7 +123,7 @@ def _is_node_template_implied_by_group_template(context, node_template_name, gro
     return False
 
 def _is_group_template_implied_by_group_template(context, group_template_name, other_group_template_name):
-    other_group_template = context.deployment.template.group_templates.get(other_group_template_name)
+    other_group_template = context.modeling.model.group_templates.get(other_group_template_name)
     for member_group_template_name in other_group_template.member_group_template_names:
         if member_group_template_name == group_template_name:
             return True
@@ -121,7 +134,7 @@ def _is_group_template_implied_by_group_template(context, group_template_name, o
 def _get_node_templates_implied_by_node_template(context, node_template_name):
     node_template_names = set()
     node_template_names.add(node_template_name)
-    node_template = context.deployment.template.node_templates.get(node_template_name)
+    node_template = context.modeling.model.node_templates.get(node_template_name)
     for requirement in node_template.requirements:
         if is_contained_in(context, requirement.relationship_template):
             node_template_names |= _get_node_templates_implied_by_node_template(context, requirement.target_node_template_name)
@@ -129,7 +142,7 @@ def _get_node_templates_implied_by_node_template(context, node_template_name):
 
 def _get_node_templates_implied_by_group_template(context, group_template_name):
     node_template_names = set()
-    group_template = context.deployment.template.group_templates.get(group_template_name)
+    group_template = context.modeling.model.group_templates.get(group_template_name)
     for member_node_template_name in group_template.member_node_template_names:
         node_template_names |= _get_node_templates_implied_by_node_template(context, member_node_template_name)
     for member_group_template_name in group_template.member_group_template_names:

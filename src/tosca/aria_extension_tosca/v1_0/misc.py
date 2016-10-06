@@ -16,8 +16,8 @@
 
 from .presentation.extensible import ExtensiblePresentation
 from .presentation.field_validators import constraint_clause_field_validator, constraint_clause_in_range_validator, constraint_clause_valid_values_validator, constraint_clause_pattern_validator, data_type_validator
-from .deployment.data_types import get_data_type, get_data_type_value, get_property_constraints, apply_constraint_to_value
-from .deployment.substitution_mappings import validate_subtitution_mappings_requirement, validate_subtitution_mappings_capability
+from .modeling.data_types import get_data_type, get_data_type_value, get_property_constraints, apply_constraint_to_value
+from .modeling.substitution_mappings import validate_subtitution_mappings_requirement, validate_subtitution_mappings_capability
 from aria import dsl_specification
 from aria.utils import cachedmethod, puts, as_raw
 from aria.presentation import AsIsPresentation, has_fields, allow_unknown_fields, short_form_field, primitive_field, primitive_list_field, primitive_dict_unknown_fields, object_field, object_list_field, object_dict_field, field_validator, type_validator

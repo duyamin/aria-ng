@@ -25,7 +25,8 @@ from .data_types import Timestamp, Version, Range, List, Map, ScalarSize, Scalar
 from .functions import Concat, Token, GetInput, GetProperty, GetAttribute, GetOperationOutput, GetNodesOfType, GetArtifact
 
 MODULES = (
-    'utils',)
+    'modeling',
+    'presentation')
 
 __all__ = (
     'MODULES',

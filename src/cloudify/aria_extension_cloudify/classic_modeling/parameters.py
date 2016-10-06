@@ -14,9 +14,25 @@
 # under the License.
 #
 
-CONTAINED_IN_RELATIONSHIP_NAME = 'cloudify.relationships.contained_in'
+from aria.modeling import Parameter, Function
 
-def is_contained_in(context, relationship_or_relationship_template):
-    if relationship_or_relationship_template is None:
-        return False
-    return context.deployment.relationship_types.is_descendant(CONTAINED_IN_RELATIONSHIP_NAME, relationship_or_relationship_template.type_name)
+def has_intrinsic_functions(context, value):
+    """
+    Checks if the value contains intrinsic functions, recursively.
+    """
+    
+    if isinstance(value, Parameter):
+        value = value.value
+
+    if isinstance(value, Function):
+        return True
+    elif isinstance(value, dict):
+        for v in value.itervalues():
+            if has_intrinsic_functions(context, v):
+                return True
+    elif isinstance(value, list):
+        for v in value:
+            if has_intrinsic_functions(context, v):
+                return True
+    return False
+

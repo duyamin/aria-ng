@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from .deployment.properties import get_assigned_and_defined_property_values
+from .modeling.properties import get_assigned_and_defined_property_values
 from aria.presentation import Presentation, AsIsPresentation, has_fields, allow_unknown_fields, short_form_field, primitive_field, object_dict_field, object_dict_unknown_fields, field_validator, type_validator
 from aria.utils import ReadOnlyDict, cachedmethod
 from aria import dsl_specification

@@ -47,4 +47,4 @@ class Inputs(Consumer):
             return
         
         for name, value in inputs.iteritems():
-            self.context.deployment.set_input(name, value)
+            self.context.modeling.set_input(name, value)

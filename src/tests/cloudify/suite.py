@@ -93,12 +93,12 @@ class ParserTestCase(TestCase):
             validate_version=validate_version)
         self._validate_parse_no_issues(context)
 
-        return context.deployment.classic_plan
+        return context.modeling.classic_deployment_plan
 
     def parse_from_uri(self, uri):
         context = parse_from_path(uri)
         self._validate_parse_no_issues(context)
-        return context.deployment.classic_plan
+        return context.modeling.classic_deployment_plan
 
     def _validate_parse_no_issues(self, context):
         if not context.validation.has_issues:

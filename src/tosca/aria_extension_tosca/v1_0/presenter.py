@@ -16,7 +16,7 @@
 
 from .templates import ServiceTemplate
 from .functions import Concat, Token, GetInput, GetProperty, GetAttribute, GetOperationOutput, GetNodesOfType, GetArtifact
-from .deployment import get_deployment_template
+from .modeling import get_service_model
 from aria.presentation import Presenter
 from aria.utils import ReadOnlyList, cachedmethod
 
@@ -61,5 +61,5 @@ class ToscaSimplePresenter1_0(Presenter):
         return ReadOnlyList([i.file for i in self.service_template.imports] if (self.service_template and self.service_template.imports) else [])
 
     @cachedmethod
-    def _get_deployment_template(self, context):
-        return get_deployment_template(context)
+    def _get_service_model(self, context):
+        return get_service_model(context)

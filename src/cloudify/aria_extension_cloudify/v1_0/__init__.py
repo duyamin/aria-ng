@@ -22,7 +22,12 @@ from .templates import RelationshipTemplate, NodeTemplate, GroupTemplate, Servic
 from .types import NodeType, RelationshipType, PolicyType, GroupPolicyTriggerType
 from .functions import GetInput, GetProperty, GetAttribute
 
+MODULES = (
+    'modeling',
+    'presentation')
+
 __all__ = (
+    'MODULES',
     'CloudifyPresenter1_0',
     'PropertyAssignment',
     'GroupPolicyTriggerAssignment',

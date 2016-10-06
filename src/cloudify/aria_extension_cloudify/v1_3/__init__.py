@@ -18,7 +18,11 @@ from .presenter import CloudifyPresenter1_3
 from .templates import NodeTemplate, GroupTemplate, PolicyTemplate, ServiceTemplate
 from .assignments import CapabilityAssignment
 
+MODULES = (
+    'modeling',)
+
 __all__ = (
+    'MODULES',
     'CloudifyPresenter1_3',
     'NodeTemplate',
     'GroupTemplate',

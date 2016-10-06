@@ -16,17 +16,17 @@
 
 from __future__ import absolute_import # so we can import standard 'types'
 
-from .shared_elements import Element, TemplateElement, Parameter, Interface, Operation, Artifact, GroupPolicy
-from .plan_elements import DeploymentPlan, Node, Capability, Relationship, Group, Policy, Mapping, Substitution
+from .shared_elements import Element, ModelElement, Parameter, Interface, Operation, Artifact, GroupPolicy
+from .instance_elements import ServiceInstance, Node, Capability, Relationship, Group, Policy, Mapping, Substitution
 from .utils import validate_dict_values, validate_list_values, instantiate_dict, dump_list_values, dump_dict_values, dump_properties, dump_interfaces
 from ..validation import Issue
 from ..utils import StrictList, StrictDict, puts, as_raw
 from collections import OrderedDict
 from types import FunctionType
 
-class DeploymentTemplate(TemplateElement):
+class ServiceModel(ModelElement):
     """
-    A deployment template is a normalized blueprint from which :class:`DeploymentPlan` instances
+    A service model is a normalized blueprint from which :class:`ServiceInstance` instances
     can be created.
     
     It is usually created by various DSL parsers, such as ARIA's TOSCA extension. However, it
@@ -70,8 +70,8 @@ class DeploymentTemplate(TemplateElement):
             ('operations', [as_raw(v) for v in self.operations.itervalues()])))
 
     def instantiate(self, context, container):
-        r = DeploymentPlan()
-        context.deployment.plan = r
+        r = ServiceInstance()
+        context.modeling.instance = r
         
         r.description = self.description
         
@@ -93,7 +93,7 @@ class DeploymentTemplate(TemplateElement):
         instantiate_dict(context, self, r.inputs, self.inputs)
         instantiate_dict(context, self, r.outputs, self.outputs)
         
-        for name, the_input in context.deployment.inputs.iteritems():
+        for name, the_input in context.modeling.inputs.iteritems():
             if name not in r.inputs:
                 context.validation.report('input "%s" is not supported' % name)
             else:
@@ -130,14 +130,14 @@ class DeploymentTemplate(TemplateElement):
         dump_properties(context, self.outputs, 'Outputs')
         dump_dict_values(context, self.operations, 'Operations')
 
-class NodeTemplate(TemplateElement):
+class NodeTemplate(ModelElement):
     """
     A template for creating zero or more :class:`Node` instances.
     
     Properties:
     
     * :code:`name`: Name (will be used as a prefix for node IDs)
-    * :code:`type_name`: Must be represented in the :class:`DeploymentContext`
+    * :code:`type_name`: Must be represented in the :class:`ModelingContext`
     * :code:`default_instances`: Default number nodes that will appear in the deployment plan
     * :code:`min_instances`: Minimum number nodes that will appear in the deployment plan
     * :code:`max_instances`: Maximum number nodes that will appear in the deployment plan
@@ -197,7 +197,7 @@ class NodeTemplate(TemplateElement):
         return r
     
     def validate(self, context):
-        if context.deployment.node_types.get_descendant(self.type_name) is None:
+        if context.modeling.node_types.get_descendant(self.type_name) is None:
             context.validation.report('node template "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)  
 
         validate_dict_values(context, self.properties)
@@ -227,8 +227,8 @@ class Requirement(Element):
     Properties:
     
     * :code:`name`: Name
-    * :code:`target_node_type_name`: Must be represented in the :class:`DeploymentContext`
-    * :code:`target_node_template_name`: Must be represented in the :class:`DeploymentTemplate`
+    * :code:`target_node_type_name`: Must be represented in the :class:`ModelingContext`
+    * :code:`target_node_template_name`: Must be represented in the :class:`ServiceModel`
     * :code:`target_node_template_constraints`: List of :class:`FunctionType`
     * :code:`target_capability_type_name`: Type of capability in target node
     * :code:`target_capability_name`: Name of capability in target node
@@ -262,7 +262,7 @@ class Requirement(Element):
     def find_target(self, context, source_node_template):
         # We might already have a specific node template, so we'll just verify it
         if self.target_node_template_name is not None:
-            target_node_template = context.deployment.template.node_templates.get(self.target_node_template_name)
+            target_node_template = context.modeling.model.node_templates.get(self.target_node_template_name)
             
             if not source_node_template.is_target_node_valid(target_node_template):
                 context.validation.report('requirement "%s" of node template "%s" is for node template "%s" but it does not match constraints' % (self.name, self.target_node_template_name, source_node_template.name), level=Issue.BETWEEN_TYPES)
@@ -279,8 +279,8 @@ class Requirement(Element):
 
         # Find first node that matches the type
         elif self.target_node_type_name is not None:
-            for target_node_template in context.deployment.template.node_templates.itervalues():
-                if not context.deployment.node_types.is_descendant(self.target_node_type_name, target_node_template.type_name):
+            for target_node_template in context.modeling.model.node_templates.itervalues():
+                if not context.modeling.node_types.is_descendant(self.target_node_type_name, target_node_template.type_name):
                     continue
                 
                 if not source_node_template.is_target_node_valid(target_node_template):
@@ -311,9 +311,9 @@ class Requirement(Element):
             ('relationship_template', as_raw(self.relationship_template) if self.relationship_template is not None else None)))
 
     def validate(self, context):
-        if (self.target_node_type_name) and (context.deployment.node_types.get_descendant(self.target_node_type_name) is None):
+        if (self.target_node_type_name) and (context.modeling.node_types.get_descendant(self.target_node_type_name) is None):
             context.validation.report('requirement "%s" refers to an unknown node type: %s' % (self.name, repr(self.target_node_type_name)), level=Issue.BETWEEN_TYPES)        
-        if (self.target_capability_type_name) and (context.deployment.capability_types.get_descendant(self.target_capability_type_name) is None):
+        if (self.target_capability_type_name) and (context.modeling.capability_types.get_descendant(self.target_capability_type_name) is None):
             context.validation.report('requirement "%s" refers to an unknown capability type: %s' % (self.name, repr(self.target_capability_type_name)), level=Issue.BETWEEN_TYPES)        
 
         if self.relationship_template:
@@ -341,7 +341,7 @@ class Requirement(Element):
             if self.relationship_template:
                 self.relationship_template.dump(context)
 
-class CapabilityTemplate(TemplateElement):
+class CapabilityTemplate(ModelElement):
     """
     A capability of a :class:`NodeTemplate`. Nodes expose zero or more capabilities that can be
     matched with :class:`Requirement` instances of other nodes.
@@ -349,10 +349,10 @@ class CapabilityTemplate(TemplateElement):
     Properties:
     
     * :code:`name`: Name
-    * :code:`type_name`: Must be represented in the :class:`DeploymentContext`
+    * :code:`type_name`: Must be represented in the :class:`ModelingContext`
     * :code:`min_occurrences`: Minimum number of requirement matches required
     * :code:`max_occurrences`: Maximum number of requirement matches allowed
-    * :code:`valid_source_node_type_names`: Must be represented in the :class:`DeploymentContext`
+    * :code:`valid_source_node_type_names`: Must be represented in the :class:`ModelingContext`
     * :code:`properties`: Dict of :class:`Parameter`
     """
     
@@ -371,13 +371,13 @@ class CapabilityTemplate(TemplateElement):
         
     def satisfies_requirement(self, context, source_node_template, requirement, target_node_template):
         # Do we match the required capability type?
-        if not context.deployment.capability_types.is_descendant(requirement.target_capability_type_name, self.type_name):
+        if not context.modeling.capability_types.is_descendant(requirement.target_capability_type_name, self.type_name):
             return False
         
         # Are we in valid_source_node_type_names?
         if self.valid_source_node_type_names:
             for valid_source_node_type_name in self.valid_source_node_type_names:
-                if not context.deployment.node_types.is_descendant(valid_source_node_type_name, source_node_template.type_name):
+                if not context.modeling.node_types.is_descendant(valid_source_node_type_name, source_node_template.type_name):
                     return False
         
         # Apply requirement constraints
@@ -406,7 +406,7 @@ class CapabilityTemplate(TemplateElement):
         return r
 
     def validate(self, context):
-        if context.deployment.capability_types.get_descendant(self.type_name) is None:
+        if context.modeling.capability_types.get_descendant(self.type_name) is None:
             context.validation.report('capability "%s" refers to an unknown type: %s' % (self.name, repr(self.type)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
@@ -420,15 +420,15 @@ class CapabilityTemplate(TemplateElement):
                 puts('Valid source node types: %s' % ', '.join((str(context.style.type(v)) for v in self.valid_source_node_type_names)))
             dump_properties(context, self.properties)
 
-class RelationshipTemplate(TemplateElement):
+class RelationshipTemplate(ModelElement):
     """
     Optional addition to a :class:`NodeTemplate` :class:`Requirement` that can be applied when the
     requirement is matched with a capability.
 
     Properties:
     
-    * :code:`type_name`: Must be represented in the :class:`DeploymentContext`
-    * :code:`template_name`: Must be represented in the :class:`DeploymentTemplate`
+    * :code:`type_name`: Must be represented in the :class:`ModelingContext`
+    * :code:`template_name`: Must be represented in the :class:`ServiceModel`
     * :code:`properties`: Dict of :class:`Parameter`
     * :code:`source_interfaces`: Dict of :class:`Interface`
     * :code:`target_interfaces`: Dict of :class:`Interface`
@@ -465,7 +465,7 @@ class RelationshipTemplate(TemplateElement):
         return r
 
     def validate(self, context):
-        if context.deployment.relationship_types.get_descendant(self.type_name) is None:
+        if context.modeling.relationship_types.get_descendant(self.type_name) is None:
             context.validation.report('relationship template "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
@@ -482,7 +482,7 @@ class RelationshipTemplate(TemplateElement):
             dump_interfaces(context, self.source_interfaces, 'Source interfaces')
             dump_interfaces(context, self.target_interfaces, 'Target interfaces')
 
-class GroupTemplate(TemplateElement):
+class GroupTemplate(ModelElement):
     """
     A template for creating zero or more :class:`Group` instances.
 
@@ -492,12 +492,12 @@ class GroupTemplate(TemplateElement):
     Properties:
     
     * :code:`name`: Name (will be used as a prefix for group IDs)
-    * :code:`type_name`: Must be represented in the :class:`DeploymentContext`
+    * :code:`type_name`: Must be represented in the :class:`ModelingContext`
     * :code:`properties`: Dict of :class:`Parameter`
     * :code:`interfaces`: Dict of :class:`Interface`
     * :code:`policies`: Dict of :class:`GroupPolicy`
-    * :code:`member_node_template_names`: Must be represented in the :class:`DeploymentTemplate`
-    * :code:`member_group_template_names`: Must be represented in the :class:`DeploymentTemplate`
+    * :code:`member_node_template_names`: Must be represented in the :class:`ServiceModel`
+    * :code:`member_group_template_names`: Must be represented in the :class:`ServiceModel`
     """
     
     def __init__(self, name, type_name=None):
@@ -531,13 +531,13 @@ class GroupTemplate(TemplateElement):
         instantiate_dict(context, self, r.interfaces, self.interfaces)
         instantiate_dict(context, self, r.policies, self.policies)
         for member_node_template_name in self.member_node_template_names:
-            r.member_node_ids += context.deployment.plan.get_node_ids(member_node_template_name)
+            r.member_node_ids += context.modeling.instance.get_node_ids(member_node_template_name)
         for member_group_template_name in self.member_group_template_names:
-            r.member_group_ids += context.deployment.plan.get_group_ids(member_group_template_name)
+            r.member_group_ids += context.modeling.instance.get_group_ids(member_group_template_name)
         return r
 
     def validate(self, context):
-        if context.deployment.group_types.get_descendant(self.type_name) is None:
+        if context.modeling.group_types.get_descendant(self.type_name) is None:
             context.validation.report('group template "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
@@ -555,17 +555,17 @@ class GroupTemplate(TemplateElement):
             if self.member_node_template_names:
                 puts('Member node templates: %s' % ', '.join((str(context.style.node(v)) for v in self.member_node_template_names)))
 
-class PolicyTemplate(TemplateElement):
+class PolicyTemplate(ModelElement):
     """
     Policies can be applied to zero or more :class:`NodeTemplate` or :class:`GroupTemplate` instances.
     
     Properties:
     
     * :code:`name`: Name
-    * :code:`type_name`: Must be represented in the :class:`DeploymentContext`
+    * :code:`type_name`: Must be represented in the :class:`ModelingContext`
     * :code:`properties`: Dict of :class:`Parameter`
-    * :code:`target_node_template_names`: Must be represented in the :class:`DeploymentTemplate`
-    * :code:`target_group_template_names`: Must be represented in the :class:`DeploymentTemplate`
+    * :code:`target_node_template_names`: Must be represented in the :class:`ServiceModel`
+    * :code:`target_group_template_names`: Must be represented in the :class:`ServiceModel`
     """
     
     def __init__(self, name, type_name):
@@ -593,13 +593,13 @@ class PolicyTemplate(TemplateElement):
         r = Policy(self.name, self.type_name)
         instantiate_dict(context, self, r.properties, self.properties)
         for node_template_name in self.target_node_template_names:
-            r.target_node_ids.extend(context.deployment.plan.get_node_ids(node_template_name))
+            r.target_node_ids.extend(context.modeling.instance.get_node_ids(node_template_name))
         for group_template_name in self.target_group_template_names:
-            r.target_group_ids.extend(context.deployment.plan.get_group_ids(group_template_name))
+            r.target_group_ids.extend(context.modeling.instance.get_group_ids(group_template_name))
         return r
 
     def validate(self, context):
-        if context.deployment.policy_types.get_descendant(self.type_name) is None:
+        if context.modeling.policy_types.get_descendant(self.type_name) is None:
             context.validation.report('policy template "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
@@ -614,14 +614,14 @@ class PolicyTemplate(TemplateElement):
             if self.target_group_template_names:
                 puts('Target group templates: %s' % ', '.join((str(context.style.node(v)) for v in self.target_group_template_names)))
 
-class MappingTemplate(TemplateElement):
+class MappingTemplate(ModelElement):
     """
     Used by :class:`SubstitutionTemplate` to map a capability or a requirement to a node.
     
     Properties:
     
     * :code:`mapped_name`: Exposed capability or requirement name
-    * :code:`node_template_name`: Must be represented in the :class:`DeploymentTemplate`
+    * :code:`node_template_name`: Must be represented in the :class:`ServiceModel`
     * :code:`name`: Name of capability or requirement at the node template
     """
     
@@ -645,26 +645,26 @@ class MappingTemplate(TemplateElement):
             ('name', self.name)))
 
     def instantiate(self, context, container):
-        nodes = context.deployment.plan.find_nodes(self.node_template_name)
+        nodes = context.modeling.instance.find_nodes(self.node_template_name)
         if len(nodes) == 0:
             context.validation.report('mapping "%s" refer to node template "%s" but there are no node instances' % (self.mapped_name, self.node_template_name), level=Issue.BETWEEN_INSTANCES)
             return None        
         return Mapping(self.mapped_name, nodes[0].id, self.name)
 
     def validate(self, context):
-        if self.node_template_name not in context.deployment.template.node_templates:
+        if self.node_template_name not in context.modeling.model.node_templates:
             context.validation.report('mapping "%s" refers to an unknown node template: %s' % (self.mapped_name, repr(self.node_template_name)), level=Issue.BETWEEN_TYPES)        
 
     def dump(self, context):
         puts('%s -> %s.%s' % (context.style.node(self.mapped_name), context.style.node(self.node_template_name), context.style.node(self.name)))
 
-class SubstitutionTemplate(TemplateElement):
+class SubstitutionTemplate(ModelElement):
     """
     Used to substitute a single node for the entire deployment.
 
     Properties:
     
-    * :code:`node_type_name`: Must be represented in the :class:`DeploymentContext`
+    * :code:`node_type_name`: Must be represented in the :class:`ModelingContext`
     * :code:`capabilities`: Dict of :class:`MappingTemplate`
     * :code:`requirements`: Dict of :class:`MappingTemplate`
     """
@@ -691,7 +691,7 @@ class SubstitutionTemplate(TemplateElement):
         return r
 
     def validate(self, context):
-        if context.deployment.node_types.get_descendant(self.node_type_name) is None:
+        if context.modeling.node_types.get_descendant(self.node_type_name) is None:
             context.validation.report('substitution template has an unknown type: %s' % repr(self.node_type_name), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.capabilities)

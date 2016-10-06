@@ -18,7 +18,7 @@ from ..validation import ValidationContext
 from ..loading import LoadingContext
 from ..reading import ReadingContext
 from ..presentation import PresentationContext
-from ..deployment import DeploymentContext
+from ..modeling import ModelingContext
 from .style import Style
 import sys
 
@@ -33,7 +33,7 @@ class ConsumptionContext(object):
     * :code:`loading`: :class:`aria.loading.LoadingContext`
     * :code:`reading`: :class:`aria.reading.ReadingContext`
     * :code:`presentation`: :class:`aria.presentation.PresentationContext`
-    * :code:`deployment`: :class:`aria.deployment.DeploymentContext`
+    * :code:`modeling`: :class:`aria.service.ModelingContext`
     """
     
     def __init__(self):
@@ -44,7 +44,7 @@ class ConsumptionContext(object):
         self.loading = LoadingContext()
         self.reading = ReadingContext()
         self.presentation = PresentationContext()
-        self.deployment = DeploymentContext()
+        self.modeling = ModelingContext()
     
     def write(self, s):
         try:

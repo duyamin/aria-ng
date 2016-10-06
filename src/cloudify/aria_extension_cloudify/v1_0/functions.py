@@ -16,7 +16,7 @@
 
 from aria import InvalidValueError, dsl_specification
 from aria.validation import Issue
-from aria.deployment import Function, CannotEvaluateFunction
+from aria.modeling import Function, CannotEvaluateFunction
 from aria.utils import as_raw
 
 @dsl_specification('intrinsic-functions-2', 'cloudify-1.0')
@@ -51,9 +51,9 @@ class GetInput(Function):
         return {'get_input': input_property_name}
     
     def _evaluate(self, context, container):
-        if not hasattr(self.context.deployment, 'classic_plan'):
+        if not hasattr(self.context.modeling, 'classic_deployment_plan'):
             raise CannotEvaluateFunction()
-        inputs = self.context.deployment.classic_plan['inputs']
+        inputs = self.context.modeling.classic_deployment_plan['inputs']
         if self.input_property_name not in inputs:
             raise CannotEvaluateFunction()
         return inputs[self.input_property_name]

@@ -15,11 +15,11 @@
 #
 
 from ..data_types import coerce_value
-from aria.deployment import Type, RelationshipType, PolicyType, DeploymentTemplate, NodeTemplate, RelationshipTemplate, CapabilityTemplate, GroupTemplate, PolicyTemplate, SubstitutionTemplate, MappingTemplate, Interface, Operation, Artifact, Requirement, Metadata, Parameter
+from aria.modeling import Type, RelationshipType, PolicyType, ServiceModel, NodeTemplate, RelationshipTemplate, CapabilityTemplate, GroupTemplate, PolicyTemplate, SubstitutionTemplate, MappingTemplate, Interface, Operation, Artifact, Requirement, Metadata, Parameter
 import re
 
-def get_deployment_template(context):
-    r = DeploymentTemplate()
+def get_service_model(context):
+    r = ServiceModel()
 
     r.description = context.presentation.get('service_template' ,'description', 'value')
 
@@ -35,13 +35,13 @@ def get_deployment_template(context):
                 rr.values[name] = value
         r.metadata = rr
 
-    normalize_types(context, context.deployment.node_types, context.presentation.get('service_template', 'node_types'))
-    normalize_types(context, context.deployment.group_types, context.presentation.get('service_template', 'group_types'))
-    normalize_types(context, context.deployment.capability_types, context.presentation.get('service_template', 'capability_types'))
-    normalize_types(context, context.deployment.relationship_types, context.presentation.get('service_template', 'relationship_types'), normalize_relationship_type)
-    normalize_types(context, context.deployment.policy_types, context.presentation.get('service_template', 'policy_types'), normalize_policy_type)
-    normalize_types(context, context.deployment.artifact_types, context.presentation.get('service_template', 'artifact_types'))
-    normalize_types(context, context.deployment.interface_types, context.presentation.get('service_template', 'interface_types'))
+    normalize_types(context, context.modeling.node_types, context.presentation.get('service_template', 'node_types'))
+    normalize_types(context, context.modeling.group_types, context.presentation.get('service_template', 'group_types'))
+    normalize_types(context, context.modeling.capability_types, context.presentation.get('service_template', 'capability_types'))
+    normalize_types(context, context.modeling.relationship_types, context.presentation.get('service_template', 'relationship_types'), normalize_relationship_type)
+    normalize_types(context, context.modeling.policy_types, context.presentation.get('service_template', 'policy_types'), normalize_policy_type)
+    normalize_types(context, context.modeling.artifact_types, context.presentation.get('service_template', 'artifact_types'))
+    normalize_types(context, context.modeling.interface_types, context.presentation.get('service_template', 'interface_types'))
     
     topology_template = context.presentation.get('service_template', 'topology_template')
     if topology_template is not None:

@@ -28,10 +28,10 @@ This is the core ARIA API.
 
 .. automodule:: aria.consumption
 
-:mod:`aria.deployment`
-**********************
+:mod:`aria.modeling`
+********************
 
-.. automodule:: aria.deployment
+.. automodule:: aria.modeling
 
 :mod:`aria.loading`
 *******************

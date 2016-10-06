@@ -38,13 +38,13 @@ def install_aria_extensions():
 
 MODULES = (
     'consumption',
-    'deployment',
-    'execution',
     'loading',
+    'modeling',
     'presentation',
     'reading',
     'tools',
-    'utils')
+    'utils',
+    'validation')
 
 __all__ = (
     'MODULES',

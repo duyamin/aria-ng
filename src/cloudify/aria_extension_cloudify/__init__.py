@@ -18,7 +18,7 @@ from .v1_0 import CloudifyPresenter1_0
 from .v1_1 import CloudifyPresenter1_1
 from .v1_2 import CloudifyPresenter1_2
 from .v1_3 import CloudifyPresenter1_3
-from .classic_plan import ClassicPlan
+from .classic_modeling import ClassicDeploymentPlan
 from aria import DSL_SPECIFICATION_PACKAGES
 from aria.presentation import PRESENTER_CLASSES
 
@@ -30,6 +30,8 @@ def install_aria_extension():
     DSL_SPECIFICATION_PACKAGES.append('aria_extension_cloudify')
 
 MODULES = (
+    'classic_modeling',
+    'modeling',
     'v1_0',
     'v1_1',
     'v1_2',
@@ -38,4 +40,4 @@ MODULES = (
 __all__ = (
     'MODULES',
     'install_aria_extension',
-    'ClassicPlan')
+    'ClassicDeploymentPlan')

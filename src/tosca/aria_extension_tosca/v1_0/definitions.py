@@ -19,8 +19,8 @@ from .data_types import Range
 from .presentation.extensible import ExtensiblePresentation
 from .presentation.field_getters import data_type_class_getter
 from .presentation.field_validators import data_type_validator, data_value_validator, entry_schema_validator
-from .deployment.data_types import get_data_type, get_property_constraints
-from .deployment.interfaces import get_and_override_input_definitions_from_type, get_and_override_operation_definitions_from_type
+from .modeling.data_types import get_data_type, get_property_constraints
+from .modeling.interfaces import get_and_override_input_definitions_from_type, get_and_override_operation_definitions_from_type
 from aria import dsl_specification
 from aria.utils import ReadOnlyDict, cachedmethod
 from aria.presentation import has_fields, short_form_field, allow_unknown_fields, primitive_field, primitive_list_field, object_field, object_list_field, object_dict_field, object_dict_unknown_fields, field_validator, field_getter, type_validator, list_type_validator

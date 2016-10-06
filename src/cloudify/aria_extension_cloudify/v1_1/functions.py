@@ -16,7 +16,7 @@
 
 from ..v1_0.functions import parse_string_expression
 from aria import InvalidValueError, dsl_specification
-from aria.deployment import Function
+from aria.modeling import Function
 from aria.utils import ReadOnlyList, as_raw
 from cStringIO import StringIO
 

@@ -21,13 +21,13 @@ from .types import ArtifactType, DataType, CapabilityType, InterfaceType, Relati
 from .filters import NodeFilter
 from .presentation.extensible import ExtensiblePresentation
 from .presentation.field_validators import copy_validator, policy_targets_validator
-from .deployment.properties import get_assigned_and_defined_property_values, get_parameter_values
-from .deployment.interfaces import get_template_interfaces
-from .deployment.requirements import get_template_requirements
-from .deployment.capabilities import get_template_capabilities
-from .deployment.artifacts import get_inherited_artifact_definitions
-from .deployment.policies import get_policy_targets
-from .deployment.copy import get_default_raw_from_copy
+from .modeling.properties import get_assigned_and_defined_property_values, get_parameter_values
+from .modeling.interfaces import get_template_interfaces
+from .modeling.requirements import get_template_requirements
+from .modeling.capabilities import get_template_capabilities
+from .modeling.artifacts import get_inherited_artifact_definitions
+from .modeling.policies import get_policy_targets
+from .modeling.copy import get_default_raw_from_copy
 from aria import dsl_specification
 from aria.utils import ReadOnlyDict, ReadOnlyList, cachedmethod
 from aria.presentation import has_fields, primitive_field, primitive_list_field, object_field, object_list_field, object_dict_field, object_sequenced_list_field, field_validator, type_validator, list_type_validator

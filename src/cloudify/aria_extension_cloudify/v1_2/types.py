@@ -14,9 +14,9 @@
 # under the License.
 #
 
-from .deployment.data_types import coerce_data_type_value, validate_data_type_name
+from .modeling.data_types import coerce_data_type_value, validate_data_type_name
 from ..v1_0 import PropertyDefinition
-from ..v1_0.deployment.properties import get_inherited_property_definitions
+from ..v1_0.modeling.properties import get_inherited_property_definitions
 from aria import dsl_specification
 from aria.presentation import Presentation, has_fields, primitive_field, object_dict_field, field_validator, derived_from_validator
 from aria.utils import ReadOnlyDict, cachedmethod

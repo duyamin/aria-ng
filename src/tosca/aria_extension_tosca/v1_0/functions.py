@@ -16,7 +16,7 @@
 
 from aria import dsl_specification, InvalidValueError
 from aria.validation import Issue
-from aria.deployment import Function
+from aria.modeling import Function
 from aria.utils import ReadOnlyList, as_raw
 from cStringIO import StringIO
 

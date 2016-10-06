@@ -26,6 +26,10 @@ SCRIPT_RUNNER_RUN_OPERATION = 'script_runner.tasks.run'
 SCRIPT_RUNNER_EXECUTE_WORKFLOW_OPERATION = 'script_runner.tasks.execute_workflow'
 
 def plugins_to_install_for_operations(context, operations, agent):
+    """
+    Returns a list of all plugins referred to by the operations for the particular executor (agent).
+    """
+    
     plugin_names_to_install = []
     for operation in operations.itervalues():
         plugin_name, plugin_executor, _, _ = parse_implementation(context, operation.implementation)
@@ -36,6 +40,12 @@ def plugins_to_install_for_operations(context, operations, agent):
     return [_find_plugin(context, v) for v in plugin_names_to_install]
 
 def add_plugins_to_install_for_node_template(context, node_template, plugins_to_install, deployment_plugins_to_install):
+    """
+    Gathers plugins referred to by the operations of the template's and its relationships' source interfaces. This is done for the
+    central deployment agent, and if we are a compute node template also for the host agent. Also, if we are a compute node template,
+    then we will continue gathering following the path of contained-in relationships.
+    """
+    
     _add_plugins_to_install_for_interface(context, plugins_to_install, node_template.interfaces, HOST_AGENT)
     _add_plugins_to_install_for_interface(context, deployment_plugins_to_install, node_template.interfaces, CENTRAL_DEPLOYMENT_AGENT)
 
@@ -50,6 +60,13 @@ def add_plugins_to_install_for_node_template(context, node_template, plugins_to_
         add_plugins_to_install_for_node_template(context, t, plugins_to_install, deployment_plugins_to_install)
 
 def parse_implementation(context, implementation, is_workflow=False):
+    """
+    Parses an operation's :code:`implementation` string, differentiating between references Python plugin functions
+    (in the plugin-dot-function format) and relative paths to script files to be executed by the script runner plugins.
+    
+    Note that workflow operations use a special script runner plugin.
+    """
+    
     parsed = False
 
     if not implementation:
@@ -91,7 +108,7 @@ def parse_implementation(context, implementation, is_workflow=False):
 #
 
 def _find_plugin(context, name=None):
-    for plugin in context.deployment.plugins:
+    for plugin in context.modeling.plugins:
         if name is None:
             # The first one is fine
             return plugin

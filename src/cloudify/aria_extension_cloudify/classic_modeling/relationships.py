@@ -14,21 +14,13 @@
 # under the License.
 #
 
-from aria.deployment import Parameter, Function
+CONTAINED_IN_RELATIONSHIP_NAME = 'cloudify.relationships.contained_in'
 
-def has_intrinsic_functions(context, value):
-    if isinstance(value, Parameter):
-        value = value.value
+def is_contained_in(context, relationship_or_relationship_template):
+    """
+    Whether we are a contained-in relationship or relationship template.
+    """
 
-    if isinstance(value, Function):
-        return True
-    elif isinstance(value, dict):
-        for v in value.itervalues():
-            if has_intrinsic_functions(context, v):
-                return True
-    elif isinstance(value, list):
-        for v in value:
-            if has_intrinsic_functions(context, v):
-                return True
-    return False
-
+    if relationship_or_relationship_template is None:
+        return False
+    return context.modeling.relationship_types.is_descendant(CONTAINED_IN_RELATIONSHIP_NAME, relationship_or_relationship_template.type_name)

@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from ...deployment.node_templates import Scalable, get_node_template_scalable as _get_node_template_scalable
+from ...modeling.node_templates import Scalable, get_node_template_scalable as _get_node_template_scalable
 from aria.validation import Issue
 
 def get_node_template_scalable(context, presentation):

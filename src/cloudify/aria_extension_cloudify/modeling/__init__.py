@@ -14,24 +14,24 @@
 # under the License.
 #
 
-from aria.deployment import Type, RelationshipType, PolicyType, PolicyTriggerType, DeploymentTemplate, NodeTemplate, RelationshipTemplate, GroupTemplate, PolicyTemplate, GroupPolicy, GroupPolicyTrigger, Interface, Operation, Requirement, Parameter
+from aria.modeling import Type, RelationshipType, PolicyType, PolicyTriggerType, ServiceModel, NodeTemplate, RelationshipTemplate, GroupTemplate, PolicyTemplate, GroupPolicy, GroupPolicyTrigger, Interface, Operation, Requirement, Parameter
 
 POLICY_SCALING = 'cloudify.policies.scaling'
 
-def get_deployment_template(context):
-    r = DeploymentTemplate()
+def get_service_model(context):
+    r = ServiceModel()
     
     r.description = context.presentation.get('service_template', 'description', 'value')
 
-    normalize_types(context, context.deployment.node_types, context.presentation.get('service_template', 'node_types'))
-    normalize_types(context, context.deployment.relationship_types, context.presentation.get('service_template', 'relationships'), normalize_relationship_type)
-    normalize_types(context, context.deployment.policy_types, context.presentation.get('service_template', 'policy_types'), normalize_policy_type)
-    normalize_types(context, context.deployment.policy_trigger_types, context.presentation.get('service_template', 'policy_triggers'), normalize_policy_trigger_type)
+    normalize_types(context, context.modeling.node_types, context.presentation.get('service_template', 'node_types'))
+    normalize_types(context, context.modeling.relationship_types, context.presentation.get('service_template', 'relationships'), normalize_relationship_type)
+    normalize_types(context, context.modeling.policy_types, context.presentation.get('service_template', 'policy_types'), normalize_policy_type)
+    normalize_types(context, context.modeling.policy_trigger_types, context.presentation.get('service_template', 'policy_triggers'), normalize_policy_trigger_type)
     
     # Built-in types
     scaling = PolicyType(POLICY_SCALING)
     set_policy_scaling_properties(scaling)
-    context.deployment.policy_types.children.append(scaling)
+    context.modeling.policy_types.children.append(scaling)
     
     service_template = context.presentation.get('service_template')
     if service_template is not None:

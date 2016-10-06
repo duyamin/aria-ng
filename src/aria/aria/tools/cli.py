@@ -15,7 +15,7 @@
 #
 
 from .. import install_aria_extensions
-from ..consumption import ConsumerChain, Read, Validate, Template, Inputs, Plan
+from ..consumption import ConsumerChain, Read, Validate, Model, Inputs, Instance
 from ..utils import print_exception, import_fullname
 from .utils import CommonArgumentParser, create_context_from_namespace
 
@@ -23,7 +23,7 @@ class ArgumentParser(CommonArgumentParser):
     def __init__(self):
         super(ArgumentParser, self).__init__(description='CLI', prog='aria')
         self.add_argument('uri', help='URI or file path to profile')
-        self.add_argument('consumer', nargs='?', default='plan', help='consumer class name (full class path or short name)')
+        self.add_argument('consumer', nargs='?', default='instance', help='consumer class name (full class path or short name)')
 
 def main():
     try:
@@ -41,12 +41,12 @@ def main():
         dumper = None
         if consumer_class_name == 'presentation':
             dumper = consumer.consumers[0]
-        elif consumer_class_name == 'template':
-            consumer.append(Template)
-        elif consumer_class_name == 'plan':
-            consumer.append(Template, Inputs, Plan)
+        elif consumer_class_name == 'model':
+            consumer.append(Model)
+        elif consumer_class_name == 'instance':
+            consumer.append(Model, Inputs, Instance)
         else:
-            consumer.append(Template, Inputs, Plan)
+            consumer.append(Model, Inputs, Instance)
             consumer.append(import_fullname(consumer_class_name))
             
         if dumper is None:

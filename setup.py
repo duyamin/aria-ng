@@ -52,8 +52,8 @@ setup(
     packages=[
         'aria',
         'aria.consumption',
-        'aria.deployment',
         'aria.loading',
+        'aria.modeling',
         'aria.presentation',
         'aria.reading',
         'aria.tools',
@@ -61,7 +61,8 @@ setup(
         'aria.validation',
         'aria_extension_tosca',
         'aria_extension_tosca.v1_0',
-        'aria_extension_tosca.v1_0.utils'],
+        'aria_extension_tosca.v1_0.modeling',
+        'aria_extension_tosca.v1_0.presentation'],
 
     package_dir={
         'aria': 'src/aria/aria',

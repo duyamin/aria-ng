@@ -17,70 +17,70 @@
 from .elements import find_by_name, get_type_parent_name
 from .parameters import has_intrinsic_functions
 from .nodes import is_host, find_host_node_template, find_host_node
-from .groups import find_groups, iter_scaling_groups, remove_redundant_members
+from .groups import find_groups, iter_scaling_groups, prune_redundant_members
 from .plugins import plugins_to_install_for_operations, add_plugins_to_install_for_node_template, parse_implementation, CENTRAL_DEPLOYMENT_AGENT
 from .policies import SCALING_POLICY_NAME
 from aria.consumption import Consumer
 from aria.utils import as_raw, as_agnostic, merge, prune, json_dumps
 from collections import OrderedDict
 
-class ClassicPlan(Consumer):
+class ClassicDeploymentPlan(Consumer):
     """
-    Generates the classic deployment plan based on the standard deployment plan.
+    Generates the classic deployment plan based on the service instance.
     """
 
     def consume(self):
-        if self.context.deployment.plan is None:
+        if self.context.modeling.instance is None:
             self.context.validation.report('ClassicPlan consumer: missing deployment plan')
             return
 
         plugins = self.context.presentation.get('service_template', 'plugins')
         plugins = [convert_plugin(self.context, v) for v in plugins.itervalues()] if plugins is not None else []
-        setattr(self.context.deployment, 'plugins', plugins)
+        setattr(self.context.modeling, 'plugins', plugins)
 
-        classic_plan = convert_plan(self.context)
-        setattr(self.context.deployment, 'classic_plan_ordered', classic_plan) # ordered version
-        setattr(self.context.deployment, 'classic_plan', as_agnostic(classic_plan)) # agnostic version (does not maintain dict order)
+        deployment_plan = convert_instance(self.context)
+        setattr(self.context.modeling, 'classic_deployment_plan_ordered', deployment_plan) # ordered version
+        setattr(self.context.modeling, 'classic_deployment_plan', as_agnostic(deployment_plan)) # agnostic version (does not maintain dict order)
     
     def dump(self):
         indent = self.context.get_arg_value_int('indent', 2)
-        self.context.write(json_dumps(self.context.deployment.classic_plan, indent=indent))
+        self.context.write(json_dumps(self.context.modeling.classic_deployment_plan_ordered, indent=indent))
 
 #
 # Conversions
 #
 
-def convert_plan(context):
+def convert_instance(context):
     r = OrderedDict((
         # General
         ('version', convert_version(context)),
-        ('description', context.deployment.plan.description),
-        ('inputs', convert_properties(context, context.deployment.plan.inputs)),
-        ('outputs', convert_properties(context, context.deployment.plan.outputs)),
+        ('description', context.modeling.instance.description),
+        ('inputs', convert_properties(context, context.modeling.instance.inputs)),
+        ('outputs', convert_properties(context, context.modeling.instance.outputs)),
         ('workflows', OrderedDict(
-            (k, convert_workflow(context, v)) for k, v in context.deployment.plan.operations.iteritems())),
+            (k, convert_workflow(context, v)) for k, v in context.modeling.instance.operations.iteritems())),
         ('deployment_plugins_to_install', []),
-        ('workflow_plugins_to_install', plugins_to_install_for_operations(context, context.deployment.plan.operations, CENTRAL_DEPLOYMENT_AGENT)),
+        ('workflow_plugins_to_install', plugins_to_install_for_operations(context, context.modeling.instance.operations, CENTRAL_DEPLOYMENT_AGENT)),
 
         # Instances
-        ('node_instances', [convert_node(context, v) for v in context.deployment.plan.nodes.itervalues()]),
+        ('node_instances', [convert_node(context, v) for v in context.modeling.instance.nodes.itervalues()]),
 
         # Templates
-        ('nodes', [convert_node_template(context, v) for v in context.deployment.template.node_templates.itervalues()]),
+        ('nodes', [convert_node_template(context, v) for v in context.modeling.model.node_templates.itervalues()]),
         ('groups', OrderedDict(
-            (k, convert_group_template(context, v)) for k, v in context.deployment.template.group_templates.iteritems())),
+            (k, convert_group_template(context, v)) for k, v in context.modeling.model.group_templates.iteritems())),
         ('scaling_groups', OrderedDict(
             (k, convert_group_template(context, v, policy_template)) for k, v, policy_template in iter_scaling_groups(context))),
         ('policies', OrderedDict(
-            (k, convert_policy_template(context, v)) for k, v in context.deployment.template.policy_templates.iteritems())),
+            (k, convert_policy_template(context, v)) for k, v in context.modeling.model.policy_templates.iteritems())),
 
         # Types
         ('policy_types', OrderedDict(
-            (v.name, convert_policy_type(context, v)) for v in context.deployment.policy_types.iter_descendants() if v.name != SCALING_POLICY_NAME)),
+            (v.name, convert_policy_type(context, v)) for v in context.modeling.policy_types.iter_descendants() if v.name != SCALING_POLICY_NAME)),
         ('policy_triggers', OrderedDict(
-            (v.name, convert_policy_trigger_type(context, v)) for v in context.deployment.policy_trigger_types.iter_descendants())),
+            (v.name, convert_policy_trigger_type(context, v)) for v in context.modeling.policy_trigger_types.iter_descendants())),
         ('relationships', OrderedDict(
-            (v.name, convert_relationship_type(context, v)) for v in context.deployment.relationship_types.iter_descendants()))))
+            (v.name, convert_relationship_type(context, v)) for v in context.modeling.relationship_types.iter_descendants()))))
 
     # Aggregate deployment_plugins_to_install from nodes
     for node in r['nodes']:
@@ -106,6 +106,7 @@ def convert_plan(context):
 #
 
 def convert_version(context):
+    # The version number as a tuple of integers
     number = context.presentation.get('service_template', 'tosca_definitions_version')
     number = number[len('cloudify_dsl_'):]
     number = number.split('_')
@@ -149,18 +150,21 @@ def convert_workflow(context, operation):
 #
 
 def convert_node(context, node):
+    # Host
     host_node = find_host_node(context, node)
+    
+    # Groups
     groups = find_groups(context, node)
 
     return OrderedDict((
         ('id', node.id),
         ('name', node.template_name),
-        ('host_id', host_node.id if host_node is not None else None),
         ('relationships', [convert_relationship(context, v) for v in node.relationships]),
+        ('host_id', host_node.id if host_node is not None else None),
         ('scaling_groups', [OrderedDict((('name', group.template_name),)) for group in groups])))
 
 def convert_relationship(context, relationship):
-    target_node = context.deployment.plan.nodes.get(relationship.target_node_id)
+    target_node = context.modeling.instance.nodes.get(relationship.target_node_id)
     
     return OrderedDict((
         ('type', relationship.type_name), # template_name?
@@ -172,19 +176,24 @@ def convert_relationship(context, relationship):
 #
 
 def convert_node_template(context, node_template):
-    node_type = context.deployment.node_types.get_descendant(node_template.type_name)
+    node_type = context.modeling.node_types.get_descendant(node_template.type_name)
+    
+    # Host
     host_node_template = find_host_node_template(context, node_template)
     is_a_host = is_host(context, node_template)
     
+    # Count instances
     current_instances = 0
-    for node in context.deployment.plan.nodes.itervalues():
+    for node in context.modeling.instance.nodes.itervalues():
         if node.template_name == node_template.name:
             current_instances += 1
 
+    # Plugins to install
     plugins_to_install = [] if is_a_host else None
     deployment_plugins_to_install = []
     add_plugins_to_install_for_node_template(context, node_template, plugins_to_install, deployment_plugins_to_install)
     
+    # Relationships
     relationships = []
     for requirement in node_template.requirements:
         if requirement.relationship_template is not None:
@@ -194,35 +203,37 @@ def convert_node_template(context, node_template):
         ('name', node_template.name),
         ('id', node_template.name),
         ('type', node_type.name),
-        ('type_hierarchy', convert_type_hierarchy(context, node_type, context.deployment.node_types)),
+        ('type_hierarchy', convert_type_hierarchy(context, node_type, context.modeling.node_types)),
         ('properties', convert_properties(context, node_template.properties)),
-        ('operations', convert_operations(context, node_template.interfaces)),
-        ('relationships', relationships),
-        ('plugins', context.deployment.plugins),
-        ('deployment_plugins_to_install', deployment_plugins_to_install),
         ('capabilities', OrderedDict((
             ('scalable', OrderedDict((
                 ('properties', OrderedDict((
                     ('current_instances', current_instances),
                     ('default_instances', node_template.default_instances),
                     ('min_instances', node_template.min_instances),
-                    ('max_instances', node_template.max_instances if node_template.max_instances is not None else -1)))),))),)))))
+                    ('max_instances', node_template.max_instances if node_template.max_instances is not None else -1)))),))),))),
+        ('operations', convert_operations(context, node_template.interfaces)),
+        ('relationships', relationships),
+        ('host_id', host_node_template.name if host_node_template is not None else None),
+        ('plugins', context.modeling.plugins),
+        ('plugins_to_install', plugins_to_install),
+        ('deployment_plugins_to_install', deployment_plugins_to_install)))
     
-    if host_node_template is not None:
-        r['host_id'] = host_node_template.name
-    
-    if is_a_host:
-        r['plugins_to_install'] = plugins_to_install
+    # Prune some fields
+    if host_node_template is None:
+        del r['host_id']
+    if not is_a_host:
+        del r['plugins_to_install']
         
     return r
 
 def convert_relationship_template(context, requirement):
     relationship_template = requirement.relationship_template
-    relationship_type = context.deployment.relationship_types.get_descendant(relationship_template.type_name)
+    relationship_type = context.modeling.relationship_types.get_descendant(relationship_template.type_name)
 
     return OrderedDict((
         ('type', relationship_type.name),
-        ('type_hierarchy', convert_type_hierarchy(context, relationship_type, context.deployment.relationship_types)),
+        ('type_hierarchy', convert_type_hierarchy(context, relationship_type, context.modeling.relationship_types)),
         ('target_id', requirement.target_node_template_name),
         ('properties', convert_properties(context, relationship_template.properties)),
         ('source_interfaces', convert_interfaces(context, relationship_template.source_interfaces)),
@@ -231,10 +242,10 @@ def convert_relationship_template(context, requirement):
         ('target_operations', convert_operations(context, relationship_template.target_interfaces))))
 
 def convert_group_template(context, group_template, policy_template=None):
+    # Members
     node_members = set(group_template.member_node_template_names)
     group_members = set(group_template.member_group_template_names)
-    
-    remove_redundant_members(context, node_members, group_members)
+    prune_redundant_members(context, node_members, group_members)
 
     r = OrderedDict((
         ('members', list(node_members | group_members)),
@@ -279,12 +290,13 @@ def convert_policy_trigger_type(context, policy_trigger_type):
 def convert_relationship_type(context, relationship_type):
     r = OrderedDict((
         ('name', relationship_type.name),
-        ('derived_from', get_type_parent_name(relationship_type, context.deployment.relationship_types)),
-        ('type_hierarchy', convert_type_hierarchy(context, relationship_type, context.deployment.relationship_types)),
+        ('derived_from', get_type_parent_name(relationship_type, context.modeling.relationship_types)),
+        ('type_hierarchy', convert_type_hierarchy(context, relationship_type, context.modeling.relationship_types)),
         ('properties', convert_parameters(context, relationship_type.properties)),
         ('source_interfaces', convert_interfaces(context, relationship_type.source_interfaces)),
         ('target_interfaces', convert_interfaces(context, relationship_type.target_interfaces))))
     
+    # Prune some fields
     if r['derived_from'] is None:
         del r['derived_from']
     
@@ -333,6 +345,7 @@ def convert_interface_operation(context, operation):
 def convert_operations(context, interfaces):
     r = OrderedDict()
     
+    # We support both long-form (interface-dot-operation) and short-form (just the operation)
     duplicate_operation_names = set()
     for interface_name, interface in interfaces.iteritems():
         for operation_name, operation in interface.operations.iteritems():
@@ -366,6 +379,8 @@ def convert_inputs(context, inputs):
         (k, as_raw(v.value)) for k, v in inputs.iteritems()))
 
 def convert_type_hierarchy(context, the_type, hierarchy):
+    # List of types in sequence from ancestor to our type 
+    
     type_hierarchy = []
     while (the_type is not None) and (the_type.name is not None):
         type_hierarchy.insert(0, the_type.name)
