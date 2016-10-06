@@ -274,7 +274,7 @@ imports:"""
             return ex
 
     def get_node_by_name(self, plan, name):
-        return [x for x in plan.node_templates if x['name'] == name][0]
+        return [x for x in plan['nodes'] if x['name'] == name][0]
 
     @staticmethod
     def _sort_result_nodes(result_nodes, ordered_nodes_ids):

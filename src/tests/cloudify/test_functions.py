@@ -13,12 +13,9 @@
 #    * See the License for the specific language governing permissions and
 #    * limitations under the License.
 
-from testtools import ExpectedException
-
-from dsl_parser import exceptions
 from dsl_parser.tasks import prepare_deployment_plan
-from dsl_parser.tests.abstract_test_parser import AbstractTestParser
-from dsl_parser.tests.abstract_test_parser import timeout
+from framework.abstract_test_parser import AbstractTestParser
+from framework.abstract_test_parser import timeout
 
 
 class TestGetProperty(AbstractTestParser):
@@ -44,7 +41,8 @@ node_templates:
         properties:
             endpoint: { get_property: [ vm, ip ] }
 """
-        parsed = prepare_deployment_plan(self.parse(yaml))
+        v = self.parse(yaml)
+        parsed = prepare_deployment_plan(v)
         vm = self.get_node_by_name(parsed, 'vm')
         self.assertEqual('10.0.0.1', vm['properties']['ip_duplicate'])
         server = self.get_node_by_name(parsed, 'server')
@@ -101,14 +99,10 @@ node_templates:
         properties:
             a: { get_property: [SELF, notfound] }
 """
-        try:
-            self.parse(yaml)
-            self.fail()
-        except KeyError, e:
-            self.assertIn('Node template property', str(e))
-            self.assertIn("doesn't exist", str(e))
-            self.assertIn('vm.properties.notfound', str(e))
-            self.assertIn('vm.properties.a', str(e))
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["f"]
+        )
 
     def test_node_template_interfaces(self):
         yaml = """
@@ -199,14 +193,10 @@ node_templates:
                     inputs:
                         x: { get_property: [vm, notfound] }
 """
-        try:
-            self.parse(yaml)
-            self.fail()
-        except KeyError, e:
-            self.assertIn('Node template property', str(e))
-            self.assertIn("doesn't exist", str(e))
-            self.assertIn('vm.properties.notfound', str(e))
-            self.assertIn('vm.operations.interface.op.inputs.x', str(e))
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["f"]
+        )
 
     def test_node_template_capabilities(self):
         yaml = """
@@ -342,14 +332,10 @@ outputs:
     a:
         value: { get_property: [vm, a] }
 """
-        try:
-            self.parse(yaml)
-            self.fail()
-        except KeyError, e:
-            self.assertIn('Node template property', str(e))
-            self.assertIn("doesn't exist", str(e))
-            self.assertIn('vm.properties.a', str(e))
-            self.assertIn('outputs.a.value', str(e))
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["f"]
+        )
 
     def test_source_and_target_interfaces(self):
         yaml = """
@@ -468,12 +454,10 @@ node_templates:
             b: { get_property: [SELF, c] }
             c: { get_property: [SELF, a] }
 """
-        try:
-            prepare_deployment_plan(self.parse(yaml))
-            self.fail()
-        except RuntimeError, e:
-            self.assertIn('Circular get_property function call detected',
-                          str(e))
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["f"]
+        )
 
     @timeout(seconds=10)
     def test_circular_get_property_with_nesting(self):
@@ -490,12 +474,10 @@ node_templates:
             b: { get_property: [SELF, c] }
             c: [ { get_property: [SELF, b ] }, 2 ]
 """
-        try:
-            prepare_deployment_plan(self.parse(yaml))
-            self.fail()
-        except RuntimeError, e:
-            self.assertIn('Circular get_property function call detected',
-                          str(e))
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["f"]
+        )
 
     def test_recursive_get_property_in_outputs(self):
         yaml = """
@@ -546,12 +528,10 @@ outputs:
             a: 1
             b: { get_property: [vm, b] }
 """
-        try:
-            prepare_deployment_plan(self.parse(yaml))
-            self.fail()
-        except RuntimeError, e:
-            self.assertIn('Circular get_property function call detected',
-                          str(e))
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["f"]
+        )
 
     @timeout(seconds=10)
     def test_circular_self_get_property(self):
@@ -566,12 +546,10 @@ node_templates:
         properties:
             a: [ { get_property: [SELF, a ] } ]
 """
-        try:
-            prepare_deployment_plan(self.parse(yaml))
-            self.fail()
-        except RuntimeError, e:
-            self.assertIn('Circular get_property function call detected',
-                          str(e))
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["f"]
+        )
 
     def test_nested_property_path(self):
         yaml = """
@@ -643,13 +621,10 @@ node_templates:
             a:
                 a0: { get_property: [ SELF, a, notfound ] }
 """
-        try:
-            prepare_deployment_plan(self.parse(yaml))
-            self.fail()
-        except KeyError, e:
-            self.assertIn(
-                "Node template property 'vm.properties.a.notfound' "
-                "referenced from 'vm.properties.a.a0' doesn't exist.", str(e))
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["f"]
+        )
 
     def test_invalid_nested_property2(self):
         yaml = """
@@ -665,11 +640,10 @@ node_templates:
             a: [1,2,3]
             b: { get_property: [SELF, a, b] }
 """
-        try:
-            prepare_deployment_plan(self.parse(yaml))
-            self.fail()
-        except TypeError, e:
-            self.assertIn('is expected b to be an int but it is a str', str(e))
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["f"]
+        )
 
     def test_invalid_nested_property3(self):
         yaml = """
@@ -685,12 +659,10 @@ node_templates:
             a: [1,2,3]
             b: { get_property: [SELF, a, 10] }
 """
-        try:
-            prepare_deployment_plan(self.parse(yaml))
-            self.fail()
-        except IndexError, e:
-            self.assertIn('index is out of range. Got 10 but list size is 3',
-                          str(e))
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["f"]
+        )
 
     @timeout(seconds=10)
     def test_circular_nested_property_path(self):
@@ -709,13 +681,10 @@ node_templates:
             b:
                 b0: { get_property: [ SELF, a, a0 ] }
 """
-        try:
-            prepare_deployment_plan(self.parse(yaml))
-            self.fail()
-        except RuntimeError, e:
-            self.assertIn('Circular get_property function call detected: '
-                          'vm.b,b0 -> vm.a,a0 -> vm.b,b0',
-                          str(e))
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["f"]
+        )
 
     @timeout(seconds=10)
     def test_not_circular_nested_property_path(self):
@@ -756,12 +725,11 @@ outputs:
     a:
         value: { get_attribute: [i_do_not_exist, aaa] }
 """
-        try:
-            self.parse(yaml)
-            self.fail()
-        except KeyError, e:
-            self.assertIn("get_attribute function node reference "
-                          "'i_do_not_exist' does not exist.", str(e))
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["function \"get_attribute\" parameter 1 is not a "
+                            "valid modelable entity name: 'i_do_not_exist'"]
+        )
 
     def test_illegal_ref_in_node_template(self):
         def assert_with(ref):
@@ -784,13 +752,11 @@ node_templates:
                         a: { get_attribute: [""" + ref + """, aaa] }
 
 """
-            try:
-                self.parse(yaml)
-                self.fail()
-            except ValueError, e:
-                self.assertIn('{0} cannot be used with get_attribute function '
-                              'in vm.operations.test.op.inputs.a'
-                              .format(ref), str(e))
+            self.assert_parser_issue_messages(
+                dsl_string=yaml,
+                issue_messages=["function \"get_attribute\" parameter 1 "
+                                "can be \"{0}\" only in a relationship template".format(ref)]
+            )
         assert_with('SOURCE')
         assert_with('TARGET')
 
@@ -822,13 +788,10 @@ node_templates:
                             a: { get_attribute: [""" + ref + """, aaa] }
 
 """
-            try:
-                self.parse(yaml)
-                self.fail()
-            except ValueError, e:
-                self.assertIn('{0} cannot be used with get_attribute function '
-                              'in vm.relationship.test.op.inputs.a'
-                              .format(ref), str(e))
+            self.assert_parser_issue_messages(
+                dsl_string=yaml,
+                issue_messages=["f"]
+            )
         assert_with('SELF')
 
     def test_illegal_ref_in_outputs(self):
@@ -844,13 +807,17 @@ outputs:
     a:
         value: { get_attribute: [""" + ref + """, aaa] }
 """
-            try:
-                self.parse(yaml)
-                self.fail()
-            except ValueError, e:
-                self.assertIn('{0} cannot be used with get_attribute '
-                              'function in outputs.a.value'
-                              .format(ref), str(e))
+
+            expected_node_template_issue = " "
+            if ref == 'SELF':
+                expected_node_template_issue = " a node template or "
+
+            self.assert_parser_issue_messages(
+                dsl_string=yaml,
+                issue_messages=["function \"get_attribute\" parameter 1 "
+                                "can be \"{0}\" only in{1}a relationship "
+                                "template".format(ref, expected_node_template_issue)]
+            )
         assert_with('SELF')
         assert_with('SOURCE')
         assert_with('TARGET')
@@ -870,11 +837,11 @@ node_templates:
         properties:
             property: { concat: [1, 2] }
 """
-        with ExpectedException(exceptions.FunctionEvaluationError,
-                               '.*version 1_1 or greater.*'):
-            prepare_deployment_plan(self.parse(
-                yaml,
-                dsl_version=self.BASIC_VERSION_SECTION_DSL_1_0))
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["f"],
+            additional_parsing_arguments={'dsl_version': self.BASIC_VERSION_SECTION_DSL_1_0}
+        )
 
     def test_invalid_concat(self):
         yaml = """
@@ -888,8 +855,12 @@ node_templates:
         properties:
             property: { concat: 1 }
 """
-        with ExpectedException(ValueError, '.*Illegal.*concat.*'):
-            prepare_deployment_plan(self.parse_1_1(yaml))
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["function \"concat\" argument must "
+                            "be a list of string expressions: 1"],
+            parsing_method=self.parse_1_1
+        )
 
     def test_node_template_properties_simple(self):
         yaml = """
@@ -972,8 +943,11 @@ node_templates:
             }
             property2: value2
 """
-        with ExpectedException(RuntimeError, '.*Circular.*'):
-            prepare_deployment_plan(self.parse_1_1(yaml))
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=["f"],
+            parsing_method=self.parse_1_1
+        )
 
     def test_node_template_properties_with_recursive_concat(self):
         yaml = """
