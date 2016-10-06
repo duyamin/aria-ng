@@ -15,6 +15,7 @@
 #
 
 from aria.modeling import Type, RelationshipType, PolicyType, PolicyTriggerType, ServiceModel, NodeTemplate, RelationshipTemplate, GroupTemplate, PolicyTemplate, GroupPolicy, GroupPolicyTrigger, Interface, Operation, Requirement, Parameter
+from aria.validation import Issue
 
 POLICY_SCALING = 'cloudify.policies.scaling'
 
@@ -30,7 +31,7 @@ def get_service_model(context):
     
     # Built-in types
     scaling = PolicyType(POLICY_SCALING)
-    set_policy_scaling_properties(scaling)
+    set_policy_scaling_properties(context, scaling)
     context.modeling.policy_types.children.append(scaling)
     
     service_template = context.presentation.get('service_template')
@@ -202,7 +203,7 @@ def normalize_policy(context, policy):
     
     normalize_property_assignments(r.properties, policy.properties)
     if policy.type == POLICY_SCALING:
-        set_policy_scaling_properties(r)
+        set_policy_scaling_properties(context, r, policy)
     
     groups = policy._get_targets(context)
     for group in groups:
@@ -273,26 +274,73 @@ def normalize_interfaces(context, interfaces, source_interfaces, is_definition=F
             if interface is not None:
                 interfaces[interface_name] = interface
 
-def set_policy_scaling_properties(o):
-    if 'default_instances' in o.properties:
-        o.properties['default_instances'].type = 'int'
-    else:
-        o.properties['default_instances'] = Parameter('int', 1, 'The number of instances the groups referenced by this policy will have.') 
+def set_policy_scaling_properties(context, o, presentation=None):
+    def coerce(name):
+        value = o.properties[name].value
+        try:
+            o.properties[name].value = int(value)
+            if name == 'max_instances':
+                if o.properties[name].value < -1:
+                    context.validation.report('"%s" is not a positive integer, zero, or -1' % name, locator=presentation._get_child_locator(name), level=Issue.FIELD)
+                    return False
+            elif o.properties[name].value < 0:
+                context.validation.report('"%s" is not a positive integer or zero' % name, locator=presentation._get_child_locator(name), level=Issue.FIELD)
+                return False
+        except TypeError:
+            context.validation.report('"%s" is not a valid integer' % name, locator=presentation._get_child_locator(name), level=Issue.FIELD)
+            return False
+        return True
+    
+    def check_range(name):
+        value = o.properties[name].value
+        if value < o.properties['min_instances'].value:
+            context.validation.report('"%s" is lesser than "min_instances"' % name, locator=presentation._get_child_locator(name), level=Issue.BETWEEN_FIELDS)
+        elif (o.properties['max_instances'].value != -1) and (value > o.properties['max_instances'].value):
+            context.validation.report('"%s" is greater than "max_instances"' % name, locator=presentation._get_child_locator(name), level=Issue.BETWEEN_FIELDS)
+    
     if 'min_instances' in o.properties:
         o.properties['min_instances'].type = 'int'
     else:
-        o.properties['min_instances'] = Parameter('int', 0, 'The minimum number of allowed group instances.') 
+        o.properties['min_instances'] = Parameter('int', 0, 'The minimum number of allowed group instances.')
+    min_valid = coerce('min_instances')
+         
     if 'max_instances' in o.properties:
         o.properties['max_instances'].type = 'int'
         if o.properties['max_instances'].value == 'UNBOUNDED':
             o.properties['max_instances'].value = -1
     else:
-        o.properties['max_instances'] = Parameter('int', -1, 'The maximum number of allowed group instances.') 
+        o.properties['max_instances'] = Parameter('int', -1, 'The maximum number of allowed group instances.')
+    max_valid = coerce('max_instances')
+    
+    range_valid = min_valid and max_valid
+    if range_valid and (o.properties['max_instances'].value != -1) and (o.properties['max_instances'].value < o.properties['min_instances'].value):
+        context.validation.report('"max_instances" is lesser than "min_instances"', locator=presentation._get_child_locator('max_instances'), level=Issue.BETWEEN_FIELDS)
+        range_valid = False
+
+    if 'default_instances' in o.properties:
+        o.properties['default_instances'].type = 'int'
+    else:
+        o.properties['default_instances'] = Parameter('int', 1, 'The number of instances the groups referenced by this policy will have.')
+    coerce('default_instances')
+    if range_valid:
+        check_range('default_instances')
+
+    copied = False
     if 'planned_instances' in o.properties:
         o.properties['planned_instances'].type = 'int'
     else:
         o.properties['planned_instances'] = Parameter('int', o.properties['default_instances'].value, None)
+        copied = True
+    coerce('planned_instances')
+    if range_valid and not copied:
+        check_range('planned_instances')
+        
+    copied = False
     if 'current_instances' in o.properties:
         o.properties['current_instances'].type = 'int'
     else:
         o.properties['current_instances'] = Parameter('int', o.properties['default_instances'].value, None)
+        copied = True
+    coerce('current_instances')
+    if range_valid and not copied:
+        check_range('current_instances')
