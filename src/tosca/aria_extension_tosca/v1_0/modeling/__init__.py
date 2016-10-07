@@ -18,7 +18,7 @@ from ..data_types import coerce_value
 from aria.modeling import Type, RelationshipType, PolicyType, ServiceModel, NodeTemplate, RelationshipTemplate, CapabilityTemplate, GroupTemplate, PolicyTemplate, SubstitutionTemplate, MappingTemplate, Interface, Operation, Artifact, Requirement, Metadata, Parameter
 import re
 
-def get_service_model(context):
+def create_service_model(context):
     r = ServiceModel()
 
     r.description = context.presentation.get('service_template' ,'description', 'value')
@@ -35,33 +35,33 @@ def get_service_model(context):
                 rr.values[name] = value
         r.metadata = rr
 
-    normalize_types(context, context.modeling.node_types, context.presentation.get('service_template', 'node_types'))
-    normalize_types(context, context.modeling.group_types, context.presentation.get('service_template', 'group_types'))
-    normalize_types(context, context.modeling.capability_types, context.presentation.get('service_template', 'capability_types'))
-    normalize_types(context, context.modeling.relationship_types, context.presentation.get('service_template', 'relationship_types'), normalize_relationship_type)
-    normalize_types(context, context.modeling.policy_types, context.presentation.get('service_template', 'policy_types'), normalize_policy_type)
-    normalize_types(context, context.modeling.artifact_types, context.presentation.get('service_template', 'artifact_types'))
-    normalize_types(context, context.modeling.interface_types, context.presentation.get('service_template', 'interface_types'))
+    create_type_models(context, context.modeling.node_types, context.presentation.get('service_template', 'node_types'))
+    create_type_models(context, context.modeling.group_types, context.presentation.get('service_template', 'group_types'))
+    create_type_models(context, context.modeling.capability_types, context.presentation.get('service_template', 'capability_types'))
+    create_type_models(context, context.modeling.relationship_types, context.presentation.get('service_template', 'relationship_types'), create_relationship_type_model)
+    create_type_models(context, context.modeling.policy_types, context.presentation.get('service_template', 'policy_types'), create_policy_type_model)
+    create_type_models(context, context.modeling.artifact_types, context.presentation.get('service_template', 'artifact_types'))
+    create_type_models(context, context.modeling.interface_types, context.presentation.get('service_template', 'interface_types'))
     
     topology_template = context.presentation.get('service_template', 'topology_template')
     if topology_template is not None:
-        normalize_property_values(r.inputs, topology_template._get_input_values(context))
-        normalize_property_values(r.outputs, topology_template._get_output_values(context))
+        create_property_value_models(r.inputs, topology_template._get_input_values(context))
+        create_property_value_models(r.outputs, topology_template._get_output_values(context))
 
     node_templates = context.presentation.get('service_template', 'topology_template', 'node_templates')
     if node_templates:
         for node_template_name, node_template in node_templates.iteritems():
-            r.node_templates[node_template_name] = normalize_node_template(context, node_template)
+            r.node_templates[node_template_name] = create_node_template_model(context, node_template)
 
     groups = context.presentation.get('service_template', 'topology_template', 'groups')
     if groups:
         for group_name, group in groups.iteritems():
-            r.group_templates[group_name] = normalize_group(context, group)
+            r.group_templates[group_name] = create_group_model(context, group)
 
     policies = context.presentation.get('service_template', 'topology_template', 'policies')
     if policies:
         for policy_name, policy in policies.iteritems():
-            r.policy_templates[policy_name] = normalize_policy(context, policy)
+            r.policy_templates[policy_name] = create_policy_model(context, policy)
 
     substitution_mappings = context.presentation.get('service_template', 'topology_template', 'substitution_mappings')
     if substitution_mappings is not None:
@@ -78,32 +78,32 @@ def get_service_model(context):
 
     return r
 
-def normalize_node_template(context, node_template):
+def create_node_template_model(context, node_template):
     r = NodeTemplate(name=node_template._name, type_name=node_template.type)
 
-    normalize_property_values(r.properties, node_template._get_property_values(context))
-    normalize_interfaces(context, r.interfaces, node_template._get_interfaces(context))
+    create_property_value_models(r.properties, node_template._get_property_values(context))
+    create_interface_models(context, r.interfaces, node_template._get_interfaces(context))
 
     artifacts = node_template._get_artifacts(context)
     if artifacts:
         for artifact_name, artifact in artifacts.iteritems():
-            r.artifacts[artifact_name] = normalize_artifact(context, artifact)
+            r.artifacts[artifact_name] = create_artifact_model(context, artifact)
 
     requirements = node_template._get_requirements(context)
     if requirements:
         for _, requirement in requirements:
-            r.requirements.append(normalize_requirement(context, requirement))
+            r.requirements.append(create_requirement_model(context, requirement))
 
     capabilities = node_template._get_capabilities(context)
     if capabilities:
         for capability_name, capability in capabilities.iteritems():
-            r.capabilities[capability_name] = normalize_capability(context, capability)
+            r.capabilities[capability_name] = create_capability_model(context, capability)
 
-    normalize_node_filter(context, node_template.node_filter, r.target_node_template_constraints)
+    create_node_filter_constraint_lambdas(context, node_template.node_filter, r.target_node_template_constraints)
     
     return r
 
-def normalize_interface(context, interface):
+def create_interface_model(context, interface):
     the_type = interface._get_type(context)
     
     r = Interface(name=interface._name, type_name=the_type._name)
@@ -116,11 +116,11 @@ def normalize_interface(context, interface):
     operations = interface.operations
     if operations:
         for operation_name, operation in operations.iteritems():
-            r.operations[operation_name] = normalize_operation(context, operation)
+            r.operations[operation_name] = create_operation_model(context, operation)
     
     return r if r.operations else None
 
-def normalize_operation(context, operation):
+def create_operation_model(context, operation):
     r = Operation(name=operation._name)
 
     implementation = operation.implementation
@@ -137,7 +137,7 @@ def normalize_operation(context, operation):
     
     return r
 
-def normalize_artifact(context, artifact):
+def create_artifact_model(context, artifact):
     r = Artifact(name=artifact._name, type_name=artifact.type, source_path=artifact.file)
 
     r.target_path = artifact.deploy_path
@@ -150,11 +150,11 @@ def normalize_artifact(context, artifact):
             for k, v in credential.iteritems():
                 r.repository_credential[k] = v
 
-    normalize_property_values(r.properties, artifact._get_property_values(context))
+    create_property_value_models(r.properties, artifact._get_property_values(context))
     
     return r
 
-def normalize_requirement(context, requirement):
+def create_requirement_model(context, requirement):
     r = {'name': requirement._name}
 
     node, node_variant = requirement._get_node(context)
@@ -173,33 +173,33 @@ def normalize_requirement(context, requirement):
 
     r = Requirement(**r)
 
-    normalize_node_filter(context, requirement.node_filter, r.target_node_template_constraints)
+    create_node_filter_constraint_lambdas(context, requirement.node_filter, r.target_node_template_constraints)
 
     relationship = requirement.relationship
     if relationship is not None:
-        r.relationship_template = normalize_relationship(context, relationship)
+        r.relationship_template = create_relationship_model(context, relationship)
         
     return r
 
-def normalize_relationship_type(context, relationship_type):
+def create_relationship_type_model(context, relationship_type):
     return RelationshipType(relationship_type._name)
 
-def normalize_policy_type(context, policy_type):
+def create_policy_type_model(context, policy_type):
     return PolicyType(policy_type._name)
 
-def normalize_relationship(context, relationship):
+def create_relationship_model(context, relationship):
     relationship_type, relationship_type_variant = relationship._get_type(context)
     if relationship_type_variant == 'relationship_type':
         r = RelationshipTemplate(type_name=relationship_type._name)
     else:
         r = RelationshipTemplate(template_name=relationship_type._name)
 
-    normalize_properties(r.properties, relationship.properties)
-    normalize_interfaces(context, r.source_interfaces, relationship.interfaces)
+    create_property_models(r.properties, relationship.properties)
+    create_interface_models(context, r.source_interfaces, relationship.interfaces)
     
     return r
 
-def normalize_capability(context, capability):
+def create_capability_model(context, capability):
     capability_type = capability._get_type(context)
     r = CapabilityTemplate(name=capability._name, type_name=capability_type._name)
     
@@ -214,16 +214,16 @@ def normalize_capability(context, capability):
     if valid_source_types:
         r.valid_source_node_type_names = valid_source_types
 
-    normalize_properties(r.properties, capability.properties)
+    create_property_models(r.properties, capability.properties)
     
     return r
 
-def normalize_group(context, group):
+def create_group_model(context, group):
     group_type = group._get_type(context)
     r = GroupTemplate(name=group._name, type_name=group_type._name)
 
-    normalize_property_values(r.properties, group._get_property_values(context))
-    normalize_interfaces(context, r.interfaces, group._get_interfaces(context))
+    create_property_value_models(r.properties, group._get_property_values(context))
+    create_interface_models(context, r.interfaces, group._get_interfaces(context))
     
     members = group.members
     if members:
@@ -232,11 +232,11 @@ def normalize_group(context, group):
     
     return r
 
-def normalize_policy(context, policy):
+def create_policy_model(context, policy):
     policy_type = policy._get_type(context)
     r = PolicyTemplate(name=policy._name, type_name=policy_type._name)
 
-    normalize_property_values(r.properties, policy._get_property_values(context))
+    create_property_value_models(r.properties, policy._get_property_values(context))
     
     node_templates, groups = policy._get_targets(context)
     for node_template in node_templates:
@@ -250,7 +250,7 @@ def normalize_policy(context, policy):
 # Utils
 #
 
-def normalize_types(context, root, types, normalize=None):
+def create_type_models(context, root, types, normalize=None):
     if types is None:
         return
     
@@ -275,31 +275,31 @@ def normalize_types(context, root, types, normalize=None):
                     if container is not None:
                         container.children.append(r)
 
-def normalize_property_values(properties, source_properties):
+def create_property_value_models(properties, source_properties):
     if source_properties:
         for property_name, prop in source_properties.iteritems():
             properties[property_name] = Parameter(prop.type, prop.value, None) # TODO: description
 
-def normalize_properties(properties, source_properties):
+def create_property_models(properties, source_properties):
     if source_properties:
         for property_name, prop in source_properties.iteritems():
             properties[property_name] = Parameter(prop.value.type, prop.value.value, None) # TODO: description
 
-def normalize_interfaces(context, interfaces, source_interfaces):
+def create_interface_models(context, interfaces, source_interfaces):
     if source_interfaces:
         for interface_name, interface in source_interfaces.iteritems():
-            interface = normalize_interface(context, interface)
+            interface = create_interface_model(context, interface)
             if interface is not None:
                 interfaces[interface_name] = interface
 
-def normalize_node_filter(context, node_filter, node_type_constraints):
+def create_node_filter_constraint_lambdas(context, node_filter, node_type_constraints):
     if node_filter is None:
         return
     
     properties = node_filter.properties
     if properties is not None:
         for property_name, constraint_clause in properties:
-            fn = normalize_constraint_clause(context, node_filter, constraint_clause, property_name, None)
+            fn = create_constraint_clause_lambda(context, node_filter, constraint_clause, property_name, None)
             if fn is not None:
                 node_type_constraints.append(fn)
 
@@ -309,11 +309,11 @@ def normalize_node_filter(context, node_filter, node_type_constraints):
             properties = capability.properties
             if properties is not None:
                 for property_name, constraint_clause in properties:
-                    fn = normalize_constraint_clause(context, node_filter, constraint_clause, property_name, capability_name)
+                    fn = create_constraint_clause_lambda(context, node_filter, constraint_clause, property_name, capability_name)
                     if fn is not None:
                         node_type_constraints.append(fn)
 
-def normalize_constraint_clause(context, node_filter, constraint_clause, property_name, capability_name):
+def create_constraint_clause_lambda(context, node_filter, constraint_clause, property_name, capability_name):
     constraint_key = constraint_clause._raw.keys()[0]
     the_type = constraint_clause._get_type(context)
 

@@ -252,6 +252,7 @@ def convert_group_template(context, group_template, policy_template=None):
         ('policies', OrderedDict(
             (k, convert_group_policy(context, v)) for k, v in group_template.policies.iteritems()))))
 
+    # For scaling groups
     if policy_template is not None:
         r['properties'] = convert_properties(context, policy_template.properties)
 
@@ -379,7 +380,9 @@ def convert_inputs(context, inputs):
         (k, as_raw(v.value)) for k, v in inputs.iteritems()))
 
 def convert_type_hierarchy(context, the_type, hierarchy):
-    # List of types in sequence from ancestor to our type 
+    """
+    List of types in sequence from ancestor to our type.
+    """ 
     
     type_hierarchy = []
     while (the_type is not None) and (the_type.name is not None):

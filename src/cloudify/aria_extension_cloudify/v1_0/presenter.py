@@ -16,7 +16,7 @@
 
 from .templates import ServiceTemplate
 from .functions import GetInput, GetProperty, GetAttribute
-from ..modeling import get_service_model
+from ..modeling import create_service_model
 from aria.validation import Issue
 from aria.presentation import Presenter
 from aria.utils import EMPTY_READ_ONLY_LIST, cachedmethod
@@ -84,4 +84,4 @@ class CloudifyPresenter1_0(Presenter):
 
     @cachedmethod
     def _get_service_model(self, context):
-        return get_service_model(context)
+        return create_service_model(context)

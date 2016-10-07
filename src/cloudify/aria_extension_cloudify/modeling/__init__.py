@@ -19,58 +19,58 @@ from aria.validation import Issue
 
 POLICY_SCALING = 'cloudify.policies.scaling'
 
-def get_service_model(context):
+def create_service_model(context):
     r = ServiceModel()
     
     r.description = context.presentation.get('service_template', 'description', 'value')
 
-    normalize_types(context, context.modeling.node_types, context.presentation.get('service_template', 'node_types'))
-    normalize_types(context, context.modeling.relationship_types, context.presentation.get('service_template', 'relationships'), normalize_relationship_type)
-    normalize_types(context, context.modeling.policy_types, context.presentation.get('service_template', 'policy_types'), normalize_policy_type)
-    normalize_types(context, context.modeling.policy_trigger_types, context.presentation.get('service_template', 'policy_triggers'), normalize_policy_trigger_type)
+    create_type_models(context, context.modeling.node_types, context.presentation.get('service_template', 'node_types'))
+    create_type_models(context, context.modeling.relationship_types, context.presentation.get('service_template', 'relationships'), create_relationship_type_model)
+    create_type_models(context, context.modeling.policy_types, context.presentation.get('service_template', 'policy_types'), create_policy_type_model)
+    create_type_models(context, context.modeling.policy_trigger_types, context.presentation.get('service_template', 'policy_triggers'), create_policy_trigger_type_model)
     
     # Built-in types
     scaling = PolicyType(POLICY_SCALING)
-    set_scaling_policy_properties(context, scaling)
+    set_scaling_policy_property_models(context, scaling)
     context.modeling.policy_types.children.append(scaling)
     
     service_template = context.presentation.get('service_template')
     if service_template is not None:
-        normalize_property_values(r.inputs, service_template._get_input_values(context))
-        normalize_property_values(r.outputs, service_template._get_output_values(context))
+        create_property_value_models(r.inputs, service_template._get_input_values(context))
+        create_property_value_models(r.outputs, service_template._get_output_values(context))
     
     node_templates = context.presentation.get('service_template', 'node_templates')
     if node_templates:
         for node_template_name, node_template in node_templates.iteritems():
-            r.node_templates[node_template_name] = normalize_node_template(context, node_template)
+            r.node_templates[node_template_name] = create_node_template_model(context, node_template)
 
     groups = context.presentation.get('service_template', 'groups')
     if groups:
         for group_name, group in groups.iteritems():
-            r.group_templates[group_name] = normalize_group(context, group)
+            r.group_templates[group_name] = create_group_model(context, group)
 
     policies = context.presentation.get('service_template', 'policies')
     if policies:
         for policy_name, policy in policies.iteritems():
-            r.policy_templates[policy_name] = normalize_policy(context, policy)
+            r.policy_templates[policy_name] = create_policy_model(context, policy)
             
     workflows = context.presentation.get('service_template', 'workflows')
     if workflows:
         for workflow_name, workflow in workflows.iteritems():
-            r.operations[workflow_name] = normalize_workflow(context, workflow)
+            r.operations[workflow_name] = create_workflow_model(context, workflow)
 
     return r
 
-def normalize_node_template(context, node_template):
+def create_node_template_model(context, node_template):
     r = NodeTemplate(name=node_template._name, type_name=node_template.type)
     
-    normalize_property_values(r.properties, node_template._get_property_values(context))
-    normalize_interfaces(context, r.interfaces, node_template._get_interfaces(context))
+    create_property_value_models(r.properties, node_template._get_property_values(context))
+    create_interface_models(context, r.interfaces, node_template._get_interfaces(context))
     
     relationships = node_template.relationships
     if relationships:
         for relationship in relationships:
-            r.requirements.append(normalize_requirement(context, relationship))
+            r.requirements.append(create_requirement_model(context, relationship))
 
     if hasattr(node_template, '_get_scalable'):
         scalable = node_template._get_scalable(context)
@@ -82,17 +82,17 @@ def normalize_node_template(context, node_template):
 
     return r
 
-def normalize_interface(context, interface, is_definition=False):
+def create_interface_model(context, interface, is_definition=False):
     r = Interface(name=interface._name, type_name=None)
 
     operations = interface.operations
     if operations:
         for operation_name, operation in operations.iteritems():
-            r.operations[operation_name] = normalize_operation(context, operation, is_definition)
+            r.operations[operation_name] = create_operation_model(context, operation, is_definition)
     
     return r if r.operations else None
 
-def normalize_operation(context, operation, is_definition=False):
+def create_operation_model(context, operation, is_definition=False):
     r = Operation(name=operation._name)
 
     implementation = operation.implementation
@@ -118,49 +118,49 @@ def normalize_operation(context, operation, is_definition=False):
     
     return r
 
-def normalize_requirement(context, relationship):
+def create_requirement_model(context, relationship):
     r = Requirement(name=relationship._name, target_node_template_name=relationship.target)
     
-    r.relationship_template = normalize_relationship(context, relationship)
+    r.relationship_template = create_relationship_model(context, relationship)
     
     return r
 
-def normalize_relationship_type(context, relationship_type):
+def create_relationship_type_model(context, relationship_type):
     r = RelationshipType(relationship_type._name)
     
-    normalize_property_definitions(r.properties, relationship_type._get_properties(context))
-    normalize_interfaces(context, r.source_interfaces, relationship_type._get_source_interfaces(context), True)
-    normalize_interfaces(context, r.target_interfaces, relationship_type._get_target_interfaces(context), True)
+    create_property_definition_models(r.properties, relationship_type._get_properties(context))
+    create_interface_models(context, r.source_interfaces, relationship_type._get_source_interfaces(context), True)
+    create_interface_models(context, r.target_interfaces, relationship_type._get_target_interfaces(context), True)
     
     return r
 
-def normalize_policy_type(context, policy_type):
+def create_policy_type_model(context, policy_type):
     r = PolicyType(policy_type._name)
     
     r.implementation = policy_type.source
-    normalize_property_definitions(r.properties, policy_type._get_properties(context))
+    create_property_definition_models(r.properties, policy_type._get_properties(context))
     
     return r
 
-def normalize_policy_trigger_type(context, policy_trigger_type):
+def create_policy_trigger_type_model(context, policy_trigger_type):
     r = PolicyTriggerType(policy_trigger_type._name)
     
     r.implementation = policy_trigger_type.source
-    normalize_property_definitions(r.properties, policy_trigger_type._get_properties(context))
+    create_property_definition_models(r.properties, policy_trigger_type._get_properties(context))
     
     return r
 
-def normalize_relationship(context, relationship):
+def create_relationship_model(context, relationship):
     relationship_type = relationship._get_type(context)
     r = RelationshipTemplate(type_name=relationship_type._name)
 
-    normalize_property_values(r.properties, relationship._get_property_values(context))
-    normalize_interfaces(context, r.source_interfaces, relationship._get_source_interfaces(context))
-    normalize_interfaces(context, r.target_interfaces, relationship._get_target_interfaces(context))
+    create_property_value_models(r.properties, relationship._get_property_values(context))
+    create_interface_models(context, r.source_interfaces, relationship._get_source_interfaces(context))
+    create_interface_models(context, r.target_interfaces, relationship._get_target_interfaces(context))
     
     return r
 
-def normalize_group(context, group):
+def create_group_model(context, group):
     r = GroupTemplate(name=group._name)
 
     node_templates = context.presentation.get('service_template', 'node_templates') or {}
@@ -177,33 +177,33 @@ def normalize_group(context, group):
     policies = group.policies
     if policies:
         for policy_name, policy in policies.iteritems():
-            r.policies[policy_name] = normalize_group_policy(context, policy)
+            r.policies[policy_name] = create_group_model_policy(context, policy)
     
     return r
 
-def normalize_group_policy(context, policy):
+def create_group_model_policy(context, policy):
     r = GroupPolicy(name=policy._name, type_name=policy.type)
-    normalize_property_values(r.properties, policy._get_property_values(context))
+    create_property_value_models(r.properties, policy._get_property_values(context))
     
     triggers = policy.triggers
     if triggers:
         for trigger_name, trigger in triggers.iteritems():
-            r.triggers[trigger_name] = normalize_group_policy_trigger(context, trigger)
+            r.triggers[trigger_name] = create_group_policy_trigger_model(context, trigger)
     
     return r
 
-def normalize_group_policy_trigger(context, trigger):
+def create_group_policy_trigger_model(context, trigger):
     trigger_type = trigger._get_type(context)
     r = GroupPolicyTrigger(name=trigger._name, implementation=trigger_type.source)
-    normalize_property_values(r.properties, trigger._get_property_values(context))
+    create_property_value_models(r.properties, trigger._get_property_values(context))
     return r
 
-def normalize_policy(context, policy):
+def create_policy_model(context, policy):
     r = PolicyTemplate(name=policy._name, type_name=policy.type)
     
-    normalize_property_assignments(r.properties, policy.properties)
+    create_property_assignment_models(r.properties, policy.properties)
     if policy.type == POLICY_SCALING:
-        set_scaling_policy_properties(context, r, policy)
+        set_scaling_policy_property_models(context, r, policy)
     
     groups = policy._get_targets(context)
     for group in groups:
@@ -211,7 +211,7 @@ def normalize_policy(context, policy):
     
     return r
 
-def normalize_workflow(context, workflow):
+def create_workflow_model(context, workflow):
     r = Operation(name=workflow._name)
 
     r.implementation = workflow.mapping
@@ -227,7 +227,7 @@ def normalize_workflow(context, workflow):
 # Utils
 #
 
-def normalize_types(context, root, types, normalize=None):
+def create_type_models(context, root, types, normalize=None):
     if types is None:
         return
     
@@ -252,29 +252,29 @@ def normalize_types(context, root, types, normalize=None):
                     if container is not None:
                         container.children.append(r)
 
-def normalize_property_values(properties, source_properties):
+def create_property_value_models(properties, source_properties):
     if source_properties:
         for property_name, prop in source_properties.iteritems():
             properties[property_name] = Parameter(prop.type, prop.value, None) # TODO: description
 
-def normalize_property_assignments(properties, source_properties):
+def create_property_assignment_models(properties, source_properties):
     if source_properties:
         for property_name, prop in source_properties.iteritems():
             properties[property_name] = Parameter(None, prop.value, None) # TODO: description
 
-def normalize_property_definitions(properties, source_properties):
+def create_property_definition_models(properties, source_properties):
     if source_properties:
         for property_name, prop in source_properties.iteritems():
             properties[property_name] = Parameter(prop.type, prop.default, prop.description.value if prop.description is not None else None)
 
-def normalize_interfaces(context, interfaces, source_interfaces, is_definition=False):
+def create_interface_models(context, interfaces, source_interfaces, is_definition=False):
     if source_interfaces:
         for interface_name, interface in source_interfaces.iteritems():
-            interface = normalize_interface(context, interface, is_definition)
+            interface = create_interface_model(context, interface, is_definition)
             if interface is not None:
                 interfaces[interface_name] = interface
 
-def set_scaling_policy_properties(context, o, presentation=None):
+def set_scaling_policy_property_models(context, o, presentation=None):
     def set_value(name, default, description, is_check_range=False):
         if name in o.properties:
             o.properties[name].type = 'int'
