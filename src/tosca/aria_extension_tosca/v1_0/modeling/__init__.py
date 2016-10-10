@@ -133,7 +133,7 @@ def create_operation_model(context, operation):
     inputs = operation.inputs
     if inputs:
         for input_name, the_input in inputs.iteritems():
-            r.inputs[input_name] = Parameter(the_input.value.type, the_input.value.value, None) # TODO: description
+            r.inputs[input_name] = Parameter(the_input.value.type, the_input.value.value, the_input.value.description)
     
     return r
 
@@ -278,12 +278,12 @@ def create_type_models(context, root, types, normalize=None):
 def create_property_value_models(properties, source_properties):
     if source_properties:
         for property_name, prop in source_properties.iteritems():
-            properties[property_name] = Parameter(prop.type, prop.value, None) # TODO: description
+            properties[property_name] = Parameter(prop.type, prop.value, prop.description)
 
 def create_property_models(properties, source_properties):
     if source_properties:
         for property_name, prop in source_properties.iteritems():
-            properties[property_name] = Parameter(prop.value.type, prop.value.value, None) # TODO: description
+            properties[property_name] = Parameter(prop.value.type, prop.value.value, prop.value.description)
 
 def create_interface_models(context, interfaces, source_interfaces):
     if source_interfaces:

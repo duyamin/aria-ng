@@ -114,7 +114,7 @@ def create_operation_model(context, operation, is_definition=False):
             if is_definition:
                 r.inputs[input_name] = Parameter(the_input.type, the_input.default, the_input.description.value if the_input.description is not None else None)
             else:
-                r.inputs[input_name] = Parameter(the_input.value.type, the_input.value.value, None) # TODO: description
+                r.inputs[input_name] = Parameter(the_input.value.type, the_input.value.value, the_input.value.description)
     
     return r
 
@@ -255,12 +255,12 @@ def create_type_models(context, root, types, normalize=None):
 def create_property_value_models(properties, source_properties):
     if source_properties:
         for property_name, prop in source_properties.iteritems():
-            properties[property_name] = Parameter(prop.type, prop.value, None) # TODO: description
+            properties[property_name] = Parameter(prop.type, prop.value, prop.description)
 
 def create_property_assignment_models(properties, source_properties):
     if source_properties:
         for property_name, prop in source_properties.iteritems():
-            properties[property_name] = Parameter(None, prop.value, None) # TODO: description
+            properties[property_name] = Parameter(None, prop.value, None)
 
 def create_property_definition_models(properties, source_properties):
     if source_properties:

@@ -45,18 +45,11 @@ class GetInput(Function):
 
     @property
     def as_raw(self):
-        input_property_name = self.input_property_name
-        if hasattr(input_property_name, 'as_raw'):
-            input_property_name = as_raw(input_property_name)
-        return {'get_input': input_property_name}
+        return {'get_input': as_raw(self.input_property_name)}
     
     def _evaluate(self, context, container):
-        if not hasattr(self.context.modeling, 'classic_deployment_plan'):
-            raise CannotEvaluateFunction()
-        inputs = self.context.modeling.classic_deployment_plan['inputs']
-        if self.input_property_name not in inputs:
-            raise CannotEvaluateFunction()
-        return inputs[self.input_property_name]
+        the_input = context.modeling.model.inputs.get(self.input_property_name)
+        return the_input.value if the_input is not None else None
 
 @dsl_specification('intrinsic-functions-3', 'cloudify-1.0')
 @dsl_specification('intrinsic-functions-3', 'cloudify-1.1')

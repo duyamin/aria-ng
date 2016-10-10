@@ -23,9 +23,10 @@ class Value(object):
     Encapsulates a typed value assignment.
     """
     
-    def __init__(self, the_type, value):
+    def __init__(self, the_type, value, description):
         self.type = deepcopy_with_locators(the_type)
         self.value = deepcopy_with_locators(value)
+        self.description = deepcopy_with_locators(description)
 
 class PresentationBase(HasCachedMethods):
     """

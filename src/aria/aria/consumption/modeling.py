@@ -33,6 +33,14 @@ class Derive(Consumer):
 
         self.context.modeling.model = self.context.presentation.presenter._get_service_model(self.context)
 
+class CoerceModelValues(Consumer):
+    """
+    Coerces values in the service model.
+    """
+
+    def consume(self):
+        self.context.modeling.model.coerce_values(self.context, None, True)
+
 class ValidateModel(Consumer):
     """
     Validates the service model.
@@ -47,7 +55,7 @@ class Model(ConsumerChain):
     """
 
     def __init__(self, context):
-        super(Model, self).__init__(context, (Derive, ValidateModel))
+        super(Model, self).__init__(context, (Derive, CoerceModelValues, ValidateModel))
 
     def dump(self):
         if self.context.has_arg_switch('types'):
@@ -75,7 +83,7 @@ class Instantiate(Consumer):
 
         self.context.modeling.model.instantiate(self.context, None)
 
-class CoerceValues(Consumer):
+class CoerceInstanceValues(Consumer):
     """
     Coerces values in the service instance.
     """
@@ -113,7 +121,7 @@ class Instance(ConsumerChain):
     """
     
     def __init__(self, context):
-        super(Instance, self).__init__(context, (Instantiate, CoerceValues, ValidateInstance, CoerceValues, SatisfyRequirements, CoerceValues, ValidateCapabilities, CoerceValues))
+        super(Instance, self).__init__(context, (Instantiate, CoerceInstanceValues, ValidateInstance, CoerceInstanceValues, SatisfyRequirements, CoerceInstanceValues, ValidateCapabilities, CoerceInstanceValues))
 
     def dump(self):
         if self.context.has_arg_switch('graph'):

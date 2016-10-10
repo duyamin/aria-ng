@@ -116,7 +116,7 @@ def get_parameter_values(context, presentation, field_name):
                 elif hasattr(parameter, 'default') and (parameter.default is not None):
                     values[name] = coerce_property_value(context, presentation, parameter, parameter.default)
                 else:
-                    values[name] = Value(None, None)
+                    values[name] = Value(None, None, None)
     
     return values
 
@@ -177,7 +177,10 @@ def merge_property_definitions(context, presentation, property_definitions, our_
 def coerce_property_value(context, presentation, definition, value, aspect=None): # works on properties, inputs, and parameters
     the_type = definition._get_type(context) if hasattr(definition, '_get_type') else None
     value = coerce_value(context, presentation, the_type, value, aspect)
-    return Value(getattr(definition, 'type', None), value)
+    the_type = getattr(definition, 'type', None)
+    description = getattr(definition, 'description', None)
+    description = description.value if description is not None else None
+    return Value(the_type, value, description)
 
 def convert_property_definitions_to_values(context, presentation, definitions):
     values = OrderedDict()

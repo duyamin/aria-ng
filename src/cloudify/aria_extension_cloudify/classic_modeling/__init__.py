@@ -55,8 +55,8 @@ def convert_instance(context):
         # General
         ('version', convert_version(context)),
         ('description', context.modeling.instance.description),
-        ('inputs', convert_properties(context, context.modeling.instance.inputs)),
-        ('outputs', convert_properties(context, context.modeling.instance.outputs)),
+        ('inputs', convert_parameters(context, context.modeling.instance.inputs)),
+        ('outputs', convert_parameters(context, context.modeling.instance.outputs)),
         ('workflows', OrderedDict(
             (k, convert_workflow(context, v)) for k, v in context.modeling.instance.operations.iteritems())),
         ('deployment_plugins_to_install', []),

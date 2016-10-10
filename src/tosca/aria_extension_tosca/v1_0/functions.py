@@ -111,15 +111,11 @@ class GetInput(Function):
 
     @property
     def as_raw(self):
-        input_property_name = self.input_property_name
-        if hasattr(input_property_name, 'as_raw'):
-            input_property_name = as_raw(input_property_name)
-        return {'get_input': input_property_name}
+        return {'get_input': as_raw(self.input_property_name)}
     
     def _evaluate(self, context, container):
-        topology_template = context.presentation.get('service_template', 'topology_template')
-        inputs = topology_template._get_input_values(context) if topology_template is not None else None
-        return inputs.get(self.input_property_name) if inputs is not None else None
+        the_input = context.modeling.model.inputs.get(self.input_property_name)
+        return the_input.value if the_input is not None else None
 
 @dsl_specification('4.4.2', 'tosca-simple-profile-1.0')
 class GetProperty(Function):
