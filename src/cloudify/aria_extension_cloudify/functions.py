@@ -104,7 +104,7 @@ def get_node(classic_context, modelable_entity_name, function_name):
         except Exception as e:
             raise InvalidValueError('function "%s" refers to an unknown modelable entity: %s' % (function_name, repr(modelable_entity_name)), cause=e)
     
-    node_template = classic_context.get_node_template(node['name'])
+    node_template = classic_context.get_node_template(node['node_id'])
     
     return node, node_template
 

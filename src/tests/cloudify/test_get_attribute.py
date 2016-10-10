@@ -21,7 +21,7 @@ from dsl_parser import constants
 from dsl_parser import exceptions
 from dsl_parser import functions
 from dsl_parser.tasks import prepare_deployment_plan
-from dsl_parser.tests.abstract_test_parser import AbstractTestParser
+from framework.abstract_test_parser import AbstractTestParser
 
 
 class TestGetAttribute(AbstractTestParser):
@@ -77,7 +77,7 @@ node_templates:
 """
         parsed = prepare_deployment_plan(self.parse(yaml))
         webserver_node = None
-        for node in parsed.node_templates:
+        for node in parsed['nodes']:
             if node['id'] == 'webserver':
                 webserver_node = node
                 break
