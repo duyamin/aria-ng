@@ -16,7 +16,7 @@
 
 from .modeling.data_types import coerce_to_data_type_class, report_issue_for_bad_format, coerce_value
 from aria import dsl_specification
-from aria.utils import StrictDict
+from aria.utils import StrictDict, safe_repr
 from functools import total_ordering
 from datetime import datetime, tzinfo, timedelta
 from collections import OrderedDict
@@ -210,23 +210,23 @@ class Range(object):
 
     def __init__(self, entry_schema, constraints, value, aspect):
         if not isinstance(value, list):
-            raise ValueError('range value is not a list: %s' % repr(value))
+            raise ValueError('range value is not a list: %s' % safe_repr(value))
         if len(value) != 2:
-            raise ValueError('range value does not have exactly 2 elements: %s' % repr(value))
+            raise ValueError('range value does not have exactly 2 elements: %s' % safe_repr(value))
         
         try:
             value[0] = int(value[0])
         except ValueError:
-            raise ValueError('lower bound of range is not a valid integer: %s' % repr(value[0]))
+            raise ValueError('lower bound of range is not a valid integer: %s' % safe_repr(value[0]))
 
         if value[1] != 'UNBOUNDED':
             try:
                 value[1] = int(value[1])
             except ValueError:
-                raise ValueError('upper bound of range is not a valid integer or "UNBOUNDED": %s' % repr(value[0]))
+                raise ValueError('upper bound of range is not a valid integer or "UNBOUNDED": %s' % safe_repr(value[0]))
 
         if value[0] >= value[1]:
-            raise ValueError('upper bound of range is not greater than the lower bound: %s >= %s' % (repr(value[0]), repr(value[1])))
+            raise ValueError('upper bound of range is not greater than the lower bound: %s >= %s' % (safe_repr(value[0]), safe_repr(value[1])))
         
         self.value = value
     
@@ -253,7 +253,7 @@ class List(list):
     @staticmethod
     def _create(context, presentation, entry_schema, constraints, value, aspect):
         if not isinstance(value, list):
-            raise ValueError('"list" data type value is not a list: %s' % repr(value))
+            raise ValueError('"list" data type value is not a list: %s' % safe_repr(value))
 
         entry_schema_type = entry_schema._get_type(context)
         entry_schema_constraints = entry_schema.constraints
@@ -281,7 +281,7 @@ class Map(StrictDict):
     @staticmethod
     def _create(context, presentation, entry_schema, constraints, value, aspect):
         if not isinstance(value, dict):
-            raise ValueError('"map" data type value is not a dict: %s' % repr(value))
+            raise ValueError('"map" data type value is not a dict: %s' % safe_repr(value))
 
         if entry_schema is None:
             raise ValueError('"map" data type does not define "entry_schema"')

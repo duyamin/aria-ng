@@ -15,7 +15,7 @@
 #
 
 from aria import InvalidValueError
-from aria.utils import deepcopy_with_locators
+from aria.utils import deepcopy_with_locators, safe_repr
 
 class FunctionContext(object):
     def __init__(self, context, get_node_instances_method, get_node_instance_method, get_node_method):
@@ -33,7 +33,7 @@ class GetInput(object):
     def evaluate(self, context):
         inputs = self.context.modeling.classic_deployment_plan['inputs']
         if self.input_property_name not in inputs:
-            raise InvalidValueError('input does not exist for function "get_input": %s' % repr(self.input_property_name), locator=self.locator)
+            raise InvalidValueError('input does not exist for function "get_input": %s' % safe_repr(self.input_property_name), locator=self.locator)
         return deepcopy_with_locators(inputs[self.input_property_name])
 
 class GetProperty(object):
@@ -89,7 +89,7 @@ def get_node(classic_context, modelable_entity_name, function_name):
         try:
             return classic_context.get_node(node_id)
         except Exception as e:
-            raise InvalidValueError('function "%s" refers to an unknown node: %s' % (function_name, repr(node_id)), cause=e)
+            raise InvalidValueError('function "%s" refers to an unknown node: %s' % (function_name, safe_repr(node_id)), cause=e)
 
     if modelable_entity_name == 'SELF':
         node = get_node(classic_context.self_node_id)
@@ -102,7 +102,7 @@ def get_node(classic_context, modelable_entity_name, function_name):
             nodes = classic_context.get_nodes(modelable_entity_name)
             node = nodes[0]
         except Exception as e:
-            raise InvalidValueError('function "%s" refers to an unknown modelable entity: %s' % (function_name, repr(modelable_entity_name)), cause=e)
+            raise InvalidValueError('function "%s" refers to an unknown modelable entity: %s' % (function_name, safe_repr(modelable_entity_name)), cause=e)
     
     node_template = classic_context.get_node_template(node['node_id'])
     
@@ -113,7 +113,7 @@ def get_property(value, nested_property_name_or_index, function_name):
         try:
             value = value[name_or_index]
         except KeyError as e:
-            raise InvalidValueError('function "%s" refers to an unknown nested property name: %s' % (function_name, repr(name_or_index)), cause=e)
+            raise InvalidValueError('function "%s" refers to an unknown nested property name: %s' % (function_name, safe_repr(name_or_index)), cause=e)
         except IndexError as e:
-            raise InvalidValueError('function "%s" refers to an unknown nested index: %s' % (function_name, repr(name_or_index)), cause=e)
+            raise InvalidValueError('function "%s" refers to an unknown nested index: %s' % (function_name, safe_repr(name_or_index)), cause=e)
     return value

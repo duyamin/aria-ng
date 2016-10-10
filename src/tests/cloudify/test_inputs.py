@@ -88,7 +88,7 @@ node_templates:
         self.assert_parser_issue_messages(
             dsl_string=yaml,
             issue_messages=['function "get_input" argument is not a valid '
-                            'input name: OrderedDict()'])
+                            'input name: {}'])
         yaml = """
 inputs:
     port: {}

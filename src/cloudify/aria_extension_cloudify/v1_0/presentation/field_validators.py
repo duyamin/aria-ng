@@ -18,6 +18,7 @@ from ..modeling.data_types import get_primitive_data_type, get_container_data_ty
 from ..modeling.properties import coerce_value
 from aria.presentation import report_issue_for_unknown_type
 from aria.validation import Issue
+from aria.utils import safe_repr
 
 #
 # PropertyDefinition
@@ -39,7 +40,7 @@ def data_type_validator(field, presentation, context):
         # Test for circular definitions
         container_data_type = get_container_data_type(presentation)
         if (container_data_type is not None) and (container_data_type._name == value):
-            context.validation.report('type of property "%s" creates a circular value hierarchy: %s' % (presentation._fullname, repr(value)), locator=presentation._get_child_locator('type'), level=Issue.BETWEEN_TYPES)
+            context.validation.report('type of property "%s" creates a circular value hierarchy: %s' % (presentation._fullname, safe_repr(value)), locator=presentation._get_child_locator('type'), level=Issue.BETWEEN_TYPES)
         
         # Can be a complex data type
         if context.presentation.get_from_dict('service_template', 'data_types', value) is not None:

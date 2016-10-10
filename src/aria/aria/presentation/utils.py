@@ -15,6 +15,7 @@
 #
 
 from ..validation import Issue
+from ..utils import safe_repr
 
 def get_locator(*values):
     """
@@ -60,7 +61,7 @@ def validate_known_fields(presentation, context):
 def report_issue_for_unknown_type(context, presentation, type_name, field_name, value=None):
     if value is None:
         value = getattr(presentation, field_name)
-    context.validation.report('"%s" refers to an unknown %s in "%s": %s' % (field_name, type_name, presentation._fullname, repr(value)), locator=presentation._get_child_locator(field_name), level=Issue.BETWEEN_TYPES)
+    context.validation.report('"%s" refers to an unknown %s in "%s": %s' % (field_name, type_name, presentation._fullname, safe_repr(value)), locator=presentation._get_child_locator(field_name), level=Issue.BETWEEN_TYPES)
 
 def report_issue_for_parent_is_self(context, presentation, field_name):
     context.validation.report('parent type of "%s" is self' % presentation._fullname, locator=presentation._get_child_locator(field_name), level=Issue.BETWEEN_TYPES)

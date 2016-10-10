@@ -77,6 +77,13 @@ def safe_str(value):
     except UnicodeEncodeError:
         return unicode(value).encode('utf8')
 
+def safe_repr(value):
+    """
+    Like :code:`repr`, but calls :code:`as_raw` and :code:`as_agnostic` first.
+    """
+    
+    return repr(as_agnostic(as_raw(value)))
+
 def as_raw(value):
     """
     Converts values using their :code:`as_raw` property, if it exists, recursively.
@@ -99,12 +106,18 @@ def as_raw(value):
 
 def as_agnostic(value):
     """
-    Converts subclasses of list and dict to standard lists and dicts, recursively.
+    Converts subclasses of list and dict to standard lists and dicts, and Unicode strings
+    to non-Unicode if possible, recursively.
     
     Useful for creating human-readable output of structures.
     """
 
-    if isinstance(value, list):
+    if isinstance(value, unicode):
+        try:
+            value = str(value)
+        except UnicodeEncodeError:
+            pass
+    elif isinstance(value, list):
         value = list(value)
     elif isinstance(value, dict):
         value = dict(value)

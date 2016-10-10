@@ -16,7 +16,7 @@
 
 from ..functions import get_function
 from aria.validation import Issue
-from aria.utils import import_fullname, deepcopy_with_locators, full_type_name
+from aria.utils import import_fullname, deepcopy_with_locators, full_type_name, safe_repr
 
 #
 # PropertyDefinition
@@ -153,6 +153,6 @@ def report_issue_for_bad_format(context, presentation, the_type, value, aspect, 
         aspect = '"%s" aspect'  
     
     if aspect is not None:
-        context.validation.report('%s for field "%s" is not a valid "%s": %s' % (aspect, presentation._name or presentation._container._name, get_data_type_name(the_type), repr(value)), locator=presentation._locator, level=Issue.BETWEEN_FIELDS, exception=e)
+        context.validation.report('%s for field "%s" is not a valid "%s": %s' % (aspect, presentation._name or presentation._container._name, get_data_type_name(the_type), safe_repr(value)), locator=presentation._locator, level=Issue.BETWEEN_FIELDS, exception=e)
     else:
-        context.validation.report('field "%s" is not a valid "%s": %s' % (presentation._name or presentation._container._name, get_data_type_name(the_type), repr(value)), locator=presentation._locator, level=Issue.BETWEEN_FIELDS, exception=e)
+        context.validation.report('field "%s" is not a valid "%s": %s' % (presentation._name or presentation._container._name, get_data_type_name(the_type), safe_repr(value)), locator=presentation._locator, level=Issue.BETWEEN_FIELDS, exception=e)

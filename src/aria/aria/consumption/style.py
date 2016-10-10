@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from ..utils import as_raw, as_agnostic, colored, indent
+from ..utils import safe_repr, colored, indent
 
 class Style(object):
     def __init__(self, indentation=2):
@@ -37,9 +37,7 @@ class Style(object):
         return colored.magenta(value, bold=True)
 
     def literal(self, value):
-        value = as_raw(value)
-        value = as_agnostic(value)
-        return colored.yellow(repr(value), bold=True)
+        return colored.yellow(safe_repr(value), bold=True)
 
     def meta(self, value):
         return colored.green(value)

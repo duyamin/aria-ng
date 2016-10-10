@@ -17,7 +17,7 @@
 from ..v1_0.functions import parse_string_expression
 from aria import InvalidValueError, dsl_specification
 from aria.modeling import Function
-from aria.utils import ReadOnlyList, as_raw
+from aria.utils import ReadOnlyList, as_raw, safe_repr
 from cStringIO import StringIO
 
 @dsl_specification('intrinsic-functions-1', 'cloudify-1.1')
@@ -34,7 +34,7 @@ class Concat(Function):
         self.locator = presentation._locator
         
         if not isinstance(argument, list):
-            raise InvalidValueError('function "concat" argument must be a list of string expressions: %s' % repr(argument), locator=self.locator)
+            raise InvalidValueError('function "concat" argument must be a list of string expressions: %s' % safe_repr(argument), locator=self.locator)
         
         string_expressions = []
         for index in range(len(argument)):

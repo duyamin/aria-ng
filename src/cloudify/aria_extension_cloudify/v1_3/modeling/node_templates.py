@@ -16,6 +16,7 @@
 
 from ...modeling.node_templates import Scalable, get_node_template_scalable as _get_node_template_scalable
 from aria.validation import Issue
+from aria.utils import safe_repr
 
 def get_node_template_scalable(context, presentation):
     scalable = Scalable()
@@ -25,7 +26,7 @@ def get_node_template_scalable(context, presentation):
     if capabilities:
         for key in capabilities.iterkeys():
             if key != 'scalable':
-                context.validation.report('node template "%s" has unsupported capability: %s' % (presentation._fullname, repr(key)), locator=presentation._get_child_locator('capabilities', key), level=Issue.BETWEEN_FIELDS)
+                context.validation.report('node template "%s" has unsupported capability: %s' % (presentation._fullname, safe_repr(key)), locator=presentation._get_child_locator('capabilities', key), level=Issue.BETWEEN_FIELDS)
 
         capability = capabilities.get('scalable')
         if capability is not None:
@@ -33,7 +34,7 @@ def get_node_template_scalable(context, presentation):
             if properties:
                 for key in properties.iterkeys():
                     if key not in ('default_instances', 'min_instances', 'max_instances'):
-                        context.validation.report('"scalable" capability in node template "%s" has unsupported property: %s' % (presentation._fullname, repr(key)), locator=capability._get_child_locator('properties', key), level=Issue.BETWEEN_FIELDS)
+                        context.validation.report('"scalable" capability in node template "%s" has unsupported property: %s' % (presentation._fullname, safe_repr(key)), locator=capability._get_child_locator('properties', key), level=Issue.BETWEEN_FIELDS)
                 
                 default_instances = properties.get('default_instances')
                 scalable.default_instances = default_instances.value if default_instances is not None else 1

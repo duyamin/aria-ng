@@ -17,7 +17,7 @@
 from .null import NULL
 from ..exceptions import InvalidValueError, AriaError
 from ..validation import Issue
-from ..utils import ReadOnlyList, ReadOnlyDict, print_exception, deepcopy_with_locators, merge, cachedmethod, puts, as_raw, full_type_name
+from ..utils import ReadOnlyList, ReadOnlyDict, print_exception, deepcopy_with_locators, merge, cachedmethod, puts, as_raw, full_type_name, safe_repr
 from functools import wraps
 from types import MethodType
 from collections import OrderedDict
@@ -417,7 +417,7 @@ class Field(object):
         
         if self.allowed is not None:
             if value not in self.allowed:
-                raise InvalidValueError('%s is not %s' % (self.full_name, ' or '.join([repr(v) for v in self.allowed])), locator=self.get_locator(raw))
+                raise InvalidValueError('%s is not %s' % (self.full_name, ' or '.join([safe_repr(v) for v in self.allowed])), locator=self.get_locator(raw))
 
         # Handle get according to variant
 
@@ -435,7 +435,7 @@ class Field(object):
             try:
                 return self.cls(value)
             except ValueError:
-                raise InvalidValueError('%s is not a valid "%s": %s' % (self.full_name, self.full_cls_name, repr(value)), locator=self.get_locator(raw))
+                raise InvalidValueError('%s is not a valid "%s": %s' % (self.full_name, self.full_cls_name, safe_repr(value)), locator=self.get_locator(raw))
         return value
 
     def _dump_primitive(self, context, value):
@@ -445,7 +445,7 @@ class Field(object):
 
     def _get_primitive_list(self, presentation, raw, value):
         if not isinstance(value, list):
-            raise InvalidValueError('%s is not a list: %s' % (self.full_name, repr(value)), locator=self.get_locator(raw))
+            raise InvalidValueError('%s is not a list: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
         r = value
         if self.cls is not None:
             r = []
@@ -455,7 +455,7 @@ class Field(object):
                     try:
                         v = self.cls(v)
                     except ValueError:
-                        raise InvalidValueError('%s is not a list of "%s": element %d is %s' % (self.full_name, self.full_cls_name, i, repr(v)), locator=self.get_locator(raw))
+                        raise InvalidValueError('%s is not a list of "%s": element %d is %s' % (self.full_name, self.full_cls_name, i, safe_repr(v)), locator=self.get_locator(raw))
                 r.append(v)
         return ReadOnlyList(r)
 
@@ -469,7 +469,7 @@ class Field(object):
 
     def _get_primitive_dict(self, presentation, raw, value):
         if not isinstance(value, dict):
-            raise InvalidValueError('%s is not a dict: %s' % (self.full_name, repr(value)), locator=self.get_locator(raw))
+            raise InvalidValueError('%s is not a dict: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
         r = value
         if self.cls is not None:
             r = OrderedDict()
@@ -478,7 +478,7 @@ class Field(object):
                     try:
                         v = self.cls(v)
                     except ValueError:
-                        raise InvalidValueError('%s is not a dict of "%s" values: entry "%d" is %s' % (self.full_name, self.full_cls_name, k, repr(v)), locator=self.get_locator(raw))
+                        raise InvalidValueError('%s is not a dict of "%s" values: entry "%d" is %s' % (self.full_name, self.full_cls_name, k, safe_repr(v)), locator=self.get_locator(raw))
                 r[k] = v
         return ReadOnlyDict(r)
 
@@ -494,7 +494,7 @@ class Field(object):
         try:
             return self.cls(raw=value, container=presentation)
         except TypeError as e:
-            raise InvalidValueError('%s cannot not be initialized to an instance of "%s": %s' % (self.full_name, self.full_cls_name, repr(value)), cause=e, locator=self.get_locator(raw))
+            raise InvalidValueError('%s cannot not be initialized to an instance of "%s": %s' % (self.full_name, self.full_cls_name, safe_repr(value)), cause=e, locator=self.get_locator(raw))
 
     def _dump_object(self, context, value):
         puts('%s:' % self.name)
@@ -504,7 +504,7 @@ class Field(object):
 
     def _get_object_list(self, presentation, raw, value):
         if not isinstance(value, list):
-            raise InvalidValueError('%s is not a list: %s' % (self.full_name, repr(value)), locator=self.get_locator(raw))
+            raise InvalidValueError('%s is not a list: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
         return ReadOnlyList((self.cls(raw=v, container=presentation) for v in value))
 
     def _dump_object_list(self, context, value):
@@ -516,7 +516,7 @@ class Field(object):
 
     def _get_object_dict(self, presentation, raw, value):
         if not isinstance(value, dict):
-            raise InvalidValueError('%s is not a dict: %s' % (self.full_name, repr(value)), locator=self.get_locator(raw))
+            raise InvalidValueError('%s is not a dict: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
         return ReadOnlyDict(((k, self.cls(name=k, raw=v, container=presentation)) for k, v in value.iteritems()))
 
     def _dump_object_dict(self, context, value):
@@ -528,13 +528,13 @@ class Field(object):
 
     def _get_sequenced_object_list(self, presentation, raw, value):
         if not isinstance(value, list):
-            raise InvalidValueError('%s is not a sequenced list (a list of dicts, each with exactly one key): %s' % (self.full_name, repr(value)), locator=self.get_locator(raw))
+            raise InvalidValueError('%s is not a sequenced list (a list of dicts, each with exactly one key): %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
         sequence = []
         for v in value:
             if not isinstance(v, dict):
-                raise InvalidValueError('%s list elements are not all dicts with exactly one key: %s' % (self.full_name, repr(value)), locator=self.get_locator(raw))
+                raise InvalidValueError('%s list elements are not all dicts with exactly one key: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
             if len(v) != 1:
-                raise InvalidValueError('%s list elements do not all have exactly one key: %s' % (self.full_name, repr(value)), locator=self.get_locator(raw))
+                raise InvalidValueError('%s list elements do not all have exactly one key: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
             k, vv = v.items()[0]
             sequence.append((k, self.cls(name=k, raw=vv, container=presentation)))
         return ReadOnlyList(sequence)
@@ -556,7 +556,7 @@ class Field(object):
                             try:
                                 r[k] = self.cls(v)
                             except ValueError:
-                                raise InvalidValueError('%s is not a dict of "%s" values: entry "%d" is %s' % (self.full_name, self.full_cls_name, k, repr(v)), locator=self.get_locator(raw))
+                                raise InvalidValueError('%s is not a dict of "%s" values: entry "%d" is %s' % (self.full_name, self.full_cls_name, k, safe_repr(v)), locator=self.get_locator(raw))
             return ReadOnlyDict(r)
         return None
 

@@ -18,6 +18,7 @@ from ..modeling.data_types import get_primitive_data_type, get_data_type_name, c
 from aria import dsl_specification
 from aria.validation import Issue
 from aria.presentation import report_issue_for_unknown_type, derived_from_validator
+from aria.utils import safe_repr
 import re
 
 #
@@ -44,7 +45,7 @@ def copy_validator(template_type_name, templates_dict_name):
                 report_issue_for_unknown_type(context, presentation, template_type_name, field.name)
             else:
                 if copy.copy is not None:
-                    context.validation.report('"copy" field refers to a %s that itself is a copy in "%s": %s' % (template_type_name, presentation._fullname, repr(value)), locator=presentation._locator, level=Issue.BETWEEN_TYPES)
+                    context.validation.report('"copy" field refers to a %s that itself is a copy in "%s": %s' % (template_type_name, presentation._fullname, safe_repr(value)), locator=presentation._locator, level=Issue.BETWEEN_TYPES)
     
     return validator_fn     
 
@@ -69,7 +70,7 @@ def data_type_validator(type_name='data type'):
             # Test for circular definitions
             container_data_type = get_container_data_type(presentation)
             if (container_data_type is not None) and (container_data_type._name == value):
-                context.validation.report('type of property "%s" creates a circular value hierarchy: %s' % (presentation._fullname, repr(value)), locator=presentation._get_child_locator('type'), level=Issue.BETWEEN_TYPES)
+                context.validation.report('type of property "%s" creates a circular value hierarchy: %s' % (presentation._fullname, safe_repr(value)), locator=presentation._get_child_locator('type'), level=Issue.BETWEEN_TYPES)
     
             # Can be a complex data type
             data_types = context.presentation.get('service_template', 'data_types')
@@ -225,7 +226,7 @@ def constraint_clause_in_range_validator(field, presentation, context):
                 
                 # Second "in_range" value must be greater than first
                 if (lower is not None) and (upper is not None) and (lower >= upper):
-                    context.validation.report('upper bound of "in_range" constraint is not greater than the lower bound in "%s": %s <= %s' % (presentation._container._fullname, repr(lower), repr(upper)), locator=presentation._locator, level=Issue.FIELD)
+                    context.validation.report('upper bound of "in_range" constraint is not greater than the lower bound in "%s": %s <= %s' % (presentation._container._fullname, safe_repr(lower), safe_repr(upper)), locator=presentation._locator, level=Issue.FIELD)
         else:
             context.validation.report('constraint "%s" is not a list of exactly 2 elements in "%s"' % (field.name, presentation._fullname), locator=presentation._get_child_locator(field.name), level=Issue.FIELD)
 
@@ -308,9 +309,9 @@ def capability_definition_or_type_validator(field, presentation, context):
             return
         
         if node_variant == 'node_template':
-            context.validation.report('requirement "%s" refers to an unknown capability definition name or capability type in "%s": %s' % (presentation._name, presentation._container._fullname, repr(value)), locator=presentation._get_child_locator(field.name), level=Issue.BETWEEN_TYPES)
+            context.validation.report('requirement "%s" refers to an unknown capability definition name or capability type in "%s": %s' % (presentation._name, presentation._container._fullname, safe_repr(value)), locator=presentation._get_child_locator(field.name), level=Issue.BETWEEN_TYPES)
         else:
-            context.validation.report('requirement "%s" refers to an unknown capability type in "%s": %s' % (presentation._name, presentation._container._fullname, repr(value)), locator=presentation._get_child_locator(field.name), level=Issue.BETWEEN_TYPES)
+            context.validation.report('requirement "%s" refers to an unknown capability type in "%s": %s' % (presentation._name, presentation._container._fullname, safe_repr(value)), locator=presentation._get_child_locator(field.name), level=Issue.BETWEEN_TYPES)
 
 def node_filter_validator(field, presentation, context):
     """
@@ -411,7 +412,7 @@ def policy_targets_validator(field, presentation, context):
                             break
 
                 if not ok:
-                    context.validation.report('policy definition target does not match either a node type or a group type declared in the policy type in "%s": %s' % (presentation._name, repr(value)), locator=presentation._locator, level=Issue.BETWEEN_TYPES)
+                    context.validation.report('policy definition target does not match either a node type or a group type declared in the policy type in "%s": %s' % (presentation._name, safe_repr(value)), locator=presentation._locator, level=Issue.BETWEEN_TYPES)
 
 #
 # NodeFilter

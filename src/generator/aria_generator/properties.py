@@ -15,6 +15,7 @@
 #
 
 from aria.exceptions import InvalidValueError
+from aria.utils import safe_repr
 from functools import wraps
 from types import MethodType
 from collections import OrderedDict
@@ -39,7 +40,7 @@ class Prop(object):
             try:
                 return self.cls(value)
             except ValueError:
-                raise InvalidValueError('property must be coercible to %s: %s=%s' % (self.cls.__name__, self.name, repr(value)))
+                raise InvalidValueError('property must be coercible to %s: %s=%s' % (self.cls.__name__, self.name, safe_repr(value)))
 
         return value
 

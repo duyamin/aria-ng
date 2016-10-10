@@ -353,7 +353,7 @@ class Capability(Element):
 
     def validate(self, context):
         if context.modeling.capability_types.get_descendant(self.type_name) is None:
-            context.validation.report('capability "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)
+            context.validation.report('capability "%s" has an unknown type: %s' % (self.name, safe_repr(self.type_name)), level=Issue.BETWEEN_TYPES)
         
         validate_dict_values(context, self.properties)
 
@@ -414,7 +414,7 @@ class Relationship(Element):
     def validate(self, context):
         if self.type_name:
             if context.modeling.relationship_types.get_descendant(self.type_name) is None:
-                context.validation.report('relationship "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
+                context.validation.report('relationship "%s" has an unknown type: %s' % (self.name, safe_repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
         validate_dict_values(context, self.source_interfaces)
@@ -481,7 +481,7 @@ class Group(Element):
 
     def validate(self, context):
         if context.modeling.group_types.get_descendant(self.type_name) is None:
-            context.validation.report('group "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
+            context.validation.report('group "%s" has an unknown type: %s' % (self.name, safe_repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
         validate_dict_values(context, self.interfaces)
@@ -542,7 +542,7 @@ class Policy(Element):
 
     def validate(self, context):
         if context.modeling.policy_types.get_descendant(self.type_name) is None:
-            context.validation.report('policy "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
+            context.validation.report('policy "%s" has an unknown type: %s' % (self.name, safe_repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
 
@@ -626,7 +626,7 @@ class Substitution(Element):
 
     def validate(self, context):
         if context.modeling.node_types.get_descendant(self.node_type_name) is None:
-            context.validation.report('substitution "%s" has an unknown type: %s' % (self.name, repr(self.node_type_name)), level=Issue.BETWEEN_TYPES)        
+            context.validation.report('substitution "%s" has an unknown type: %s' % (self.name, safe_repr(self.node_type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.capabilities)
         validate_dict_values(context, self.requirements)

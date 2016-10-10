@@ -20,7 +20,7 @@ from .shared_elements import Element, ModelElement, Parameter, Interface, Operat
 from .instance_elements import ServiceInstance, Node, Capability, Relationship, Group, Policy, Mapping, Substitution
 from .utils import validate_dict_values, validate_list_values, coerce_dict_values, coerce_list_values, instantiate_dict, dump_list_values, dump_dict_values, dump_properties, dump_interfaces
 from ..validation import Issue
-from ..utils import StrictList, StrictDict, puts, as_raw
+from ..utils import StrictList, StrictDict, puts, safe_repr, as_raw
 from collections import OrderedDict
 from types import FunctionType
 
@@ -210,7 +210,7 @@ class NodeTemplate(ModelElement):
     
     def validate(self, context):
         if context.modeling.node_types.get_descendant(self.type_name) is None:
-            context.validation.report('node template "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)  
+            context.validation.report('node template "%s" has an unknown type: %s' % (self.name, safe_repr(self.type_name)), level=Issue.BETWEEN_TYPES)  
 
         validate_dict_values(context, self.properties)
         validate_dict_values(context, self.interfaces)
@@ -331,9 +331,9 @@ class Requirement(Element):
 
     def validate(self, context):
         if (self.target_node_type_name) and (context.modeling.node_types.get_descendant(self.target_node_type_name) is None):
-            context.validation.report('requirement "%s" refers to an unknown node type: %s' % (self.name, repr(self.target_node_type_name)), level=Issue.BETWEEN_TYPES)        
+            context.validation.report('requirement "%s" refers to an unknown node type: %s' % (self.name, safe_repr(self.target_node_type_name)), level=Issue.BETWEEN_TYPES)        
         if (self.target_capability_type_name) and (context.modeling.capability_types.get_descendant(self.target_capability_type_name) is None):
-            context.validation.report('requirement "%s" refers to an unknown capability type: %s' % (self.name, repr(self.target_capability_type_name)), level=Issue.BETWEEN_TYPES)        
+            context.validation.report('requirement "%s" refers to an unknown capability type: %s' % (self.name, safe_repr(self.target_capability_type_name)), level=Issue.BETWEEN_TYPES)        
 
         if self.relationship_template:
             self.relationship_template.validate(context)
@@ -430,7 +430,7 @@ class CapabilityTemplate(ModelElement):
 
     def validate(self, context):
         if context.modeling.capability_types.get_descendant(self.type_name) is None:
-            context.validation.report('capability "%s" refers to an unknown type: %s' % (self.name, repr(self.type)), level=Issue.BETWEEN_TYPES)        
+            context.validation.report('capability "%s" refers to an unknown type: %s' % (self.name, safe_repr(self.type)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
 
@@ -492,7 +492,7 @@ class RelationshipTemplate(ModelElement):
 
     def validate(self, context):
         if context.modeling.relationship_types.get_descendant(self.type_name) is None:
-            context.validation.report('relationship template "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
+            context.validation.report('relationship template "%s" has an unknown type: %s' % (self.name, safe_repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
         validate_dict_values(context, self.source_interfaces)
@@ -569,7 +569,7 @@ class GroupTemplate(ModelElement):
 
     def validate(self, context):
         if context.modeling.group_types.get_descendant(self.type_name) is None:
-            context.validation.report('group template "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
+            context.validation.report('group template "%s" has an unknown type: %s' % (self.name, safe_repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
         validate_dict_values(context, self.interfaces)
@@ -636,7 +636,7 @@ class PolicyTemplate(ModelElement):
 
     def validate(self, context):
         if context.modeling.policy_types.get_descendant(self.type_name) is None:
-            context.validation.report('policy template "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
+            context.validation.report('policy template "%s" has an unknown type: %s' % (self.name, safe_repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
 
@@ -692,7 +692,7 @@ class MappingTemplate(ModelElement):
 
     def validate(self, context):
         if self.node_template_name not in context.modeling.model.node_templates:
-            context.validation.report('mapping "%s" refers to an unknown node template: %s' % (self.mapped_name, repr(self.node_template_name)), level=Issue.BETWEEN_TYPES)        
+            context.validation.report('mapping "%s" refers to an unknown node template: %s' % (self.mapped_name, safe_repr(self.node_template_name)), level=Issue.BETWEEN_TYPES)        
 
     def dump(self, context):
         puts('%s -> %s.%s' % (context.style.node(self.mapped_name), context.style.node(self.node_template_name), context.style.node(self.name)))
@@ -731,7 +731,7 @@ class SubstitutionTemplate(ModelElement):
 
     def validate(self, context):
         if context.modeling.node_types.get_descendant(self.node_type_name) is None:
-            context.validation.report('substitution template has an unknown type: %s' % repr(self.node_type_name), level=Issue.BETWEEN_TYPES)        
+            context.validation.report('substitution template has an unknown type: %s' % safe_repr(self.node_type_name), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.capabilities)
         validate_dict_values(context, self.requirements)

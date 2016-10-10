@@ -15,6 +15,7 @@
 #
 
 from aria.validation import Issue
+from aria.utils import safe_repr
 
 def validate_subtitution_mappings_requirement(context, presentation):
     if not validate_format(context, presentation, 'requirement'):
@@ -47,7 +48,7 @@ def validate_subtitution_mappings_requirement(context, presentation):
             break
         
     if requirement is None:
-        context.validation.report('substitution mappings requirement "%s" refers to an unknown requirement of node template "%s": %s' % (presentation._name, node_template._name, repr(requirement_name)), locator=presentation._locator, level=Issue.BETWEEN_TYPES)
+        context.validation.report('substitution mappings requirement "%s" refers to an unknown requirement of node template "%s": %s' % (presentation._name, node_template._name, safe_repr(requirement_name)), locator=presentation._locator, level=Issue.BETWEEN_TYPES)
         return
 
 def validate_subtitution_mappings_capability(context, presentation):
@@ -73,7 +74,7 @@ def validate_subtitution_mappings_capability(context, presentation):
     capability = capabilities.get(capability_name)
     
     if capability is None:
-        context.validation.report('substitution mappings capability "%s" refers to an unknown capability of node template "%s": %s' % (presentation._name, node_template._name, repr(capability_name)), locator=presentation._locator, level=Issue.BETWEEN_TYPES)
+        context.validation.report('substitution mappings capability "%s" refers to an unknown capability of node template "%s": %s' % (presentation._name, node_template._name, safe_repr(capability_name)), locator=presentation._locator, level=Issue.BETWEEN_TYPES)
         return
     
     type_capability_type = type_capability._get_type(context)
@@ -88,7 +89,7 @@ def validate_subtitution_mappings_capability(context, presentation):
 
 def validate_format(context, presentation, name):
     if (not isinstance(presentation._raw, list)) or (len(presentation._raw) != 2) or (not isinstance(presentation._raw[0], basestring)) or (not isinstance(presentation._raw[1], basestring)):
-        context.validation.report('substitution mappings %s "%s" is not a list of 2 strings: %s' % (name, presentation._name, repr(presentation._raw)), locator=presentation._locator, level=Issue.FIELD)
+        context.validation.report('substitution mappings %s "%s" is not a list of 2 strings: %s' % (name, presentation._name, safe_repr(presentation._raw)), locator=presentation._locator, level=Issue.FIELD)
         return False
     return True
 
@@ -96,5 +97,5 @@ def get_node_template(context, presentation, name):
     node_template_name = presentation._raw[0]
     node_template = context.presentation.get_from_dict('service_template', 'topology_template', 'node_templates', node_template_name)
     if node_template is None:
-        context.validation.report('substitution mappings %s "%s" refers to an unknown node template: %s' % (name, presentation._name, repr(node_template_name)), locator=presentation._locator, level=Issue.FIELD)
+        context.validation.report('substitution mappings %s "%s" refers to an unknown node template: %s' % (name, presentation._name, safe_repr(node_template_name)), locator=presentation._locator, level=Issue.FIELD)
     return node_template

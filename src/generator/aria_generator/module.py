@@ -16,6 +16,7 @@
 
 from .cls import CodeClass
 from .writer import Writer, create_header
+from aria.utils import safe_repr
 from collections import OrderedDict
 import os
 
@@ -140,5 +141,5 @@ class CodeModule(object):
             if self.children:
                 all_value = [m.name for m in self.children.itervalues()]
                 all_value += [c.name for c in self.classes.itervalues()]
-                w.write('__all__ = %s' % repr(all_value))
+                w.write('__all__ = %s' % safe_repr(all_value))
             return str(w)

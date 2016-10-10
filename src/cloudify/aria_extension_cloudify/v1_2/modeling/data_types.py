@@ -17,6 +17,7 @@
 from ...v1_0.modeling.data_types import coerce_value, get_primitive_data_type
 from aria.validation import Issue
 from aria.presentation import get_locator
+from aria.utils import safe_repr
 from collections import OrderedDict
 
 #
@@ -69,4 +70,4 @@ def validate_data_type_name(context, presentation):
     
     name = presentation._name
     if get_primitive_data_type(name) is not None:
-        context.validation.report('data type name is that of a built-in type: %s' % repr(name), locator=presentation._locator, level=Issue.BETWEEN_TYPES)
+        context.validation.report('data type name is that of a built-in type: %s' % safe_repr(name), locator=presentation._locator, level=Issue.BETWEEN_TYPES)

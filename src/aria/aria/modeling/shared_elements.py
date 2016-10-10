@@ -17,7 +17,7 @@
 from .utils import validate_dict_values, instantiate_dict, coerce_value, coerce_dict_values, dump_dict_values, dump_properties
 from .. import UnimplementedFunctionalityError
 from ..validation import Issue
-from ..utils import StrictList, StrictDict, as_agnostic, full_type_name, deepcopy_with_locators, puts, as_raw
+from ..utils import StrictList, StrictDict, as_agnostic, full_type_name, deepcopy_with_locators, puts, as_raw, safe_repr
 from collections import OrderedDict
 
 class Function(object):
@@ -165,7 +165,7 @@ class Interface(ModelElement):
     def validate(self, context):
         if self.type_name:
             if context.modeling.interface_types.get_descendant(self.type_name) is None:
-                context.validation.report('interface "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
+                context.validation.report('interface "%s" has an unknown type: %s' % (self.name, safe_repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.inputs)
         validate_dict_values(context, self.operations)
@@ -306,7 +306,7 @@ class Artifact(ModelElement):
 
     def validate(self, context):
         if context.modeling.artifact_types.get_descendant(self.type_name) is None:
-            context.validation.report('artifact "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
+            context.validation.report('artifact "%s" has an unknown type: %s' % (self.name, safe_repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
 
@@ -367,7 +367,7 @@ class GroupPolicy(ModelElement):
 
     def validate(self, context):
         if context.modeling.policy_types.get_descendant(self.type_name) is None:
-            context.validation.report('group policy "%s" has an unknown type: %s' % (self.name, repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
+            context.validation.report('group policy "%s" has an unknown type: %s' % (self.name, safe_repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
         validate_dict_values(context, self.triggers)

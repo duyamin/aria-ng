@@ -15,8 +15,8 @@
 #
 
 from .presentation import Presentation
-from ..utils import merge
 from ..validation import Issue 
+from ..utils import merge, safe_repr
 
 class Presenter(Presentation):
     """
@@ -32,7 +32,7 @@ class Presenter(Presentation):
 
     def _validate_import(self, context, presentation):
         if (presentation.service_template.tosca_definitions_version is not None) and (presentation.service_template.tosca_definitions_version not in self.__class__.ALLOWED_IMPORTED_DSL_VERSIONS):
-            context.validation.report('import "tosca_definitions_version" is not one of %s: %s' % (' or '.join([repr(v) for v in self.__class__.ALLOWED_IMPORTED_DSL_VERSIONS]), presentation.service_template.tosca_definitions_version), locator=presentation._get_child_locator('inputs'), level=Issue.BETWEEN_TYPES)
+            context.validation.report('import "tosca_definitions_version" is not one of %s: %s' % (' or '.join([safe_repr(v) for v in self.__class__.ALLOWED_IMPORTED_DSL_VERSIONS]), presentation.service_template.tosca_definitions_version), locator=presentation._get_child_locator('inputs'), level=Issue.BETWEEN_TYPES)
             return False
         return True
 

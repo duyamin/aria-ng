@@ -17,7 +17,7 @@
 from aria import dsl_specification, InvalidValueError
 from aria.validation import Issue
 from aria.modeling import Function
-from aria.utils import ReadOnlyList, as_raw
+from aria.utils import ReadOnlyList, as_raw, safe_repr
 from cStringIO import StringIO
 
 #
@@ -34,7 +34,7 @@ class Concat(Function):
         self.locator = presentation._locator
         
         if not isinstance(argument, list):
-            raise InvalidValueError('function "concat" argument must be a list of string expressions: %s' % repr(argument), locator=self.locator)
+            raise InvalidValueError('function "concat" argument must be a list of string expressions: %s' % safe_repr(argument), locator=self.locator)
         
         string_expressions = []
         for index in range(len(argument)):
@@ -68,7 +68,7 @@ class Token(Function):
         self.locator = presentation._locator
         
         if (not isinstance(argument, list)) or (len(argument) != 3):
-            raise InvalidValueError('function "token" argument must be a list of 3 parameters: %s' % repr(argument), locator=self.locator)
+            raise InvalidValueError('function "token" argument must be a list of 3 parameters: %s' % safe_repr(argument), locator=self.locator)
         
         self.string_with_tokens = parse_string_expression(context, presentation, 'token', 0, 'the string to tokenize', argument[0])
         self.string_of_token_chars = parse_string_expression(context, presentation, 'token', 1, 'the token separator characters', argument[1])
@@ -107,7 +107,7 @@ class GetInput(Function):
         if isinstance(self.input_property_name, basestring):
             inputs = context.presentation.get('service_template', 'topology_template', 'inputs')
             if (inputs is None) or (self.input_property_name not in inputs):
-                raise InvalidValueError('function "get_input" argument is not a valid input name: %s' % repr(argument), locator=self.locator)
+                raise InvalidValueError('function "get_input" argument is not a valid input name: %s' % safe_repr(argument), locator=self.locator)
 
     @property
     def as_raw(self):
@@ -127,7 +127,7 @@ class GetProperty(Function):
         self.locator = presentation._locator
         
         if (not isinstance(argument, list)) or (len(argument) < 2):
-            raise InvalidValueError('function "get_property" argument must be a list of at least 2 string expressions: %s' % repr(argument), locator=self.locator)
+            raise InvalidValueError('function "get_property" argument must be a list of at least 2 string expressions: %s' % safe_repr(argument), locator=self.locator)
 
         self.modelable_entity_name = parse_modelable_entity_name(context, presentation, 'get_property', 0, argument[0])
         self.nested_property_name_or_index = argument[1:] # the first of these will be tried as a req-or-cap name
@@ -184,7 +184,7 @@ class GetAttribute(Function):
         self.locator = presentation._locator
         
         if (not isinstance(argument, list)) or (len(argument) < 2):
-            raise InvalidValueError('function "get_attribute" argument must be a list of at least 2 string expressions: %s' % repr(argument), locator=self.locator)
+            raise InvalidValueError('function "get_attribute" argument must be a list of at least 2 string expressions: %s' % safe_repr(argument), locator=self.locator)
 
         self.modelable_entity_name = parse_modelable_entity_name(context, presentation, 'get_attribute', 0, argument[0])
         self.nested_property_name_or_index = argument[1:] # the first of these will be tried as a req-or-cap name
@@ -207,7 +207,7 @@ class GetOperationOutput(Function):
         self.locator = presentation._locator
 
         if (not isinstance(argument, list)) or (len(argument) != 4):
-            raise InvalidValueError('function "get_operation_output" argument must be a list of 4 parameters: %s' % repr(argument), locator=self.locator)
+            raise InvalidValueError('function "get_operation_output" argument must be a list of 4 parameters: %s' % safe_repr(argument), locator=self.locator)
 
         self.modelable_entity_name = parse_string_expression(context, presentation, 'get_operation_output', 0, 'modelable entity name', argument[0])
         self.interface_name = parse_string_expression(context, presentation, 'get_operation_output', 1, 'the interface name', argument[1])
@@ -245,7 +245,7 @@ class GetNodesOfType(Function):
         if isinstance(self.node_type_name, basestring):
             node_types = context.presentation.get('service_template', 'node_types')
             if (node_types is None) or (self.node_type_name not in node_types):
-                raise InvalidValueError('function "get_nodes_of_type" argument is not a valid node type name: %s' % repr(argument), locator=self.locator)
+                raise InvalidValueError('function "get_nodes_of_type" argument is not a valid node type name: %s' % safe_repr(argument), locator=self.locator)
 
     @property
     def as_raw(self):
@@ -271,7 +271,7 @@ class GetArtifact(Function):
         self.locator = presentation._locator
 
         if (not isinstance(argument, list)) or (len(argument) < 2) or (len(argument) > 4):
-            raise InvalidValueError('function "get_artifact" argument must be a list of 2 to 4 parameters: %s' % repr(argument), locator=self.locator)
+            raise InvalidValueError('function "get_artifact" argument must be a list of 2 to 4 parameters: %s' % safe_repr(argument), locator=self.locator)
 
         self.modelable_entity_name = parse_string_expression(context, presentation, 'get_artifact', 0, 'modelable entity name', argument[0])
         self.artifact_name = parse_string_expression(context, presentation, 'get_artifact', 1, 'the artifact name', argument[1])
@@ -343,7 +343,7 @@ def parse_modelable_entity_name(context, presentation, name, index, value):
         node_templates = context.presentation.get('service_template', 'topology_template', 'node_templates') or {}
         relationship_templates = context.presentation.get('service_template', 'topology_template', 'relationship_templates') or {}
         if (value not in node_templates) and (value not in relationship_templates):
-            raise InvalidValueError('function "%s" parameter %d is not a valid modelable entity name: %s' % (name, index + 1, repr(value)), locator=presentation._locator, level=Issue.BETWEEN_TYPES)
+            raise InvalidValueError('function "%s" parameter %d is not a valid modelable entity name: %s' % (name, index + 1, safe_repr(value)), locator=presentation._locator, level=Issue.BETWEEN_TYPES)
     return value
 
 def parse_self(presentation):
@@ -407,4 +407,4 @@ def invalid_modelable_entity_name(name, index, value, locator, contexts):
     return InvalidValueError('function "%s" parameter %d can be "%s" only in %s' % (name, index + 1, value, contexts), locator=locator, level=Issue.FIELD)
 
 def invalid_value(name, index, the_type, explanation, value, locator):
-    return InvalidValueError('function "%s" %s is not %s%s: %s' % (name, ('parameter %d' % (index + 1)) if index is not None else 'argument', the_type, (', %s' % explanation) if explanation is not None else '', repr(value)), locator=locator, level=Issue.FIELD)
+    return InvalidValueError('function "%s" %s is not %s%s: %s' % (name, ('parameter %d' % (index + 1)) if index is not None else 'argument', the_type, (', %s' % explanation) if explanation is not None else '', safe_repr(value)), locator=locator, level=Issue.FIELD)

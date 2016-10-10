@@ -16,6 +16,7 @@
 
 from .module import CodeModule
 from .writer import Writer, create_header, repr_assignment
+from aria.utils import safe_repr
 from collections import OrderedDict
 import os
 
@@ -98,13 +99,13 @@ class CodeGenerator(object):
                 w.write()
                 w.write('# Metadata')
                 if self.inputs:
-                    w.write('INPUTS = %s' % repr(tuple(self.inputs.keys())))
+                    w.write('INPUTS = %s' % safe_repr(tuple(self.inputs.keys())))
                 if self.outputs:
-                    w.write('OUTPUTS = %s' % repr(tuple(self.outputs.keys())))
+                    w.write('OUTPUTS = %s' % safe_repr(tuple(self.outputs.keys())))
                 if self.nodes:
-                    w.write('NODES = %s' % repr(tuple(self.nodes.keys())))
+                    w.write('NODES = %s' % safe_repr(tuple(self.nodes.keys())))
                 if self.workflows:
-                    w.write('WORKFLOWS = %s' % repr(tuple(self.workflows.keys())))
+                    w.write('WORKFLOWS = %s' % safe_repr(tuple(self.workflows.keys())))
                 w.write()
             w.put_indent()
             w.put('def __init__(self, context')

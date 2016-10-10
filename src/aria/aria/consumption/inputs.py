@@ -17,6 +17,7 @@
 from .consumer import Consumer
 from ..loading import UriLocation, LiteralLocation
 from ..reading import JsonReader
+from ..utils import safe_repr
 
 class Inputs(Consumer):
     """
@@ -43,7 +44,7 @@ class Inputs(Consumer):
         inputs = reader.read()
         
         if not isinstance(inputs, dict):
-            self.context.validation.report('Inputs consumer: inputs are not a dict: %s' % repr(inputs))
+            self.context.validation.report('Inputs consumer: inputs are not a dict: %s' % safe_repr(inputs))
             return
         
         for name, value in inputs.iteritems():
