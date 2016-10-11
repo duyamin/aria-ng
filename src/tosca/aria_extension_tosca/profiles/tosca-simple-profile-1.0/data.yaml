@@ -30,7 +30,7 @@ data_types:
       type_qualified_name: tosca:version
       specification: tosca-simple-profile-1.0
       specification_section: 3.2.2
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#TYPE_TOSCA_VERSION'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_VERSION'
 
   range:
     _extensions:
@@ -38,7 +38,7 @@ data_types:
       type_qualified_name: tosca:range
       specification: tosca-simple-profile-1.0
       specification_section: 3.2.3
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#TYPE_TOSCA_RANGE'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_RANGE'
 
   #
   # With entry schema
@@ -51,7 +51,7 @@ data_types:
       type_qualified_name: tosca:list
       specification: tosca-simple-profile-1.0
       specification_section: 3.2.4
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#TYPE_TOSCA_LIST'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_LIST'
 
   map:
     _extensions:
@@ -60,7 +60,7 @@ data_types:
       type_qualified_name: tosca:map
       specification: tosca-simple-profile-1.0
       specification_section: 3.2.5
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#TYPE_TOSCA_MAP'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_MAP'
   
   #
   # Scalar
@@ -72,7 +72,7 @@ data_types:
       type_qualified_name: tosca:scalar-unit.size
       specification: tosca-simple-profile-1.0
       specification_section: 3.2.6.4
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#TYPE_TOSCA_SCALAR_UNIT_SIZE'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_SCALAR_UNIT_SIZE'
 
   scalar-unit.time:
     _extensions:
@@ -80,7 +80,7 @@ data_types:
       type_qualified_name: tosca:scalar-unit.time
       specification: tosca-simple-profile-1.0
       specification_section: 3.2.6.5
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#TYPE_TOSCA_SCALAR_UNIT_TIME'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_SCALAR_UNIT_TIME'
 
   scalar-unit.frequency:
     _extensions:
@@ -88,7 +88,7 @@ data_types:
       type_qualified_name: tosca:scalar-unit.frequency
       specification: tosca-simple-profile-1.0
       specification_section: 3.2.6.6
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#TYPE_TOSCA_SCALAR_UNIT_FREQUENCY'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_SCALAR_UNIT_FREQUENCY'
 
   #
   # Complex
@@ -100,7 +100,7 @@ data_types:
       type_qualified_name: tosca:Root
       specification: tosca-simple-profile-1.0
       specification_section: 5.2.1
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#TYPE_TOSCA_DATA_ROOT'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_DATA_ROOT'
     description: >-
       This is the default (root) TOSCA Root Type definition that all complex TOSCA Data Types derive from.
 
@@ -110,7 +110,7 @@ data_types:
       type_qualified_name: tosca:Credential
       specification: tosca-simple-profile-1.0
       specification_section: 5.2.2
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#TYPE_TOSCA_DATA_CREDENTIAL'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_DATA_CREDENTIAL'
     description: >-
       The Credential type is a complex TOSCA data Type used when describing authorization credentials used to access network
       accessible resources.
@@ -150,7 +150,7 @@ data_types:
       type_qualified_name: tosca:NetworkInfo
       specification: tosca-simple-profile-1.0
       specification_section: 5.2.3
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#TYPE_TOSCA_DATA_NETWORKINFO'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_DATA_NETWORKINFO'
     description: >-
       The Network type is a complex TOSCA data type used to describe logical network information.
     derived_from: tosca.datatypes.Root
@@ -179,7 +179,7 @@ data_types:
       type_qualified_name: tosca:PortInfo
       specification: tosca-simple-profile-1.0
       specification_section: 5.2.4
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#TYPE_TOSCA_DATA_PORTINFO'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_DATA_PORTINFO'
     description: >-
       The PortInfo type is a complex TOSCA data type used to describe network port information.
     derived_from: tosca.datatypes.Root
@@ -218,7 +218,7 @@ data_types:
       type_qualified_name: tosca:PortDef
       specification: tosca-simple-profile-1.0
       specification_section: 5.2.5
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#TYPE_TOSCA_DATA_PORTDEF'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_DATA_PORTDEF'
     description: >-
       The PortDef type is a TOSCA data Type used to define a network port.
     derived_from: integer # ARIA allows deriving from primitives; it's unclear if the TOSCA spec does
@@ -231,7 +231,7 @@ data_types:
       type_qualified_name: tosca:PortSpec
       specification: tosca-simple-profile-1.0
       specification_section: 5.2.6
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#TYPE_TOSCA_DATA_PORTSPEC'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_DATA_PORTSPEC'
     description: >-
       The PortSpec type is a complex TOSCA data Type used when describing port specifications for a network connection.
     derived_from: tosca.datatypes.Root

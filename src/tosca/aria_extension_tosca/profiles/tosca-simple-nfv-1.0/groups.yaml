@@ -22,7 +22,7 @@ group_types:
       type_qualified_name: tosca:VNFFG
       specification: tosca-simple-nfv-1.0
       specification_section: 10.6.1
-      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/tosca-nfv-v1.0.html#_Toc447714727'
+      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/csd03/tosca-nfv-v1.0-csd03.html#_Toc447714727'
     description: >-
       The NFV VNFFG group type represents a logical VNF forwarding graph entity as defined by [ETSI GS NFV-MAN 001 v1.1.1].
     derived_from: tosca.groups.Root

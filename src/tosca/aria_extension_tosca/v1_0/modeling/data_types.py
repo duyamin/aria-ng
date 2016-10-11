@@ -115,7 +115,7 @@ def get_data_type(context, presentation, field_name, allow_none=False):
     Returns the type, whether it's a complex data type (a DataType instance) or a primitive (a Python primitive type class).
     
     If the type is not specified, defaults to :class:`str`, per note in section 3.2.1.1 of the
-    `TOSCA Simple Profile v1.0 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#_Toc379455072>`__
+    `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#_Toc379455072>`__
     """
     
     the_type = getattr(presentation, field_name)
@@ -303,7 +303,7 @@ def get_primitive_data_type(type_name):
     """
     Many of the types we use in this profile are built-in types from the YAML 1.2 specification (i.e., those identified by the "tag:yaml.org,2002" version tag) [YAML-1.2].
     
-    See the `TOSCA Simple Profile v1.0 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#_Toc373867862>`__
+    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#_Toc373867862>`__
     """
     
     return PRIMITIVE_DATA_TYPES.get(type_name)

@@ -9,22 +9,25 @@ On its own, ARIA provides built-in tools for blueprint validation and for creati
 service instances. 
 
 ARIA adheres strictly and meticulously to the
-[TOSCA Simple Profile v1.0 specification](http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html),
+[TOSCA Simple Profile v1.0 cos01 specification](http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html),
 providing state-of-the-art validation at seven different levels:
 
-0. Platform errors. E.g. network, hardware, or even an internal bug in ARIA (let us know,
-   please!).
-1. Syntax and format errors. E.g. non-compliant YAML, XML, JSON.
-2. Field validation. E.g. assigning a string where an integer is expected, using a list
-   instead of a dict.
-3. Relationships between fields within a type. This is "grammar" as it applies to rules for
-   setting the values of fields in relation to each other.
-4. Relationships between types. E.g. referring to an unknown type, causing a type inheritance
-   loop. 
-5. Topology. These errors happen if requirements and capabilities cannot be matched in order
-   to assemble a valid topology.
-6. External dependencies. These errors happen if requirement/capability matching fails due to
-   external resources missing, e.g. the lack of a valid virtual machine, API credentials, etc. 
+<ol start="0">
+<li>Platform errors. E.g. network, hardware, or even an internal bug in ARIA (let us know,
+    please!).</li>
+<li>Syntax and format errors. E.g. non-compliant YAML, XML, JSON.</li>
+<li>Field validation. E.g. assigning a string where an integer is expected, using a list
+    instead of a dict.</li>
+<li>Relationships between fields within a type. This is "grammar" as it applies to rules for
+    setting the values of fields in relation to each other.</li>
+<li>Relationships between types. E.g. referring to an unknown type, causing a type inheritance
+    loop.</li>
+<li>Topology. These errors happen if requirements and capabilities cannot be matched in order
+    to assemble a valid topology.</li>
+<li>External dependencies. These errors happen if requirement/capability matching fails due to
+    external resources missing, e.g. the lack of a valid virtual machine, API credentials, etc.
+    </li> 
+</ol>
 
 Validation errors include a plain English message and when relevant the exact location (file,
 row, column) of the data the caused the error.

@@ -18,11 +18,12 @@ from aria import DSL_SPECIFICATION_PACKAGES
 from aria.presentation import PRESENTER_CLASSES
 from aria.loading import FILE_LOADER_SEARCH_PATHS
 from .v1_0 import ToscaSimplePresenter1_0
+from .nfv_v1_0 import ToscaSimpleNfvPresenter1_0
 import os.path
 
 def install_aria_extension():
-    # v1.0 presenter
-    PRESENTER_CLASSES.append(ToscaSimplePresenter1_0)
+    global PRESENTER_CLASSES
+    PRESENTER_CLASSES += (ToscaSimplePresenter1_0, ToscaSimpleNfvPresenter1_0)
     
     # DSL specification
     DSL_SPECIFICATION_PACKAGES.append('aria_extension_tosca')
@@ -32,7 +33,8 @@ def install_aria_extension():
     FILE_LOADER_SEARCH_PATHS.append(os.path.join(the_dir, 'profiles'))
 
 MODULES = (
-    'v1_0',)
+    'v1_0',
+    'nfv_v1_0')
 
 __all__ = (
     'MODULES',

@@ -62,7 +62,7 @@ data_types:
       type_qualified_name: tosca:Container.Architecture.NUMA
       specification: tosca-simple-nfv-1.0
       specification_section: 8.3.2
-      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/tosca-nfv-v1.0.html#_Toc447714697'
+      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/csd03/tosca-nfv-v1.0-csd03.html#_Toc447714697'
     description: >-
       Granular Non-Uniform Memory Access (NUMA) topology requirements for NFV workloads.
     derived_from: tosca.datatypes.Root

@@ -22,7 +22,7 @@ artifact_types:
       type_qualified_name: tosca:Root
       specification: tosca-simple-profile-1.0
       specification_section: 5.3.1
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#DEFN_TYPE_ARTIFACTS_ROOT'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_ARTIFACTS_ROOT'
     description: >-
       This is the default (root) TOSCA Artifact Type definition that all other TOSCA base Artifact Types derive from.
   
@@ -46,7 +46,7 @@ artifact_types:
       type_qualified_name: tosca:Deployment
       specification: tosca-simple-profile-1.0
       specification_section: 5.3.3.1
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#DEFN_TYPE_ARTIFACTS_DEPLOYMENT'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_ARTIFACTS_DEPLOYMENT'
     description: >-
       This artifact type represents the parent type for all deployment artifacts in TOSCA. This class of artifacts typically
       represents a binary packaging of an application or service that is used to install/create or deploy it as part of a node's
@@ -59,7 +59,7 @@ artifact_types:
       type_qualified_name: tosca:Deployment.Image
       specification: tosca-simple-profile-1.0
       specification_section: 5.3.3.3
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#DEFN_TYPE_ARTIFACTS_DEPLOYMENT_IMAGE'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_ARTIFACTS_DEPLOYMENT_IMAGE'
     description: >-
       This artifact type represents a parent type for any "image" which is an opaque packaging of a TOSCA Node's deployment
       (whether real or virtual) whose contents are typically already installed and pre-configured (i.e., "stateful") and prepared
@@ -72,7 +72,7 @@ artifact_types:
       type_qualified_name: tosca:Deployment.VM
       specification: tosca-simple-profile-1.0
       specification_section: 5.3.3.4
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#DEFN_TYPE_ARTIFACTS_DEPLOY_IMAGE_VM'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_ARTIFACTS_DEPLOY_IMAGE_VM'
     description: >-
       This artifact represents the parent type for all Virtual Machine (VM) image and container formatted deployment artifacts.
       These images contain a stateful capture of a machine (e.g., server) including operating system and installed software along
@@ -90,7 +90,7 @@ artifact_types:
       type_qualified_name: tosca:Implementation
       specification: tosca-simple-profile-1.0
       specification_section: 5.3.4.1
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#DEFN_TYPE_ARTIFACTS_IMPLEMENTATION'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_ARTIFACTS_IMPLEMENTATION'
     description: >-
       This artifact type represents the parent type for all implementation artifacts in TOSCA. These artifacts are used to
       implement operations of TOSCA interfaces either directly (e.g., scripts) or indirectly (e.g., config. files).

@@ -22,7 +22,7 @@ node_types:
       type_qualified_name: tosca:VNF
       specification: tosca-simple-nfv-1.0
       specification_section: 8.5.1
-      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/tosca-nfv-v1.0.html#_Toc379455076'
+      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/csd03/tosca-nfv-v1.0-csd03.html#_Toc379455076'
     description: >-
       The NFV VNF Node Type represents a Virtual Network Function as defined by [ETSI GS NFV-MAN 001 v1.1.1]. It is the default
       type that all other VNF Node Types derive from. This allows for all VNF nodes to have a consistent set of features for
@@ -52,7 +52,7 @@ node_types:
       type_qualified_name: tosca:VDU
       specification: tosca-simple-nfv-1.0
       specification_section: 8.5.2
-      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/tosca-nfv-v1.0.html#_Toc419290242'
+      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/csd03/tosca-nfv-v1.0-csd03.html#_Toc419290242'
     description: >-
       The NFV vdu node type represents a logical vdu entity as defined by [ETSI GS NFV-MAN 001 v1.1.1].
     derived_from: tosca.nodes.Root
@@ -70,7 +70,7 @@ node_types:
       type_qualified_name: tosca:CP
       specification: tosca-simple-nfv-1.0
       specification_section: 8.5.3
-      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/tosca-nfv-v1.0.html#_Toc419290245'
+      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/csd03/tosca-nfv-v1.0-csd03.html#_Toc419290245'
     description: >-
       The NFV CP node represents a logical connection point entity as defined by [ETSI GS NFV-MAN 001 v1.1.1]. A connection point
       may be, for example, a virtual port, a virtual NIC address, a physical port, a physical NIC address or the endpoint of an IP
@@ -108,7 +108,7 @@ node_types:
       type_qualified_name: tosca:FP
       specification: tosca-simple-nfv-1.0
       specification_section: 10.5.1
-      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/tosca-nfv-v1.0.html#_Toc447714722'
+      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/csd03/tosca-nfv-v1.0-csd03.html#_Toc447714722'
     description: >-
       The NFV FP node type represents a logical network forwarding path entity as defined by [ETSI GS NFV-MAN 001 v1.1.1].
     derived_from: tosca.nodes.Root
@@ -132,7 +132,7 @@ node_types:
       type_qualified_name: tosca:VL
       specification: tosca-simple-nfv-1.0
       specification_section: 9.1
-      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/tosca-nfv-v1.0.html#_Toc419290251'
+      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/csd03/tosca-nfv-v1.0-csd03.html#_Toc419290251'
     description: >-
       The NFV VL node type represents a logical virtual link entity as defined by [ETSI GS NFV-MAN 001 v1.1.1]. It is the default
       type from which all other virtual link types derive.
@@ -152,7 +152,7 @@ node_types:
       type_qualified_name: tosca:VL.ELine
       specification: tosca-simple-nfv-1.0
       specification_section: 9.2
-      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/tosca-nfv-v1.0.html#_Toc419290256'
+      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/csd03/tosca-nfv-v1.0-csd03.html#_Toc419290256'
     description: >-
       The NFV VL.ELine node represents an E-Line virtual link entity.
     derived_from: tosca.nodes.nfv.VL  
@@ -167,7 +167,7 @@ node_types:
       type_qualified_name: tosca:VL.ELAN
       specification: tosca-simple-nfv-1.0
       specification_section: 9.3
-      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/tosca-nfv-v1.0.html#_Toc419290257'
+      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/csd03/tosca-nfv-v1.0-csd03.html#_Toc419290257'
     description: >-
       The NFV VL.ELan node represents an E-LAN virtual link entity.
     derived_from: tosca.nodes.network.Network
@@ -178,7 +178,7 @@ node_types:
       type_qualified_name: tosca:VL.ETree
       specification: tosca-simple-nfv-1.0
       specification_section: 9.4
-      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/tosca-nfv-v1.0.html#_Toc419290258'
+      specification_url: 'http://docs.oasis-open.org/tosca/tosca-nfv/v1.0/csd03/tosca-nfv-v1.0-csd03.html#_Toc419290258'
     description: >-
       The NFV VL.ETree node represents an E-Tree virtual link entity.
     derived_from: tosca.nodes.nfv.VL

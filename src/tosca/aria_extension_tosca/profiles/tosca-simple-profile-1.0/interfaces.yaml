@@ -22,7 +22,7 @@ interface_types:
       type_qualified_name: tosca:Root
       specification: tosca-simple-profile-1.0
       specification_section: 5.7.3
-      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/csprd02/TOSCA-Simple-Profile-YAML-v1.0-csprd02.html#_Ref384391055'
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#_Ref384391055'
     description: >-
       This is the default (root) TOSCA Interface Type definition that all other TOSCA Interface Types derive from.
   
