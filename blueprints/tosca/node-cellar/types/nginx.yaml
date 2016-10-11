@@ -14,9 +14,6 @@
 # under the License.
 #
 
-imports:
-  - tosca-simple-profile-1.0/tosca-simple-profile-1.0.yaml
-
 node_types:
 
   nginx.LoadBalancer:

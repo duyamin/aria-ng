@@ -22,6 +22,10 @@ class CloudifyPresenter1_2(CloudifyPresenter1_1):
     """
     ARIA presenter for the `Cloudify DSL v1.2 specification <http://docs.getcloudify.org/3.3.1/blueprints/overview/>`__.
     
+    Supported :code:`tosca_definitions_version` values:
+    
+    * :code:`cloudify_dsl_1_2`
+
     Changes over v1.1:
     
     * `Data types <http://docs.getcloudify.org/3.3.1/blueprints/spec-data-types/>`__.
@@ -30,7 +34,7 @@ class CloudifyPresenter1_2(CloudifyPresenter1_1):
     * Addition of `package_name`, `package_version`, `supported_platform`, `distribution`, `distribution_version`, and `distribution_release` to `plugin definitions <http://docs.getcloudify.org/3.3.1/blueprints/spec-plugins/>`__.
     """
 
-    DSL_VERSION = 'cloudify_dsl_1_2'
+    DSL_VERSIONS = ('cloudify_dsl_1_2',)
     ALLOWED_IMPORTED_DSL_VERSIONS = ('cloudify_dsl_1_2', 'cloudify_dsl_1_1', 'cloudify_dsl_1_0')
 
     @property

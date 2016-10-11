@@ -24,9 +24,13 @@ from aria.utils import EMPTY_READ_ONLY_LIST, cachedmethod
 class CloudifyPresenter1_0(Presenter):
     """
     ARIA presenter for the `Cloudify DSL v1.0 specification <http://getcloudify.org/guide/3.1/dsl-spec-general.html>`__.
+
+    Supported :code:`tosca_definitions_version` values:
+    
+    * :code:`cloudify_dsl_1_0`
     """
 
-    DSL_VERSION = 'cloudify_dsl_1_0'
+    DSL_VERSIONS = ('cloudify_dsl_1_0',)
     ALLOWED_IMPORTED_DSL_VERSIONS = ('cloudify_dsl_1_0',)
     
     @property
@@ -52,7 +56,7 @@ class CloudifyPresenter1_0(Presenter):
 
     # Presenter
 
-    def _get_import_locations(self):
+    def _get_import_locations(self, context):
         return self.service_template.imports if (self.service_template and self.service_template.imports) else EMPTY_READ_ONLY_LIST
 
     def _validate_import(self, context, presentation):

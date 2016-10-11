@@ -31,7 +31,6 @@ imports:
   - types/nodejs.yaml
   - types/mongodb.yaml
   - types/nginx.yaml
-  - tosca-simple-nfv-1.0/tosca-simple-nfv-1.0.yaml # importing this only for validation
 
 dsl_definitions:
 

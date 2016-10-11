@@ -24,6 +24,7 @@ class PresentationContext(object):
     * :code:`location`: From where we will generate the presenter
     * :code:`presenter_source`: For finding presenter classes
     * :code:`presenter_class`: Overrides :code:`presenter_source` with a specific class
+    * :code:`import_profile`: Whether to import the profile by default (defaults to true)
     * :code:`threads`: Number of threads to use when reading data
     * :code:`timeout`: Timeout in seconds for loading data
     * :code:`print_exceptions`: Whether to print exceptions while reading data
@@ -34,6 +35,7 @@ class PresentationContext(object):
         self.location = None
         self.presenter_source = DefaultPresenterSource()
         self.presenter_class = None # overrides
+        self.import_profile = True
         self.threads = 8
         self.timeout = 10 # in seconds
         self.print_exceptions = False

@@ -22,6 +22,10 @@ from aria.utils import cachedmethod
 class CloudifyPresenter1_3(CloudifyPresenter1_2):
     """
     ARIA presenter for the `Cloudify DSL v1.3 specification <http://docs.getcloudify.org/3.4.0/blueprints/overview/>`__.
+    
+    Supported :code:`tosca_definitions_version` values:
+    
+    * :code:`cloudify_dsl_1_3`
 
     Changes over v1.2:
 
@@ -31,7 +35,7 @@ class CloudifyPresenter1_3(CloudifyPresenter1_2):
     * Deprecate `instances` in `node templates <http://docs.getcloudify.org/3.4.0/blueprints/spec-node-templates/>`__.
     """
 
-    DSL_VERSION = 'cloudify_dsl_1_3'
+    DSL_VERSIONS = ('cloudify_dsl_1_3',)
     ALLOWED_IMPORTED_DSL_VERSIONS = ('cloudify_dsl_1_3', 'cloudify_dsl_1_2', 'cloudify_dsl_1_1', 'cloudify_dsl_1_0')
 
     @property

@@ -15,7 +15,6 @@
 #
 
 imports:
-  - tosca-simple-profile-1.0/tosca-simple-profile-1.0.yaml
   - os.yaml
 
 dsl_definitions:

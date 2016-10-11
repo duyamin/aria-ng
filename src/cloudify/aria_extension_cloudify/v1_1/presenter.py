@@ -23,6 +23,10 @@ class CloudifyPresenter1_1(CloudifyPresenter1_0):
     """
     ARIA presenter for the `Cloudify DSL v1.1 specification <http://getcloudify.org/guide/3.2/dsl-spec-general.html>`__.
     
+    Supported :code:`tosca_definitions_version` values:
+    
+    * :code:`cloudify_dsl_1_1`
+
     Changes over v1.0:
     
     * `concat` `intrinsic function <http://getcloudify.org/guide/3.2/dsl-spec-intrinsic-functions.html#concat>`__.
@@ -30,7 +34,7 @@ class CloudifyPresenter1_1(CloudifyPresenter1_0):
     * Addition of `install_arguments` to `plugin definitions <http://getcloudify.org/guide/3.2/dsl-spec-plugins.html>`__.
     """
 
-    DSL_VERSION = 'cloudify_dsl_1_1'
+    DSL_VERSIONS = ('cloudify_dsl_1_1',)
     ALLOWED_IMPORTED_DSL_VERSIONS = ('cloudify_dsl_1_1', 'cloudify_dsl_1_0')
 
     @property

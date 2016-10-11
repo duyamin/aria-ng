@@ -46,24 +46,24 @@ You need Python v2.7. Python v3 is not currently supported. Use a [virtualenv](h
 
 Now create a service instance from a TOSCA blueprint:
 
-	aria blueprints/tosca/node-cellar.yaml
+	aria blueprints/tosca/node-cellar/node-cellar.yaml
 	
 You can also get it in JSON or YAML formats:
 
-	aria blueprints/tosca/node-cellar.yaml --json
+	aria blueprints/tosca/node-cellar/node-cellar.yaml --json
 
 Or get an overview of the relationship graph:
 
-	aria blueprints/tosca/node-cellar.yaml --graph
+	aria blueprints/tosca/node-cellar/node-cellar.yaml --graph
 
 You can provide inputs as JSON, overriding default values provided in the blueprint
 
-	aria blueprints/tosca/node-cellar.yaml --inputs='{"openstack_credential": {"user": "username"}}'
+	aria blueprints/tosca/node-cellar/node-cellar.yaml --inputs='{"openstack_credential": {"user": "username"}}'
 
 Instead of providing them explicitly, you can also provide them in a file or URL, in either
 JSON or YAML. If you do so, the value must end in ".json" or ".yaml":
 
-	aria blueprints/tosca/node-cellar.yaml --inputs=blueprints/tosca/inputs.yaml
+	aria blueprints/tosca/node-cellar/node-cellar.yaml --inputs=blueprints/tosca/inputs.yaml
 
 
 API Architecture
@@ -117,7 +117,7 @@ CLI Tool
 Though ARIA is fully exposed as an API, it also comes with a CLI tool to allow you to
 work from the shell:
 
-	aria blueprints/tosca/node-cellar.yaml instance
+	aria blueprints/tosca/node-cellar/node-cellar.yaml instance
 
 The CLI supports the following commands to create variations of the default consumer
 chain:
@@ -154,21 +154,21 @@ wire:
 
 With the server started, you can hit a few endpoints:
 
-    curl http://localhost:8204/openoapi/tosca/v1/instance/blueprints/tosca/node-cellar.yaml
+    curl http://localhost:8204/openoapi/tosca/v1/instance/blueprints/tosca/node-cellar/node-cellar.yaml
     
-    curl http://localhost:8204/openoapi/tosca/v1/validate/blueprints/tosca/node-cellar.yaml
+    curl http://localhost:8204/openoapi/tosca/v1/validate/blueprints/tosca/node-cellar/node-cellar.yaml
 
 You will get a JSON response with a service instance or validation issues.
 
 You can send inputs:
 
-	curl http://localhost:8204/openoapi/tosca/v1/instance/blueprints/tosca/node-cellar.yaml?inputs=%7B%22openstack_credential%22%3A%7B%22user%22%3A%22username%22%7D%7D
+	curl http://localhost:8204/openoapi/tosca/v1/instance/blueprints/tosca/node-cellar/node-cellar.yaml?inputs=%7B%22openstack_credential%22%3A%7B%22user%22%3A%22username%22%7D%7D
 
-	curl http://localhost:8204/openoapi/tosca/v1/instance/blueprints/tosca/node-cellar.yaml?inputs=blueprints/tosca/inputs.yaml
+	curl http://localhost:8204/openoapi/tosca/v1/instance/blueprints/tosca/node-cellar/node-cellar.yaml?inputs=blueprints/tosca/inputs.yaml
 
 You can also POST a blueprint over the wire:
 
-    curl --data-binary @blueprints/tosca/node-cellar.yaml http://localhost:8204/openoapi/tosca/v1/instance
+    curl --data-binary @blueprints/tosca/node-cellar/node-cellar.yaml http://localhost:8204/openoapi/tosca/v1/instance
 
 If you POST and also want to import from the filesystem, note that you must specify search
 paths when you start the server:
@@ -201,7 +201,7 @@ You do not want to install with `pip`, but instead work directly with the source
 
 You can then run the scripts in the main directory:
 
-	./aria blueprints/tosca/node-cellar.yaml instance
+	./aria blueprints/tosca/node-cellar/node-cellar.yaml
     ./aria-rest
 
 To run tests:
@@ -211,3 +211,28 @@ To run tests:
 To build the documentation:
 
 	make docs
+
+Here's a quick example of using the API to parse a given string:
+
+	from aria import install_aria_extensions
+	from aria.consumption import ConsumptionContext, ConsumerChain, Read, Validate, Model, Instance
+	from aria.loading import LiteralLocation
+	
+	install_aria_extensions()
+	
+	def parse_text(payload, file_search_paths=[]):
+	    context = ConsumptionContext()
+	    context.presentation.location = LiteralLocation(payload)
+	    context.loading.file_search_paths += file_search_paths
+	    ConsumerChain(context, (Read, Validate, Model, Instance)).consume()
+	    if not context.validation.dump_issues():
+	        return context.modeling.instance
+	    return None
+
+	print parse_text("""
+	tosca_definitions_version: tosca_simple_yaml_1_0
+	topology_template:
+	  node_templates:
+	    MyNode:
+	      type: tosca.nodes.Compute 
+	""")

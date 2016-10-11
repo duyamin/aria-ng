@@ -28,7 +28,7 @@ class Presenter(Presentation):
     @classmethod
     def can_present(cls, raw):
         dsl = raw.get('tosca_definitions_version')
-        return dsl == cls.DSL_VERSION
+        return dsl in cls.DSL_VERSIONS
 
     def _validate_import(self, context, presentation):
         if (presentation.service_template.tosca_definitions_version is not None) and (presentation.service_template.tosca_definitions_version not in self.__class__.ALLOWED_IMPORTED_DSL_VERSIONS):
@@ -47,7 +47,7 @@ class Presenter(Presentation):
             delattr(self._raw, '_locator')
             locator.link(self._raw)
 
-    def _get_import_locations(self):
+    def _get_import_locations(self, context):
         return None
     
     def _get_deployment_template(self, context):
