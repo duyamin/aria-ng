@@ -19,7 +19,7 @@ from aria.utils import safe_repr
 
 class Scalable(object):
     """
-    Only `default_instances` is used in Cloudify DSL v1.0.
+    Only `default_instances` is used in Cloudify DSL v1.0 to v1.2.
     
     `min_instances` and `max_instances` were introduced in Cloudify DSL v1.3.
     """

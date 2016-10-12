@@ -322,34 +322,43 @@ class Scalar(object):
     
     def __init__(self, entry_schema, constraints, value, aspect):
         value = str(value)
-        match = re.match(self.__class__.RE, value)
+        match = re.match(self.RE, value)
         if match is None:
-            raise ValueError('scalar be formatted as <scalar> <unit>')
+            raise ValueError('scalar must be formatted as <scalar> <unit>')
+
+        scalar = float(match.group('scalar'))
+        unit = match.group('unit')
+
+        unit_lower = unit.lower() 
+        units_lower = {k.lower(): v for k, v in self.UNITS.iteritems()}
+        factor = units_lower.get(unit_lower)
+        if factor is None:
+            raise ValueError('scalar specified with unsupported unit: %s' % safe_repr(unit))
         
-        self.scalar = float(match.group('scalar'))
-        self.unit = match.group('unit')
-        self.value = self.__class__.TYPE(self.scalar * self.__class__.UNITS[self.unit])
+        self.value = self.TYPE(scalar * factor)
     
     @property
     def as_raw(self):
         return self.value
 
     def __str__(self):
-        return '%s %s' % (self.value, self.__class__.UNIT)
+        return '%s %s' % (self.value, self.UNIT)
 
     def __repr__(self):
         return repr(self.__str__())
     
     def __eq__(self, scalar):
-        if not isinstance(scalar, Scalar):
-            return False
-        return self.value == scalar.value
+        if isinstance(scalar, Scalar):
+            value = scalar.value
+        else:
+            value = self.TYPE(scalar)
+        return self.value == value
 
     def __lt__(self, scalar):
         if isinstance(scalar, Scalar):
             value = scalar.value
         else:
-            value = self.__class__.TYPE(scalar)
+            value = self.TYPE(scalar)
         return self.value < value
 
 @dsl_specification('3.2.6.4', 'tosca-simple-profile-1.0')
