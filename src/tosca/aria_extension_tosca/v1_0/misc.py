@@ -16,6 +16,7 @@
 
 from .presentation.extensible import ExtensiblePresentation
 from .presentation.field_validators import constraint_clause_field_validator, constraint_clause_in_range_validator, constraint_clause_valid_values_validator, constraint_clause_pattern_validator, data_type_validator
+from .presentation.types import convert_shorthand_to_full_type_name, get_type_by_full_or_shorthand_name
 from .modeling.data_types import get_data_type, get_data_type_value, get_property_constraints, apply_constraint_to_value
 from .modeling.substitution_mappings import validate_subtitution_mappings_requirement, validate_subtitution_mappings_capability
 from aria import dsl_specification
@@ -330,7 +331,7 @@ class SubstitutionMappingsCapability(AsIsPresentation):
 @has_fields
 @dsl_specification('2.10', 'tosca-simple-profile-1.0')
 class SubstitutionMappings(ExtensiblePresentation):
-    @field_validator(type_validator('node type', 'node_types'))
+    @field_validator(type_validator('node type', convert_shorthand_to_full_type_name, 'node_types'))
     @primitive_field(str, required=True)
     def node_type(self):
         """
@@ -351,7 +352,7 @@ class SubstitutionMappings(ExtensiblePresentation):
         
     @cachedmethod
     def _get_type(self, context):
-        return context.presentation.get_from_dict('service_template', 'node_types', self.node_type)
+        return get_type_by_full_or_shorthand_name(context, self.node_type, 'node_types')
 
     def _validate(self, context):
         super(SubstitutionMappings, self)._validate(context)

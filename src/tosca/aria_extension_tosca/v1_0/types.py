@@ -21,6 +21,7 @@ from .data_types import Version
 from .presentation.extensible import ExtensiblePresentation
 from .presentation.field_getters import data_type_class_getter
 from .presentation.field_validators import data_type_derived_from_validator, data_type_constraints_validator, data_type_properties_validator, list_node_type_or_group_type_validator
+from .presentation.types import convert_shorthand_to_full_type_name, get_type_by_full_or_shorthand_name
 from .modeling.properties import get_inherited_property_definitions
 from .modeling.interfaces import get_inherited_interface_definitions, get_inherited_operations
 from .modeling.requirements import get_inherited_requirement_definitions
@@ -41,7 +42,7 @@ class ArtifactType(ExtensiblePresentation):
     See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_ENTITY_ARTIFACT_TYPE>`__
     """
 
-    @field_validator(derived_from_validator('artifact_types'))
+    @field_validator(derived_from_validator(convert_shorthand_to_full_type_name, 'artifact_types'))
     @primitive_field(str)
     def derived_from(self):
         """
@@ -93,8 +94,7 @@ class ArtifactType(ExtensiblePresentation):
     
     @cachedmethod
     def _get_parent(self, context):
-        artifact_types = context.presentation.get('service_template', 'artifact_types')
-        return artifact_types.get(self.derived_from)
+        return get_type_by_full_or_shorthand_name(context, self.derived_from, 'artifact_types')
 
     @cachedmethod
     def _get_properties(self, context):
@@ -212,7 +212,7 @@ class CapabilityType(ExtensiblePresentation):
     See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_ENTITY_CAPABILITY_TYPE>`__
     """
 
-    @field_validator(derived_from_validator('capability_types'))
+    @field_validator(derived_from_validator(convert_shorthand_to_full_type_name, 'capability_types'))
     @primitive_field(str)
     def derived_from(self):
         """
@@ -255,7 +255,7 @@ class CapabilityType(ExtensiblePresentation):
         :rtype: dict of str, :class:`AttributeDefinition`
         """
 
-    @field_validator(list_type_validator('node type', 'node_types'))
+    @field_validator(list_type_validator('node type', convert_shorthand_to_full_type_name, 'node_types'))
     @primitive_list_field(str)
     def valid_source_types(self):
         """
@@ -266,7 +266,7 @@ class CapabilityType(ExtensiblePresentation):
         
     @cachedmethod
     def _get_parent(self, context):
-        return context.presentation.get_from_dict('service_template', 'capability_types', self.derived_from)
+        return get_type_by_full_or_shorthand_name(context, self.derived_from, 'capability_types')
 
     @cachedmethod
     def _is_descendant(self, context, the_type):
@@ -307,7 +307,7 @@ class InterfaceType(ExtensiblePresentation):
     See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_ENTITY_INTERFACE_TYPE>`__
     """
 
-    @field_validator(derived_from_validator('interface_types'))
+    @field_validator(derived_from_validator(convert_shorthand_to_full_type_name, 'interface_types'))
     @primitive_field(str)
     def derived_from(self):
         """
@@ -348,7 +348,7 @@ class InterfaceType(ExtensiblePresentation):
 
     @cachedmethod
     def _get_parent(self, context):
-        return context.presentation.get_from_dict('service_template', 'interface_types', self.derived_from)
+        return get_type_by_full_or_shorthand_name(context, self.derived_from, 'interface_types')
 
     @cachedmethod
     def _get_inputs(self, context):
@@ -381,7 +381,7 @@ class RelationshipType(ExtensiblePresentation):
     See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_ENTITY_RELATIONSHIP_TYPE>`__
     """
 
-    @field_validator(derived_from_validator('relationship_types'))
+    @field_validator(derived_from_validator(convert_shorthand_to_full_type_name, 'relationship_types'))
     @primitive_field(str)
     def derived_from(self):
         """
@@ -430,7 +430,7 @@ class RelationshipType(ExtensiblePresentation):
         :rtype: dict of str, :class:`InterfaceDefinition`
         """
 
-    @field_validator(list_type_validator('capability type', 'capability_types'))
+    @field_validator(list_type_validator('capability type', convert_shorthand_to_full_type_name, 'capability_types'))
     @primitive_list_field(str)
     def valid_target_types(self):
         """
@@ -441,7 +441,7 @@ class RelationshipType(ExtensiblePresentation):
 
     @cachedmethod
     def _get_parent(self, context):
-        return context.presentation.get_from_dict('service_template', 'relationship_types', self.derived_from)
+        return get_type_by_full_or_shorthand_name(context, self.derived_from, 'relationship_types')
 
     @cachedmethod
     def _get_properties(self, context):
@@ -480,7 +480,7 @@ class NodeType(ExtensiblePresentation):
     See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_ENTITY_NODE_TYPE>`__
     """
 
-    @field_validator(derived_from_validator('node_types'))
+    @field_validator(derived_from_validator(convert_shorthand_to_full_type_name, 'node_types'))
     @primitive_field(str)
     def derived_from(self):
         """
@@ -558,7 +558,7 @@ class NodeType(ExtensiblePresentation):
 
     @cachedmethod
     def _get_parent(self, context):
-        return context.presentation.get_from_dict('service_template', 'node_types', self.derived_from)
+        return get_type_by_full_or_shorthand_name(context, self.derived_from, 'node_types')
 
     @cachedmethod
     def _is_descendant(self, context, the_type):
@@ -624,7 +624,7 @@ class GroupType(ExtensiblePresentation):
     See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_ENTITY_GROUP_TYPE>`__
     """
 
-    @field_validator(derived_from_validator('group_types'))
+    @field_validator(derived_from_validator(convert_shorthand_to_full_type_name, 'group_types'))
     @primitive_field(str)
     def derived_from(self):
         """
@@ -657,7 +657,7 @@ class GroupType(ExtensiblePresentation):
         :rtype: dict of str, :class:`PropertyDefinition`
         """
 
-    @field_validator(list_type_validator('node type', 'node_types'))
+    @field_validator(list_type_validator('node type', convert_shorthand_to_full_type_name, 'node_types'))
     @primitive_list_field(str)
     def members(self):
         """
@@ -678,7 +678,7 @@ class GroupType(ExtensiblePresentation):
 
     @cachedmethod
     def _get_parent(self, context):
-        return context.presentation.get_from_dict('service_template', 'group_types', self.derived_from)
+        return get_type_by_full_or_shorthand_name(context, self.derived_from, 'group_types')
 
     @cachedmethod
     def _is_descendant(self, context, the_type):
@@ -719,7 +719,7 @@ class PolicyType(ExtensiblePresentation):
     See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_ENTITY_POLICY_TYPE>`__
     """
 
-    @field_validator(derived_from_validator('policy_types'))
+    @field_validator(derived_from_validator(convert_shorthand_to_full_type_name, 'policy_types'))
     @primitive_field(str)
     def derived_from(self):
         """
@@ -765,7 +765,7 @@ class PolicyType(ExtensiblePresentation):
 
     @cachedmethod
     def _get_parent(self, context):
-        return context.presentation.get_from_dict('service_template', 'policy_types', self.derived_from)
+        return get_type_by_full_or_shorthand_name(context, self.derived_from, 'policy_types')
 
     @cachedmethod
     def _get_properties(self, context):

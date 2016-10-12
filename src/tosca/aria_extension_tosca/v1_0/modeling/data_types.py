@@ -15,6 +15,7 @@
 #
 
 from ..functions import get_function
+from ..presentation.types import get_type_by_full_or_shorthand_name
 from aria import dsl_specification
 from aria.validation import Issue
 from aria.presentation import get_locator
@@ -132,7 +133,7 @@ def get_data_type(context, presentation, field_name, allow_none=False):
         return None
 
     # Try complex data type
-    data_type = context.presentation.get_from_dict('service_template', 'data_types', the_type)
+    data_type = get_type_by_full_or_shorthand_name(context, the_type, 'data_types')
     if data_type is not None:
         return data_type 
     
@@ -270,7 +271,7 @@ def apply_constraint_to_value(context, presentation, constraint_clause, value):
 #
 
 def get_data_type_value(context, presentation, field_name, type_name):
-    the_type = context.presentation.get_from_dict('service_template', 'data_types', type_name)
+    the_type = get_type_by_full_or_shorthand_name(context, type_name, 'data_types')
     if the_type is not None:
         value = getattr(presentation, field_name)
         if value is not None:

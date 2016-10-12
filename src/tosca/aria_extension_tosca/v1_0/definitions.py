@@ -19,6 +19,7 @@ from .data_types import Range
 from .presentation.extensible import ExtensiblePresentation
 from .presentation.field_getters import data_type_class_getter
 from .presentation.field_validators import data_type_validator, data_value_validator, entry_schema_validator
+from .presentation.types import convert_shorthand_to_full_type_name, get_type_by_full_or_shorthand_name
 from .modeling.data_types import get_data_type, get_property_constraints
 from .modeling.interfaces import get_and_override_input_definitions_from_type, get_and_override_operation_definitions_from_type
 from aria import dsl_specification
@@ -231,7 +232,7 @@ class InterfaceDefinition(ExtensiblePresentation):
     See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_ELEMENT_INTERFACE_DEF>`__
     """
     
-    @field_validator(type_validator('interface type', 'interface_types'))
+    @field_validator(type_validator('interface type', convert_shorthand_to_full_type_name, 'interface_types'))
     @primitive_field(str)
     def type(self):
         """
@@ -256,7 +257,7 @@ class InterfaceDefinition(ExtensiblePresentation):
 
     @cachedmethod
     def _get_type(self, context):
-        return context.presentation.get_from_dict('service_template', 'interface_types', self.type)
+        return get_type_by_full_or_shorthand_name(context, self.type, 'interface_types')
 
     @cachedmethod
     def _get_inputs(self, context):
@@ -275,7 +276,7 @@ class InterfaceDefinition(ExtensiblePresentation):
 @short_form_field('type')
 @has_fields
 class RelationshipDefinition(ExtensiblePresentation):
-    @field_validator(type_validator('relationship type', 'relationship_types'))
+    @field_validator(type_validator('relationship type', convert_shorthand_to_full_type_name, 'relationship_types'))
     @primitive_field(str, required=True)
     def type(self):
         """
@@ -294,7 +295,7 @@ class RelationshipDefinition(ExtensiblePresentation):
 
     @cachedmethod
     def _get_type(self, context):
-        return context.presentation.get_from_dict('service_template', 'relationship_types', self.type)
+        return get_type_by_full_or_shorthand_name(context, self.type, 'relationship_types')
 
 @short_form_field('capability')    
 @has_fields
@@ -306,7 +307,7 @@ class RequirementDefinition(ExtensiblePresentation):
     See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_ELEMENT_REQUIREMENT_DEF>`__
     """
     
-    @field_validator(type_validator('capability type', 'capability_types'))
+    @field_validator(type_validator('capability type', convert_shorthand_to_full_type_name, 'capability_types'))
     @primitive_field(str, required=True)
     def capability(self):
         """
@@ -315,7 +316,7 @@ class RequirementDefinition(ExtensiblePresentation):
         :rtype: str
         """
 
-    @field_validator(type_validator('node type', 'node_types'))
+    @field_validator(type_validator('node type', convert_shorthand_to_full_type_name, 'node_types'))
     @primitive_field(str)
     def node(self):
         """
@@ -345,7 +346,7 @@ class RequirementDefinition(ExtensiblePresentation):
 
     @cachedmethod
     def _get_type(self, context):
-        return context.presentation.get_from_dict('service_template', 'capability_types', self.type)
+        return get_type_by_full_or_shorthand_name(context, self.type, 'capability_types')
 
     @cachedmethod
     def _get_node_type(self, context):
@@ -361,7 +362,7 @@ class CapabilityDefinition(ExtensiblePresentation):
     See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_ELEMENT_CAPABILITY_DEFN>`__
     """
     
-    @field_validator(type_validator('capability type', 'capability_types'))
+    @field_validator(type_validator('capability type', convert_shorthand_to_full_type_name, 'capability_types'))
     @primitive_field(str, required=True)
     def type(self):
         """
@@ -394,7 +395,7 @@ class CapabilityDefinition(ExtensiblePresentation):
         :rtype: dict of str, :class:`AttributeDefinition`
         """
 
-    @field_validator(list_type_validator('node type', 'node_types'))
+    @field_validator(list_type_validator('node type', convert_shorthand_to_full_type_name, 'node_types'))
     @primitive_list_field(str)
     def valid_source_types(self):
         """
@@ -418,7 +419,7 @@ class CapabilityDefinition(ExtensiblePresentation):
 
     @cachedmethod
     def _get_type(self, context):
-        return context.presentation.get_from_dict('service_template', 'capability_types', self.type)
+        return get_type_by_full_or_shorthand_name(context, self.type, 'capability_types')
     
     @cachedmethod
     def _get_parent(self, context):

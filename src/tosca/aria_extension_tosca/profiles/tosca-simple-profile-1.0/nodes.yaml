@@ -42,7 +42,7 @@ node_types:
         type: string
         default: initial
     interfaces:
-      standard:
+      Standard:
         type: tosca.interfaces.node.lifecycle.Standard
     capabilities:
       feature:

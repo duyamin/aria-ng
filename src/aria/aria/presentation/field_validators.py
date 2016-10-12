@@ -16,6 +16,7 @@
 
 from .utils import report_issue_for_unknown_type, report_issue_for_parent_is_self, report_issue_for_unknown_parent_type, report_issue_for_circular_type_hierarchy
 from ..validation import Issue
+from types import FunctionType
 
 def type_validator(type_name, *types_dict_names):
     """
@@ -23,14 +24,20 @@ def type_validator(type_name, *types_dict_names):
     
     Can be used with the :func:`field_validator` decorator.
     """
+
+    types_dict_names, convert = _parse_types_dict_names(types_dict_names)
     
     def validator_fn(field, presentation, context):
         field._validate(presentation, context)
-        
+
         # Make sure type exists
         value = getattr(presentation, field.name)
         if value is not None:
             types_dict = context.presentation.get('service_template', *types_dict_names) or {}
+
+            if convert:
+                value = convert(context, types_dict, value)
+
             if value not in types_dict:
                 report_issue_for_unknown_type(context, presentation, type_name, field.name)
         
@@ -45,14 +52,20 @@ def list_type_validator(type_name, *types_dict_names):
     Can be used with the :func:`field_validator` decorator.
     """
 
+    types_dict_names, convert = _parse_types_dict_names(types_dict_names)
+
     def validator_fn(field, presentation, context):
         field._validate(presentation, context)
         
-        # Make sure type exists
+        # Make sure types exist
         values = getattr(presentation, field.name)
         if values is not None:
             types_dict = context.presentation.get('service_template', *types_dict_names) or {}
+
             for value in values:
+                if convert:
+                    value = convert(context, types_dict, value)
+    
                 if value not in types_dict:
                     report_issue_for_unknown_type(context, presentation, type_name, field.name)
         
@@ -83,14 +96,20 @@ def derived_from_validator(*types_dict_names):
     Makes sure that the field refers to a valid parent type defined in the root presenter.
     
     Can be used with the :func:`field_validator` decorator.
+
     """
+
+    types_dict_names, convert = _parse_types_dict_names(types_dict_names)
 
     def validator_fn(field, presentation, context):
         field._validate(presentation, context)
-    
+
         value = getattr(presentation, field.name)
         if value is not None:
             types_dict = context.presentation.get('service_template', *types_dict_names) or {}
+            
+            if convert:
+                value = convert(context, types_dict, value)
             
             # Make sure not derived from self
             if value == presentation._name:
@@ -103,16 +122,31 @@ def derived_from_validator(*types_dict_names):
                 hierarchy = [presentation._name]
                 p = presentation
                 while p.derived_from is not None:
-                    if p.derived_from == p._name:
+                    derived_from = p.derived_from
+                    if convert:
+                        derived_from = convert(context, types_dict, derived_from)
+
+                    if derived_from == p._name:
                         # This should cause a validation issue at that type
                         break
-                    elif p.derived_from not in types_dict:
+                    elif derived_from not in types_dict:
                         # This should cause a validation issue at that type
                         break
-                    p = types_dict[p.derived_from]
+                    p = types_dict[derived_from]
                     if p._name in hierarchy:
                         report_issue_for_circular_type_hierarchy(context, presentation, field.name)
                         break
                     hierarchy.append(p._name)
 
     return validator_fn
+
+#
+# Utils
+#
+
+def _parse_types_dict_names(types_dict_names):
+    convert = None
+    if isinstance(types_dict_names[0], FunctionType):
+        convert = types_dict_names[0]
+        types_dict_names = types_dict_names[1:]
+    return types_dict_names, convert

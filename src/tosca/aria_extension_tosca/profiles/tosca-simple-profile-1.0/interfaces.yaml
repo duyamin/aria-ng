@@ -50,3 +50,38 @@ interface_types:
     delete:
       description: >-
         Standard lifecycle delete operation.
+
+  tosca.interfaces.relationship.Configure:
+    _extensions:
+      shorthand_name: Configure
+      type_qualified_name: tosca:Configure
+      specification: tosca-simple-profile-1.0
+      specification_section: 5.7.5
+      specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_ITFC_RELATIONSHIP_CONFIGURE'
+    description: >-
+      The lifecycle interfaces define the essential, normative operations that each TOSCA Relationship Types may support.
+    derived_from: tosca.interfaces.Root
+    pre_configure_source:
+      description: >-
+        Operation to pre-configure the source endpoint.
+    pre_configure_target:
+      description: >-
+        Operation to pre-configure the target endpoint.
+    post_configure_source:
+      description: >-
+        Operation to post-configure the source endpoint.
+    post_configure_target:
+      description: >-
+        Operation to post-configure the target endpoint.
+    add_target:
+      description: >-
+        Operation to notify the source node of a target node being added via a relationship.
+    add_source:
+      description: >-
+        Operation to notify the target node of a source node which is now available via a relationship.
+    target_changed:
+      description: >-
+        Operation to notify source some property or attribute of the target changed
+    remove_target:
+      description: >-
+        Operation to remove a target node.

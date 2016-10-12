@@ -111,7 +111,7 @@ def create_interface_model(context, interface):
     inputs = interface.inputs
     if inputs:
         for input_name, the_input in inputs.iteritems():
-            r.inputs[input_name] = Parameter(the_input.value.type, the_input.value.value, None) # TODO: description
+            r.inputs[input_name] = Parameter(the_input.value.type, the_input.value.value, the_input.value.description)
 
     operations = interface.operations
     if operations:

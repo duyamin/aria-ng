@@ -14,6 +14,8 @@
 # under the License.
 #
 
+from ..presentation.types import convert_shorthand_to_full_type_name
+
 #
 # PolicyType
 #
@@ -36,8 +38,10 @@ def get_inherited_targets(context, presentation):
         
         for our_target in our_targets:
             if our_target in all_node_types:
+                our_target = convert_shorthand_to_full_type_name(context, our_target, all_node_types)
                 node_types.append(all_node_types[our_target])
             elif our_target in all_group_types:
+                our_target = convert_shorthand_to_full_type_name(context, our_target, all_group_types)
                 group_types.append(all_group_types[our_target])
     
     return node_types, group_types

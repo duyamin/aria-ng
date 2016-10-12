@@ -16,7 +16,7 @@
 
 from aria import dsl_specification, InvalidValueError
 from aria.validation import Issue
-from aria.modeling import Function
+from aria.modeling import Function, CannotEvaluateFunction
 from aria.utils import ReadOnlyList, as_raw, safe_repr
 from cStringIO import StringIO
 
@@ -192,6 +192,9 @@ class GetAttribute(Function):
     @property
     def as_raw(self):
         return {'get_attribute': [self.modelable_entity_name] + self.nested_property_name_or_index}
+
+    def _evaluate(self, context, container):
+        raise CannotEvaluateFunction()
 
 #
 # Operation
@@ -373,6 +376,13 @@ def get_modelable_entities(context, container, locator, modelable_entity_name):
         return get_source(context, container)
     elif modelable_entity_name == 'TARGET':
         return get_target(context, container)
+    elif isinstance(modelable_entity_name, basestring):
+        node_templates = context.presentation.get('service_template', 'topology_template', 'node_templates') or {}
+        if modelable_entity_name in node_templates:
+            return [node_templates[modelable_entity_name]]
+        relationship_templates = context.presentation.get('service_template', 'topology_template', 'relationship_templates') or {}
+        if modelable_entity_name in relationship_templates:
+            return [relationship_templates[modelable_entity_name]]
 
     raise InvalidValueError('function "get_property" could not find modelable entity "%s"' % modelable_entity_name, locator=locator)
 

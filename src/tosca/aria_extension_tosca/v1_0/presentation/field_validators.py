@@ -14,6 +14,7 @@
 # under the License.
 #
 
+from .types import get_type_by_full_or_shorthand_name, convert_shorthand_to_full_type_name
 from ..modeling.data_types import get_primitive_data_type, get_data_type_name, coerce_value, get_container_data_type
 from aria import dsl_specification
 from aria.validation import Issue
@@ -73,9 +74,9 @@ def data_type_validator(type_name='data type'):
                 context.validation.report('type of property "%s" creates a circular value hierarchy: %s' % (presentation._fullname, safe_repr(value)), locator=presentation._get_child_locator('type'), level=Issue.BETWEEN_TYPES)
     
             # Can be a complex data type
-            data_types = context.presentation.get('service_template', 'data_types')
-            if (data_types is not None) and (value in data_types):
+            if get_type_by_full_or_shorthand_name(context, value, 'data_types') is not None:
                 return True
+            
             # Can be a primitive data type
             if get_primitive_data_type(value) is None:
                 report_issue_for_unknown_type(context, presentation, type_name, field.name)
@@ -141,7 +142,7 @@ def data_value_validator(field, presentation, context):
 #
 
 _data_type_validator = data_type_validator()
-_data_type_derived_from_validator = derived_from_validator('data_types')
+_data_type_derived_from_validator = derived_from_validator(convert_shorthand_to_full_type_name, 'data_types')
 
 def data_type_derived_from_validator(field, presentation, context):
     """

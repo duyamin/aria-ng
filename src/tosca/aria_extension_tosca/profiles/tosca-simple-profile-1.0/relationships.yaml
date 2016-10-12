@@ -41,10 +41,9 @@ relationship_types:
           The state of the relationship instance.
         type: string
         default: initial
-    # this seems wrong in the spec
-    #interfaces:
-    #  configure:
-    #    type: tosca.interfaces.relationship.Configure
+    interfaces:
+      Configure:
+        type: tosca.interfaces.relationship.Configure
   
   tosca.relationships.DependsOn:
     _extensions:

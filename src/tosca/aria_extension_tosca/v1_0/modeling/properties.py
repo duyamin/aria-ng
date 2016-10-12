@@ -157,8 +157,8 @@ def coerce_property_value(context, presentation, definition, value, aspect=None)
     entry_schema = definition.entry_schema if definition is not None else None
     constraints = definition._get_constraints(context) if definition is not None else None
     value = coerce_value(context, presentation, the_type, entry_schema, constraints, value, aspect)
-    the_type = definition.type
-    description = definition.description
+    the_type = getattr(definition, 'type', None)
+    description = getattr(definition, 'description', None)
     description = description.value if description is not None else None
     return Value(the_type, value, description)
 
