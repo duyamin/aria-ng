@@ -68,6 +68,8 @@ class RequestTextLoader(RequestLoader):
     def load(self):
         if self._response is not None:
             try:
+                if self._response.encoding is None:
+                    self._response.encoding = 'utf8'
                 return self._response.text
             except Exception as e:
                 raise LoaderError('request error: %s' % self.uri, cause=e)
