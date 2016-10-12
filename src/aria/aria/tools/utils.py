@@ -16,7 +16,7 @@
 
 from .. import VERSION
 from ..consumption import ConsumptionContext
-from ..loading import UriLocation, FILE_LOADER_SEARCH_PATHS
+from ..loading import UriLocation, URI_LOADER_PREFIXES
 from ..utils import import_fullname, ArgumentParser
 
 class BaseArgumentParser(ArgumentParser):
@@ -30,15 +30,15 @@ class CommonArgumentParser(BaseArgumentParser):
         self.add_argument('--reader-source', default='aria.reading.DefaultReaderSource', help='reader source class for the parser')
         self.add_argument('--presenter-source', default='aria.presentation.DefaultPresenterSource', help='presenter source class for the parser')
         self.add_argument('--presenter', help='force use of this presenter class in parser')
-        self.add_argument('--path', nargs='*', help='search paths for imports')
+        self.add_argument('--prefix', nargs='*', help='prefixes for imports')
         self.add_argument('--debug', action='store_true', help='print debug info')
 
     def parse_known_args(self, args=None, namespace=None):
         namespace, args = super(CommonArgumentParser, self).parse_known_args(args, namespace)
         
-        if namespace.path:
-            for path in namespace.path:
-                FILE_LOADER_SEARCH_PATHS.append(path)
+        if namespace.prefix:
+            for prefix in namespace.prefix:
+                URI_LOADER_PREFIXES.append(prefix)
         
         return namespace, args
 

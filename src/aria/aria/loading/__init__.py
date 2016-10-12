@@ -20,8 +20,9 @@ from .loader import Loader
 from .source import LoaderSource, DefaultLoaderSource
 from .location import Location, UriLocation, LiteralLocation
 from .literal import LiteralLoader
-from .uri import SESSION, SESSION_CACHE_PATH, URI_LOADER_SEARCH_PATHS, UriLoader, UriTextLoader
-from .file import FILE_LOADER_SEARCH_PATHS, FileTextLoader
+from .uri import URI_LOADER_PREFIXES, UriTextLoader
+from .request import SESSION, SESSION_CACHE_PATH, RequestLoader, RequestTextLoader
+from .file import FileTextLoader
 
 __all__ = (
     'LoaderError',
@@ -35,10 +36,10 @@ __all__ = (
     'UriLocation',
     'LiteralLocation',
     'LiteralLoader',
+    'URI_LOADER_PREFIXES',
+    'UriTextLoader'
     'SESSION',
     'SESSION_CACHE_PATH',
-    'URI_LOADER_SEARCH_PATHS',
-    'UriLoader',
-    'UriTextLoader',
-    'FILE_LOADER_SEARCH_PATHS',
+    'RequestLoader',
+    'RequestTextLoader',
     'FileTextLoader')

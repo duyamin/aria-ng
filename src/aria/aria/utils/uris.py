@@ -14,15 +14,15 @@
 # under the License.
 #
 
-import urlparse
+import urlparse, os
 
 def as_file(uri):
     """
-    If the URI is a file (either the :code:`file` scheme or no scheme), then returns the path.
-    Otherwise, returns None.
+    If the URI is a file (either the :code:`file` scheme or no scheme), then returns the absolute
+    path. Otherwise, returns None.
     """
     
     url = urlparse.urlparse(uri)
     if (not url.scheme) or (url.scheme == 'file'):
-        return url.path
+        return os.path.abspath(url.path)
     return None

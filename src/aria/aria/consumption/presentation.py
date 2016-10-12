@@ -22,7 +22,7 @@ from ..presentation import PresenterNotFoundError
 
 class Read(Consumer):
     """
-    Reads the presentation.
+    Reads the presentation, handling imports recursively.
     
     It works by consuming a data source via appropriate :class:`aria.loader.Loader`,
     :class:`aria.reader.Reader`, and :class:`aria.presenter.Presenter` instances.

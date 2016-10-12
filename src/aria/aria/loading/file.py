@@ -16,10 +16,7 @@
 
 from .loader import Loader
 from .exceptions import LoaderError, DocumentNotFoundError
-from ..utils import StrictList
-import codecs, os.path
-
-FILE_LOADER_SEARCH_PATHS = StrictList(value_class=basestring)
+import codecs
 
 class FileTextLoader(Loader):
     """
@@ -35,69 +32,38 @@ class FileTextLoader(Loader):
     to the search paths.
     """
 
-    def __init__(self, context, location, origin_location, encoding='utf-8'):
+    def __init__(self, context, path, encoding='utf-8'):
         self.context = context
-        self.location = location
+        self.path = path
         self.encoding = encoding
-        self.path = location.as_file
-        self.search_paths = StrictList(value_class=basestring) 
-        self.file = None
-        
-        def add_search_path(search_path):
-            if search_path not in self.search_paths:
-                self.search_paths.append(search_path)
-
-        def add_search_paths(search_paths):
-            for search_path in search_paths:
-                add_search_path(search_path)
-
-        if origin_location is not None:
-            origin_search_path = origin_location.file_search_path
-            if origin_search_path is not None:
-                add_search_path(origin_search_path)
-        
-        add_search_paths(context.file_search_paths)
-        add_search_paths(FILE_LOADER_SEARCH_PATHS)
+        self._file = None
     
     def open(self):
         try:
-            self._open(os.path.abspath(self.path))
+            self._file = codecs.open(self.path, mode='r', encoding=self.encoding, buffering=1)
         except IOError as e:
             if e.errno == 2:
-                # Not found, so try in paths
-                for p in self.search_paths:
-                    path = os.path.join(p, self.path)
-                    try:
-                        self._open(path)
-                        return
-                    except IOError as e:
-                        if e.errno != 2:
-                            raise LoaderError('file I/O error: "%s"' % path, cause=e)
-                raise DocumentNotFoundError('file not found: "%s"' % self.location, cause=e)
+                raise DocumentNotFoundError('file not found: "%s"' % self.path, cause=e)
             else:
-                raise LoaderError('file I/O error: "%s"' % self.location, cause=e)
+                raise LoaderError('file I/O error: "%s"' % self.path, cause=e)
         except Exception as e:
-            raise LoaderError('file error: "%s"' % self.location, cause=e)
+            raise LoaderError('file error: "%s"' % self.path, cause=e)
 
     def close(self):
-        if self.file is not None:
+        if self._file is not None:
             try:
-                self.file.close()
+                self._file.close()
             except IOError as e:
-                raise LoaderError('file I/O error: "%s"' % self.location, cause=e)
+                raise LoaderError('file I/O error: "%s"' % self.path, cause=e)
             except Exception as e:
-                raise LoaderError('file error: "%s"' % self.location, cause=e)
+                raise LoaderError('file error: "%s"' % self.path, cause=e)
 
     def load(self):
-        if self.file is not None:
+        if self._file is not None:
             try:
-                return self.file.read()
+                return self._file.read()
             except IOError as e:
-                raise LoaderError('file I/O error: "%s"' % self.location, cause=e)
+                raise LoaderError('file I/O error: "%s"' % self.path, cause=e)
             except Exception as e:
-                raise LoaderError('file error %s' % self.location, cause=e)
+                raise LoaderError('file error %s' % self.path, cause=e)
         return None
-
-    def _open(self, path):
-        self.file = codecs.open(path, mode='r', encoding=self.encoding, buffering=1)
-        self.location.uri = path

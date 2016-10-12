@@ -173,10 +173,10 @@ You can also POST a blueprint over the wire:
 
     curl --data-binary @blueprints/tosca/node-cellar/node-cellar.yaml http://localhost:8204/openoapi/tosca/v1/instance
 
-If you POST and also want to import from the filesystem, note that you must specify search
-paths when you start the server:
+If you POST and also want to import from specific prefixes (in the filesystem or URIs), you
+can specify them when you start the server:
 
-    aria-rest --path blueprints/tosca /another/path/to/imports
+    aria-rest --prefix /path/to/imports http://myorg.org/imports
 
 
 Generator (Extension)

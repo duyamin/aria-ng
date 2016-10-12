@@ -17,7 +17,6 @@
 from .exceptions import LoaderNotFoundError
 from .location import LiteralLocation, UriLocation
 from .literal import LiteralLoader
-from .file import FileTextLoader
 from .uri import UriTextLoader
 
 class LoaderSource(object):
@@ -31,23 +30,19 @@ class LoaderSource(object):
     """
     
     def get_loader(self, context, location, origin_location):
-        if isinstance(location, LiteralLocation):
-            return LiteralLoader(location)
-        
         raise LoaderNotFoundError('location: %s' % location)
 
 class DefaultLoaderSource(LoaderSource):
     """
     The default ARIA loader source will generate a :class:`UriTextLoader` for
-    locations that are non-file URIs, and a :class:`FileTextLoader` for file
-    URIs.
+    :class:`UriLocation' and a :class:`LiteralLoader` for a :class:`LiteralLocation`. 
     """
     
     def get_loader(self, context, location, origin_location):
         if isinstance(location, UriLocation):
-            if location.as_file is not None:
-                return FileTextLoader(context, location, origin_location)
-            else:
-                return UriTextLoader(context, location, origin_location)
+            return UriTextLoader(context, location, origin_location)
+        elif isinstance(location, LiteralLocation):
+            return LiteralLoader(location)
+        raise LoaderNotFoundError('location: %s' % location)
             
         return super(DefaultLoaderSource, self).get_loader(context, location, origin_location)

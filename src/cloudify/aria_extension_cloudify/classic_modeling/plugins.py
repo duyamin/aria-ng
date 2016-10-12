@@ -77,8 +77,8 @@ def parse_implementation(context, implementation, is_workflow=False):
         parsed = True
     
     if not parsed:
-        for search_path in context.loading.file_search_paths:
-            path = os.path.join(search_path, implementation)
+        for prefix in context.loading.prefixes:
+            path = os.path.join(prefix, implementation)
             if os.path.isfile(path):
                 # Explicit script
                 plugin = _find_plugin(context)

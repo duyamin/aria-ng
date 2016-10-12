@@ -27,11 +27,11 @@ class Loader(object):
     data), loaders may provide any format.
     """
     
-    def load(self):
-        raise UnimplementedFunctionalityError(full_type_name(self) + '.load')
-    
     def open(self):
         pass
 
     def close(self):
         pass
+
+    def load(self):
+        raise UnimplementedFunctionalityError(full_type_name(self) + '.load')

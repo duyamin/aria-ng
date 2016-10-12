@@ -17,7 +17,7 @@
 from .shared_elements import Element, Parameter, Interface, Operation, Artifact, GroupPolicy
 from .utils import validate_dict_values, validate_list_values, coerce_dict_values, coerce_list_values, dump_list_values, dump_dict_values, dump_properties, dump_interfaces
 from ..validation import Issue
-from ..utils import StrictList, StrictDict, ReadOnlyList, puts, indent, as_raw 
+from ..utils import StrictList, StrictDict, ReadOnlyList, puts, indent, as_raw, safe_repr 
 from collections import OrderedDict
 
 class ServiceInstance(Element):

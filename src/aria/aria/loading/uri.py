@@ -15,79 +15,72 @@
 #
 
 from .loader import Loader
-from .exceptions import LoaderError, DocumentNotFoundError
-from ..utils import StrictList
-from requests import Session
-from requests.exceptions import ConnectionError
-from cachecontrol import CacheControl
-from cachecontrol.caches import FileCache
+from .file import FileTextLoader
+from .request import RequestTextLoader
+from .exceptions import DocumentNotFoundError
+from ..utils import StrictList, as_file
+import os
 
-SESSION = None
-SESSION_CACHE_PATH = '/tmp'
+URI_LOADER_PREFIXES = StrictList(value_class=basestring)
 
-URI_LOADER_SEARCH_PATHS = StrictList(value_class=basestring)
-
-class UriLoader(Loader):
+class UriTextLoader(Loader):
     """
     Base class for ARIA URI loaders.
     
-    Extracts a document from a URI.
-    
-    Note that the "file:" schema is not supported: :class:`FileTextLoader` should
-    be used instead.
+    Supports a list of search prefixes that are tried in order if the URI cannot be found.
     """
-
-    def __init__(self, context, location, origin_location, headers={}):
+    
+    def __init__(self, context, location, origin_location):
         self.context = context
         self.location = location
-        self.headers = headers
-        self.search_paths = StrictList(value_class=basestring) 
-        self.response = None
+        self.origin_location = origin_location
+        self._prefixes = StrictList(value_class=basestring)
+        self._loader = None
 
-        def add_search_path(search_path):
-            if search_path not in self.search_paths:
-                self.search_paths.append(search_path)
+        def add_prefix(prefix):
+            if prefix not in self._prefixes:
+                self._prefixes.append(prefix)
 
-        def add_search_paths(search_paths):
-            for search_path in search_paths:
-                add_search_path(search_path)
+        def add_prefixes(prefixes):
+            for prefix in prefixes:
+                add_prefix(prefix)
 
         if origin_location is not None:
-            origin_search_path = origin_location.uri_search_path
-            if origin_search_path is not None:
-                add_search_path(origin_search_path)
+            origin_prefix = origin_location.prefix
+            if origin_prefix:
+                add_prefix(origin_prefix)
+        
+        add_prefixes(context.prefixes)
+        add_prefixes(URI_LOADER_PREFIXES)
 
-        add_search_paths(context.uri_search_paths)
-        add_search_paths(URI_LOADER_SEARCH_PATHS)
-    
     def open(self):
-        global SESSION
-        if SESSION is None:
-            SESSION = CacheControl(Session(), cache=FileCache(SESSION_CACHE_PATH))
-            
         try:
-            self.response = SESSION.get(self.location.uri, headers=self.headers)
-            status = self.response.status_code
-            if status == 404:
-                self.response = None
-                raise DocumentNotFoundError('URI not found: "%s"' % self.location)
-            elif status != 200:
-                self.response = None
-                raise LoaderError('URI request error %d: "%s"' % (status, self.location))
-        except ConnectionError as e:
-            raise LoaderError('URI connection error: "%s"' % self.location, cause=e)
-        except Exception as e:
-            raise LoaderError('URI error: "%s"' % self.location, cause=e)
+            self._open(self.location.uri)
+            return
+        except DocumentNotFoundError:
+            for prefix in self._prefixes:
+                uri = os.path.join(prefix, self.location.uri)
+                try:
+                    self._open(uri)
+                    return
+                except DocumentNotFoundError:
+                    pass
+        raise DocumentNotFoundError('document not found at URI: "%s"' % self.location)
 
-class UriTextLoader(UriLoader):
-    """
-    ARIA URI text loader.
-    """
+    def close(self):
+        if self.loader is not None:
+            self.loader.close()
 
     def load(self):
-        if self.response is not None:
-            try:
-                return self.response.text
-            except Exception as e:
-                raise LoaderError('URI: %s' % self.location, cause=e)
-        return None
+        return self.loader.load() if self.loader is not None else None
+
+    def _open(self, uri):
+        the_file = as_file(uri)
+        if the_file is not None:
+            uri = the_file
+            loader = FileTextLoader(self.context, uri)
+        else:
+            loader = RequestTextLoader(self.context, uri)
+        loader.open()
+        self.loader = loader
+        self.location.uri = uri
