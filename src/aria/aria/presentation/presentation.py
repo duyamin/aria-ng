@@ -37,6 +37,10 @@ class PresentationBase(HasCachedMethods):
         self._name = name
         self._raw = raw
         self._container = container
+        
+    @property
+    def as_raw(self):
+        return self._raw
 
     def _validate(self, context):
         """

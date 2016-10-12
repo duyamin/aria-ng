@@ -523,4 +523,3 @@ node_types:
       - binding:
           capability: tosca.capabilities.network.Bindable
           relationship: tosca.relationships.network.BindsTo
-  

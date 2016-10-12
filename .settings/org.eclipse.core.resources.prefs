@@ -1,10 +1,14 @@
 eclipse.preferences.version=1
 encoding//env/lib/python2.7/site-packages/clint/textui/colored.py=utf-8
 encoding//env/lib/python2.7/site-packages/clint/textui/core.py=utf-8
+encoding//env/lib/python2.7/site-packages/requests/models.py=utf-8
+encoding//env/lib/python2.7/site-packages/requests/sessions.py=utf-8
+encoding//env/lib/python2.7/site-packages/requests/utils.py=utf-8
 encoding//env/lib/python2.7/site-packages/ruamel/yaml/comments.py=utf-8
 encoding//env/lib/python2.7/site-packages/ruamel/yaml/compat.py=utf-8
 encoding//env/lib/python2.7/site-packages/ruamel/yaml/composer.py=utf-8
 encoding//env/lib/python2.7/site-packages/ruamel/yaml/constructor.py=utf-8
+encoding//env/lib/python2.7/site-packages/ruamel/yaml/cyaml.py=utf-8
 encoding//env/lib/python2.7/site-packages/ruamel/yaml/dumper.py=utf-8
 encoding//env/lib/python2.7/site-packages/ruamel/yaml/emitter.py=utf-8
 encoding//env/lib/python2.7/site-packages/ruamel/yaml/events.py=utf-8
