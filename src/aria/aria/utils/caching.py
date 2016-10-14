@@ -18,8 +18,6 @@ from functools import partial
 from threading import Lock
 from collections import OrderedDict
 
-#cachedmethod = lambda x: x
-
 class cachedmethod(object):
     """
     Decorator for caching method return values.
@@ -33,6 +31,8 @@ class cachedmethod(object):
     
     Adapted from `this solution <http://code.activestate.com/recipes/577452-a-memoize-decorator-for-instance-methods/>`__.
     """
+    
+    ENABLED = True
     
     def __init__(self, fn):
         self.fn = fn
@@ -52,10 +52,14 @@ class cachedmethod(object):
     def __get__(self, instance, owner):
         if instance is None:
             # Don't use cache if not bound to an object
+            # Note: This is also a way for callers to override the cache
             return self.fn
         return partial(self, instance)
     
     def __call__(self, *args, **kwargs):
+        if not self.ENABLED:
+            return self.fn(*args, **kwargs)
+        
         instance = args[0]
         
         try:

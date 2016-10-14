@@ -23,8 +23,8 @@ class Value(object):
     Encapsulates a typed value assignment.
     """
     
-    def __init__(self, the_type, value, description):
-        self.type = deepcopy_with_locators(the_type)
+    def __init__(self, type_name, value, description):
+        self.type = deepcopy_with_locators(type_name)
         self.value = deepcopy_with_locators(value)
         self.description = deepcopy_with_locators(description)
 
@@ -74,6 +74,31 @@ class PresentationBase(HasCachedMethods):
         """
         
         return get_locator(self._raw, self._container)
+
+    def _get(self, *names):
+        """
+        Gets attributes recursively.
+        """
+        
+        o = self
+        if (o is not None) and names:
+            for name in names:
+                o = getattr(o, name, None)
+                if o is None:
+                    break
+        return o
+
+    def _get_from_dict(self, *names):
+        """
+        Gets attributes recursively, except for the last name which is used
+        to get a value from the last dict.
+        """
+
+        if names:
+            o = self._get(*names[:-1])
+            if isinstance(o, dict):
+                return o.get(names[-1])
+        return None
 
     def _get_child_locator(self, *names):
         """

@@ -17,7 +17,7 @@
 from .shared_elements import Element, Parameter, Interface, Operation, Artifact, GroupPolicy
 from .utils import validate_dict_values, validate_list_values, coerce_dict_values, coerce_list_values, dump_list_values, dump_dict_values, dump_properties, dump_interfaces
 from ..validation import Issue
-from ..utils import StrictList, StrictDict, ReadOnlyList, puts, indent, as_raw, safe_repr 
+from ..utils import StrictList, StrictDict, FrozenList, puts, indent, as_raw, safe_repr 
 from collections import OrderedDict
 
 class ServiceInstance(Element):
@@ -70,20 +70,20 @@ class ServiceInstance(Element):
         for node in self.nodes.itervalues():
             if node.template_name == node_template_name:
                 nodes.append(node)
-        return ReadOnlyList(nodes)
+        return FrozenList(nodes)
 
     def get_node_ids(self, node_template_name):
-        return ReadOnlyList((node.id for node in self.find_nodes(node_template_name)))
+        return FrozenList((node.id for node in self.find_nodes(node_template_name)))
     
     def find_groups(self, group_template_name):
         groups = []
         for group in self.groups.itervalues():
             if group.template_name == group_template_name:
                 groups.append(group)
-        return ReadOnlyList(groups)
+        return FrozenList(groups)
 
     def get_group_ids(self, group_template_name):
-        return ReadOnlyList((group.id for group in self.find_groups(group_template_name)))
+        return FrozenList((group.id for group in self.find_groups(group_template_name)))
     
     def is_node_a_target(self, context, target_node):
         for node in self.nodes.itervalues():

@@ -14,8 +14,8 @@
 # under the License.
 #
 
-from ..v1_0 import ToscaSimplePresenter1_0
-from aria.utils import ReadOnlyList, EMPTY_READ_ONLY_LIST, cachedmethod
+from ..simple_v1_0 import ToscaSimplePresenter1_0
+from aria.utils import FrozenList, EMPTY_READ_ONLY_LIST, cachedmethod
 
 class ToscaSimpleNfvPresenter1_0(ToscaSimplePresenter1_0):
     """
@@ -37,6 +37,7 @@ class ToscaSimpleNfvPresenter1_0(ToscaSimplePresenter1_0):
         import_locations = []
         if context.presentation.import_profile:
             import_locations += (self.SIMPLE_PROFILE_LOCATION, self.SIMPLE_PROFILE_FOR_NFV_LOCATION)
-        if (self.service_template and self.service_template.imports):
-            import_locations += [i.file for i in self.service_template.imports]
-        return ReadOnlyList(import_locations) if import_locations else EMPTY_READ_ONLY_LIST
+        imports = self._get('service_template', 'imports')
+        if imports:
+            import_locations += [i.file for i in imports]
+        return FrozenList(import_locations) if import_locations else EMPTY_READ_ONLY_LIST

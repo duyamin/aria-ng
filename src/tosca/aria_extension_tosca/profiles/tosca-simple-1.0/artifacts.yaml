@@ -20,7 +20,7 @@ artifact_types:
     _extensions:
       shorthand_name: Root # ommitted in the spec (seems to be a mistake)
       type_qualified_name: tosca:Root
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.3.1
       specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_ARTIFACTS_ROOT'
     description: >-
@@ -30,7 +30,7 @@ artifact_types:
     _extensions:
       shorthand_name: File
       type_qualified_name: tosca:File
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.3.2
     description: >-
       This artifact type is used when an artifact definition needs to have its associated file simply treated as a file and no special handling/handlers are invoked (i.e., it is not treated as either an implementation or deployment artifact type).
@@ -44,7 +44,7 @@ artifact_types:
     _extensions:
       shorthand_name: Deployment # ommitted in the spec (seems to be a mistake)
       type_qualified_name: tosca:Deployment
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.3.3.1
       specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_ARTIFACTS_DEPLOYMENT'
     description: >-
@@ -57,7 +57,7 @@ artifact_types:
     _extensions:
       shorthand_name: Deployment.Image
       type_qualified_name: tosca:Deployment.Image
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.3.3.3
       specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_ARTIFACTS_DEPLOYMENT_IMAGE'
     description: >-
@@ -70,7 +70,7 @@ artifact_types:
     _extensions:
       shorthand_name: Deployment.VM # ommitted in the spec (seems to be a mistake)
       type_qualified_name: tosca:Deployment.VM
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.3.3.4
       specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_ARTIFACTS_DEPLOY_IMAGE_VM'
     description: >-
@@ -88,7 +88,7 @@ artifact_types:
     _extensions:
       shorthand_name: Implementation # ommitted in the spec (seems to be a mistake)
       type_qualified_name: tosca:Implementation
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.3.4.1
       specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_ARTIFACTS_IMPLEMENTATION'
     description: >-
@@ -100,7 +100,7 @@ artifact_types:
     _extensions:
       shorthand_name: Implementation.Bash # mistake in spec? shouldn't we have "Implementation." as prefix?
       type_qualified_name: tosca:Implementation.Bash
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.3.4.3
     description: >-
       This artifact type represents a Bash script type that contains Bash commands that can be executed on the Unix Bash shell.
@@ -112,7 +112,7 @@ artifact_types:
     _extensions:
       shorthand_name: Implementation.Python # mistake in spec? shouldn't we have "Implementation." as prefix?
       type_qualified_name: tosca:Implementation.Python
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.3.4.4
     description: >-
       This artifact type represents a Python file that contains Python language constructs that can be executed within a Python

@@ -23,7 +23,7 @@ from aria import dsl_specification
 from aria.utils import cachedmethod, puts, as_raw
 from aria.presentation import AsIsPresentation, has_fields, allow_unknown_fields, short_form_field, primitive_field, primitive_list_field, primitive_dict_unknown_fields, object_field, object_list_field, object_dict_field, field_validator, type_validator
 
-@dsl_specification('3.5.1', 'tosca-simple-profile-1.0')
+@dsl_specification('3.5.1', 'tosca-simple-1.0')
 class Description(AsIsPresentation):
     """
     See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_ELEMENT_DESCRIPTION>`__
@@ -35,24 +35,24 @@ class Description(AsIsPresentation):
 
 @allow_unknown_fields
 @has_fields
-@dsl_specification('3.9.3.2', 'tosca-simple-profile-1.0')
+@dsl_specification('3.9.3.2', 'tosca-simple-1.0')
 class MetaData(ExtensiblePresentation):
     @primitive_field(str)
-    @dsl_specification('3.9.3.3', 'tosca-simple-profile-1.0')
+    @dsl_specification('3.9.3.3', 'tosca-simple-1.0')
     def template_name(self):
         """
         This optional metadata keyname can be used to declare the name of service template as a single-line string value.
         """
 
     @primitive_field(str)
-    @dsl_specification('3.9.3.4', 'tosca-simple-profile-1.0')
+    @dsl_specification('3.9.3.4', 'tosca-simple-1.0')
     def template_author(self):
         """
         This optional metadata keyname can be used to declare the author(s) of the service template as a single-line string value.
         """
 
     @primitive_field(str)
-    @dsl_specification('3.9.3.5', 'tosca-simple-profile-1.0')
+    @dsl_specification('3.9.3.5', 'tosca-simple-1.0')
     def template_version(self):
         """
         This optional metadata keyname can be used to declare a domain specific version of the service template as a single-line string value.
@@ -65,7 +65,7 @@ class MetaData(ExtensiblePresentation):
         """
 
 @has_fields
-@dsl_specification('3.5.5', 'tosca-simple-profile-1.0')
+@dsl_specification('3.5.5', 'tosca-simple-1.0')
 class Repository(ExtensiblePresentation):
     """
     A repository definition defines a named external repository which contains deployment and implementation artifacts that are referenced within the TOSCA Service Template.
@@ -103,7 +103,7 @@ class Repository(ExtensiblePresentation):
 
 @short_form_field('file')
 @has_fields
-@dsl_specification('3.5.7', 'tosca-simple-profile-1.0')
+@dsl_specification('3.5.7', 'tosca-simple-1.0')
 class Import(ExtensiblePresentation):
     """
     An import definition is used within a TOSCA Service Template to locate and uniquely name another TOSCA Service Template file which has type and template definitions to be imported (included) and referenced within another Service Template.
@@ -144,7 +144,7 @@ class Import(ExtensiblePresentation):
         """
 
 @has_fields
-@dsl_specification('3.5.2', 'tosca-simple-profile-1.0')
+@dsl_specification('3.5.2', 'tosca-simple-1.0')
 class ConstraintClause(ExtensiblePresentation):
     """
     A constraint clause defines an operation along with one or more compatible values that can be used to define a constraint on a property or parameter's allowed values when it is defined in a TOSCA Service Template or one of its entities.
@@ -329,7 +329,7 @@ class SubstitutionMappingsCapability(AsIsPresentation):
         validate_subtitution_mappings_capability(context, self)
 
 @has_fields
-@dsl_specification('2.10', 'tosca-simple-profile-1.0')
+@dsl_specification('2.10', 'tosca-simple-1.0')
 class SubstitutionMappings(ExtensiblePresentation):
     @field_validator(type_validator('node type', convert_shorthand_to_full_type_name, 'node_types'))
     @primitive_field(str, required=True)

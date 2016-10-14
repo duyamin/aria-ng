@@ -26,8 +26,8 @@ import re
 # NodeTemplate, RelationshipTemplate
 #
 
-@dsl_specification('3.7.3.3', 'tosca-simple-profile-1.0')
-@dsl_specification('3.7.4.3', 'tosca-simple-profile-1.0')
+@dsl_specification('3.7.3.3', 'tosca-simple-1.0')
+@dsl_specification('3.7.4.3', 'tosca-simple-1.0')
 def copy_validator(template_type_name, templates_dict_name):
     """
     Makes sure that the field refers to an existing template defined in the root presenter.
@@ -65,7 +65,7 @@ def data_type_validator(type_name='data type'):
 
     def validator(field, presentation, context):
         field._validate(presentation, context)
-    
+        
         value = getattr(presentation, field.name)
         if value is not None:
             # Test for circular definitions

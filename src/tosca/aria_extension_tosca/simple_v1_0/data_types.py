@@ -99,7 +99,7 @@ class Timestamp(object):
                     tzminute = 0
                 self.value = datetime(year, month, day, hour, minute, second, fraction, Timezone(tzhour, tzminute))
             else:
-                raise ValueError('timestamp must be formatted as YAML ISO8601 variant or "YYYY-MM-DD"')
+                raise ValueError('timestamp must be formatted as YAML ISO8601 variant or "YYYY-MM-DD": %s' % safe_repr(value))
     
     @property
     def as_datetime_utc(self):
@@ -129,7 +129,7 @@ class Timestamp(object):
         return '{0:g}'.format_heading(dt.microsecond / 1000000.0).lstrip('0')
     
 @total_ordering
-@dsl_specification('3.2.2', 'tosca-simple-profile-1.0')
+@dsl_specification('3.2.2', 'tosca-simple-1.0')
 class Version(object):
     """
     TOSCA supports the concept of "reuse" of type definitions, as well as template definitions which could be version and change over time. It is important to provide a reliable, normative means to represent a version string which enables the comparison and management of types and templates over time. Therefore, the TOSCA TC intends to provide a normative version type (string) for this purpose in future Working Drafts of this specification.
@@ -147,12 +147,12 @@ class Version(object):
         return (version.major, version.minor, version.fix, version.qualifier, version.build)
     
     def __init__(self, entry_schema, constraints, value, aspect):
-        value = str(value)
-        match = re.match(Version.RE, value)
+        str_value = str(value)
+        match = re.match(Version.RE, str_value)
         if match is None:
-            raise ValueError('version must be formatted as <major_version>.<minor_version>[.<fix_version>[.<qualifier>[-<build_version]]]')
+            raise ValueError('version must be formatted as <major_version>.<minor_version>[.<fix_version>[.<qualifier>[-<build_version]]]: %s' % safe_repr(value))
         
-        self.value = value
+        self.value = str_value
         
         self.major = match.group('major')
         self.major = int(self.major)
@@ -200,7 +200,7 @@ class Version(object):
                             return True
         return False
 
-@dsl_specification('3.2.3', 'tosca-simple-profile-1.0')
+@dsl_specification('3.2.3', 'tosca-simple-1.0')
 class Range(object):
     """
     The range type can be used to define numeric ranges with a lower and upper boundary. For example, this allows for specifying a range of ports to be opened in a firewall.
@@ -242,7 +242,7 @@ class Range(object):
     def as_raw(self):
         return self.value
 
-@dsl_specification('3.2.4', 'tosca-simple-profile-1.0')
+@dsl_specification('3.2.4', 'tosca-simple-1.0')
 class List(list):
     """
     The list type allows for specifying multiple values for a parameter of property. For example, if an application allows for being configured to listen on multiple ports, a list of ports could be configured using the list data type.
@@ -270,7 +270,7 @@ class List(list):
     def as_raw(self):
         return list(self)
 
-@dsl_specification('3.2.5', 'tosca-simple-profile-1.0')
+@dsl_specification('3.2.5', 'tosca-simple-1.0')
 class Map(StrictDict):
     """
     The map type allows for specifying multiple values for a parameter of property as a map. In contrast to the list type, where each entry can only be addressed by its index in the list, entries in a map are named elements that can be addressed by their keys.
@@ -305,7 +305,7 @@ class Map(StrictDict):
         return OrderedDict(self)
 
 @total_ordering
-@dsl_specification('3.2.6', 'tosca-simple-profile-1.0')
+@dsl_specification('3.2.6', 'tosca-simple-1.0')
 class Scalar(object):
     """
     The scalar-unit type can be used to define scalar values along with a unit from the list of recognized units.
@@ -321,10 +321,10 @@ class Scalar(object):
         return scalar.value
     
     def __init__(self, entry_schema, constraints, value, aspect):
-        value = str(value)
-        match = re.match(self.RE, value)
+        str_value = str(value)
+        match = re.match(self.RE, str_value)
         if match is None:
-            raise ValueError('scalar must be formatted as <scalar> <unit>')
+            raise ValueError('scalar must be formatted as <scalar> <unit>: %s' % safe_repr(value))
 
         scalar = float(match.group('scalar'))
         unit = match.group('unit')
@@ -361,7 +361,7 @@ class Scalar(object):
             value = self.TYPE(scalar)
         return self.value < value
 
-@dsl_specification('3.2.6.4', 'tosca-simple-profile-1.0')
+@dsl_specification('3.2.6.4', 'tosca-simple-1.0')
 class ScalarSize(Scalar):
     """
     Integer scalar for counting bytes.
@@ -386,7 +386,7 @@ class ScalarSize(Scalar):
     TYPE = int
     UNIT = 'bytes'
 
-@dsl_specification('3.2.6.5', 'tosca-simple-profile-1.0')
+@dsl_specification('3.2.6.5', 'tosca-simple-1.0')
 class ScalarTime(Scalar):
     """
     Floating point scalar for counting seconds.
@@ -409,7 +409,7 @@ class ScalarTime(Scalar):
     TYPE = float
     UNIT = 'seconds'
 
-@dsl_specification('3.2.6.6', 'tosca-simple-profile-1.0')
+@dsl_specification('3.2.6.6', 'tosca-simple-1.0')
 class ScalarFrequency(Scalar):
     """
     Floating point scalar for counting cycles per second (Hz).

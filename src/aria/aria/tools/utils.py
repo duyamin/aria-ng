@@ -17,7 +17,7 @@
 from .. import VERSION
 from ..consumption import ConsumptionContext
 from ..loading import UriLocation, URI_LOADER_PREFIXES
-from ..utils import import_fullname, ArgumentParser
+from ..utils import ArgumentParser, import_fullname, cachedmethod
 
 class BaseArgumentParser(ArgumentParser):
     def __init__(self, description, **kwargs):
@@ -26,12 +26,14 @@ class BaseArgumentParser(ArgumentParser):
 class CommonArgumentParser(BaseArgumentParser):
     def __init__(self, description, **kwargs):
         super(CommonArgumentParser, self).__init__(description='ARIA version %s %s' % (VERSION, description), **kwargs)
+        
         self.add_argument('--loader-source', default='aria.loading.DefaultLoaderSource', help='loader source class for the parser')
         self.add_argument('--reader-source', default='aria.reading.DefaultReaderSource', help='reader source class for the parser')
         self.add_argument('--presenter-source', default='aria.presentation.DefaultPresenterSource', help='presenter source class for the parser')
         self.add_argument('--presenter', help='force use of this presenter class in parser')
         self.add_argument('--prefix', nargs='*', help='prefixes for imports')
-        self.add_argument('--debug', action='store_true', help='print debug info')
+        self.add_flag_argument('debug', help_true='print debug info', help_false='don\'t print debug info')
+        self.add_flag_argument('cached-methods', help_true='enable cached methods', help_false='disable cached methods', default=True)
 
     def parse_known_args(self, args=None, namespace=None):
         namespace, args = super(CommonArgumentParser, self).parse_known_args(args, namespace)
@@ -39,6 +41,8 @@ class CommonArgumentParser(BaseArgumentParser):
         if namespace.prefix:
             for prefix in namespace.prefix:
                 URI_LOADER_PREFIXES.append(prefix)
+        
+        cachedmethod.ENABLED = namespace.cached_methods
         
         return namespace, args
 

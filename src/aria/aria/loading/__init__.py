@@ -37,7 +37,7 @@ __all__ = (
     'LiteralLocation',
     'LiteralLoader',
     'URI_LOADER_PREFIXES',
-    'UriTextLoader'
+    'UriTextLoader',
     'SESSION',
     'SESSION_CACHE_PATH',
     'RequestLoader',

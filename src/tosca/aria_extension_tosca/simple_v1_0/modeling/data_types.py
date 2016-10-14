@@ -119,9 +119,9 @@ def get_data_type(context, presentation, field_name, allow_none=False):
     `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#_Toc379455072>`__
     """
     
-    the_type = getattr(presentation, field_name)
+    type_name = getattr(presentation, field_name)
     
-    if the_type is None:
+    if type_name is None:
         if allow_none:
             return None
         else:
@@ -129,16 +129,16 @@ def get_data_type(context, presentation, field_name, allow_none=False):
     
     # Avoid circular definitions
     container_data_type = get_container_data_type(presentation)
-    if (container_data_type is not None) and (container_data_type._name == the_type):
+    if (container_data_type is not None) and (container_data_type._name == type_name):
         return None
 
     # Try complex data type
-    data_type = get_type_by_full_or_shorthand_name(context, the_type, 'data_types')
+    data_type = get_type_by_full_or_shorthand_name(context, type_name, 'data_types')
     if data_type is not None:
-        return data_type 
+        return data_type
     
     # Try primitive data type
-    return get_primitive_data_type(the_type)
+    return get_primitive_data_type(type_name)
 
 #
 # PropertyDefinition, EntrySchema
@@ -299,7 +299,7 @@ PRIMITIVE_DATA_TYPES = {
     'boolean': bool,
     'null': None.__class__}
 
-@dsl_specification('3.2.1', 'tosca-simple-profile-1.0')
+@dsl_specification('3.2.1', 'tosca-simple-1.0')
 def get_primitive_data_type(type_name):
     """
     Many of the types we use in this profile are built-in types from the YAML 1.2 specification (i.e., those identified by the "tag:yaml.org,2002" version tag) [YAML-1.2].
@@ -314,9 +314,7 @@ def get_data_type_name(the_type):
     Returns the name of the type, whether it's a DataType, a primitive type, or another class.
     """
     
-    if hasattr(the_type, '_name'):
-        return the_type._name
-    return full_type_name(the_type)
+    return the_type._name if hasattr(the_type, '_name') else full_type_name(the_type)
 
 def coerce_value(context, presentation, the_type, entry_schema, constraints, value, aspect=None):
     """
@@ -344,11 +342,13 @@ def coerce_value(context, presentation, the_type, entry_schema, constraints, val
     if hasattr(the_type, '_get_extension'):
         coerce_value_fn_name = the_type._get_extension('coerce_value')
         if coerce_value_fn_name is not None:
+            if value is None:
+                return None
             coerce_value_fn = import_fullname(coerce_value_fn_name)
             return coerce_value_fn(context, presentation, the_type, entry_schema, constraints, value, aspect)
 
     if hasattr(the_type, '_coerce_value'):
-        # Delegate to _coerce_value (likely a DataType instance)
+        # Delegate to '_coerce_value' (likely a DataType instance)
         return the_type._coerce_value(context, presentation, entry_schema, constraints, value, aspect)
 
     # Coerce to primitive type
@@ -427,11 +427,10 @@ def get_container_data_type(presentation):
     return get_container_data_type(presentation._container)
 
 def report_issue_for_bad_format(context, presentation, the_type, value, aspect, e):
-    aspect = None
     if aspect == 'default':
         aspect = '"default" value'
     elif aspect is not None:
-        aspect = '"%s" constraint'  
+        aspect = '"%s" aspect' % aspect 
     
     if aspect is not None:
         context.validation.report('%s for field "%s" is not a valid "%s": %s' % (aspect, presentation._name or presentation._container._name, get_data_type_name(the_type), safe_repr(value)), locator=presentation._locator, level=Issue.BETWEEN_FIELDS, exception=e)

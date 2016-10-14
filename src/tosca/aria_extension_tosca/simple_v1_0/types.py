@@ -30,11 +30,11 @@ from .modeling.artifacts import get_inherited_artifact_definitions
 from .modeling.policies import get_inherited_targets
 from .modeling.data_types import get_data_type, get_inherited_constraints, coerce_data_type_value, validate_data_type_name
 from aria import dsl_specification
-from aria.utils import ReadOnlyDict, ReadOnlyList, cachedmethod
+from aria.utils import FrozenDict, FrozenList, cachedmethod
 from aria.presentation import has_fields, allow_unknown_fields, primitive_field, primitive_list_field, object_field, object_dict_field, object_list_field, object_sequenced_list_field, object_dict_unknown_fields, field_getter, field_validator, list_type_validator, derived_from_validator
 
 @has_fields
-@dsl_specification('3.6.3', 'tosca-simple-profile-1.0')
+@dsl_specification('3.6.3', 'tosca-simple-1.0')
 class ArtifactType(ExtensiblePresentation):
     """
     An Artifact Type is a reusable entity that defines the type of one or more files that are used to define implementation or deployment artifacts that are referenced by nodes or relationships on their operations.
@@ -98,7 +98,7 @@ class ArtifactType(ExtensiblePresentation):
 
     @cachedmethod
     def _get_properties(self, context):
-        return ReadOnlyDict(get_inherited_property_definitions(context, self, 'properties'))
+        return FrozenDict(get_inherited_property_definitions(context, self, 'properties'))
 
     def _validate(self, context):
         super(ArtifactType, self)._validate(context)
@@ -114,7 +114,7 @@ class ArtifactType(ExtensiblePresentation):
             'properties'))
 
 @has_fields
-@dsl_specification('3.6.5', 'tosca-simple-profile-1.0')
+@dsl_specification('3.6.5', 'tosca-simple-1.0')
 class DataType(ExtensiblePresentation):
     """
     A Data Type definition defines the schema for new named datatypes in TOSCA.
@@ -181,7 +181,7 @@ class DataType(ExtensiblePresentation):
 
     @cachedmethod
     def _get_properties(self, context):
-        return ReadOnlyDict(get_inherited_property_definitions(context, self, 'properties'))
+        return FrozenDict(get_inherited_property_definitions(context, self, 'properties'))
 
     @cachedmethod
     def _get_constraints(self, context):
@@ -204,7 +204,7 @@ class DataType(ExtensiblePresentation):
             'properties'))
 
 @has_fields
-@dsl_specification('3.6.6', 'tosca-simple-profile-1.0')
+@dsl_specification('3.6.6', 'tosca-simple-1.0')
 class CapabilityType(ExtensiblePresentation):
     """
     A Capability Type is a reusable entity that describes a kind of capability that a Node Type can declare to expose. Requirements (implicit or explicit) that are declared as part of one node can be matched to (i.e., fulfilled by) the Capabilities declared by another node.
@@ -278,7 +278,7 @@ class CapabilityType(ExtensiblePresentation):
 
     @cachedmethod
     def _get_properties(self, context):
-        return ReadOnlyDict(get_inherited_property_definitions(context, self, 'properties'))
+        return FrozenDict(get_inherited_property_definitions(context, self, 'properties'))
 
     @cachedmethod
     def _get_valid_source_types(self, context):
@@ -299,7 +299,7 @@ class CapabilityType(ExtensiblePresentation):
 
 @allow_unknown_fields
 @has_fields
-@dsl_specification('3.6.4', 'tosca-simple-profile-1.0')
+@dsl_specification('3.6.4', 'tosca-simple-1.0')
 class InterfaceType(ExtensiblePresentation):
     """
     An Interface Type is a reusable entity that describes a set of operations that can be used to interact with or manage a node or relationship in a TOSCA topology.
@@ -352,11 +352,11 @@ class InterfaceType(ExtensiblePresentation):
 
     @cachedmethod
     def _get_inputs(self, context):
-        return ReadOnlyDict(get_inherited_property_definitions(context, self, 'inputs'))
+        return FrozenDict(get_inherited_property_definitions(context, self, 'inputs'))
 
     @cachedmethod
     def _get_operations(self, context):
-        return ReadOnlyDict(get_inherited_operations(context, self))
+        return FrozenDict(get_inherited_operations(context, self))
 
     def _validate(self, context):
         super(InterfaceType, self)._validate(context)
@@ -373,7 +373,7 @@ class InterfaceType(ExtensiblePresentation):
             'operations'))
 
 @has_fields
-@dsl_specification('3.6.9', 'tosca-simple-profile-1.0')
+@dsl_specification('3.6.9', 'tosca-simple-1.0')
 class RelationshipType(ExtensiblePresentation):
     """
     A Relationship Type is a reusable entity that defines the type of one or more relationships between Node Types or Node Templates.
@@ -445,15 +445,15 @@ class RelationshipType(ExtensiblePresentation):
 
     @cachedmethod
     def _get_properties(self, context):
-        return ReadOnlyDict(get_inherited_property_definitions(context, self, 'properties'))
+        return FrozenDict(get_inherited_property_definitions(context, self, 'properties'))
 
     @cachedmethod
     def _get_attributes(self, context):
-        return ReadOnlyDict(get_inherited_property_definitions(context, self, 'attributes'))
+        return FrozenDict(get_inherited_property_definitions(context, self, 'attributes'))
 
     @cachedmethod
     def _get_interfaces(self, context):
-        return ReadOnlyDict(get_inherited_interface_definitions(context, self, 'relationship type'))
+        return FrozenDict(get_inherited_interface_definitions(context, self, 'relationship type'))
 
     def _validate(self, context):
         super(RelationshipType, self)._validate(context)
@@ -472,7 +472,7 @@ class RelationshipType(ExtensiblePresentation):
             'interfaces'))
 
 @has_fields
-@dsl_specification('3.6.8', 'tosca-simple-profile-1.0')
+@dsl_specification('3.6.8', 'tosca-simple-1.0')
 class NodeType(ExtensiblePresentation):
     """
     A Node Type is a reusable entity that defines the type of one or more Node Templates. As such, a Node Type defines the structure of observable properties via a Properties Definition, the Requirements and Capabilities of the node as well as its supported interfaces.
@@ -570,27 +570,27 @@ class NodeType(ExtensiblePresentation):
 
     @cachedmethod
     def _get_properties(self, context):
-        return ReadOnlyDict(get_inherited_property_definitions(context, self, 'properties'))
+        return FrozenDict(get_inherited_property_definitions(context, self, 'properties'))
 
     @cachedmethod
     def _get_attributes(self, context):
-        return ReadOnlyDict(get_inherited_property_definitions(context, self, 'attributes'))
+        return FrozenDict(get_inherited_property_definitions(context, self, 'attributes'))
 
     @cachedmethod
     def _get_requirements(self, context):
-        return ReadOnlyList(get_inherited_requirement_definitions(context, self))
+        return FrozenList(get_inherited_requirement_definitions(context, self))
 
     @cachedmethod
     def _get_capabilities(self, context):
-        return ReadOnlyDict(get_inherited_capability_definitions(context, self))
+        return FrozenDict(get_inherited_capability_definitions(context, self))
 
     @cachedmethod
     def _get_interfaces(self, context):
-        return ReadOnlyDict(get_inherited_interface_definitions(context, self, 'node type'))
+        return FrozenDict(get_inherited_interface_definitions(context, self, 'node type'))
 
     @cachedmethod
     def _get_artifacts(self, context):
-        return ReadOnlyDict(get_inherited_artifact_definitions(context, self))
+        return FrozenDict(get_inherited_artifact_definitions(context, self))
 
     def _validate(self, context):
         super(NodeType, self)._validate(context)
@@ -614,7 +614,7 @@ class NodeType(ExtensiblePresentation):
             'capabilities'))
 
 @has_fields
-@dsl_specification('3.6.10', 'tosca-simple-profile-1.0')
+@dsl_specification('3.6.10', 'tosca-simple-1.0')
 class GroupType(ExtensiblePresentation):
     """
     A Group Type defines logical grouping types for nodes, typically for different management purposes. Groups can effectively be viewed as logical nodes that are not part of the physical deployment topology of an application, yet can have capabilities and the ability to attach policies and interfaces that can be applied (depending on the group type) to its member nodes.
@@ -690,11 +690,11 @@ class GroupType(ExtensiblePresentation):
 
     @cachedmethod
     def _get_properties(self, context):
-        return ReadOnlyDict(get_inherited_property_definitions(context, self, 'properties'))
+        return FrozenDict(get_inherited_property_definitions(context, self, 'properties'))
 
     @cachedmethod
     def _get_interfaces(self, context):
-        return ReadOnlyDict(get_inherited_interface_definitions(context, self, 'group type'))
+        return FrozenDict(get_inherited_interface_definitions(context, self, 'group type'))
 
     def _validate(self, context):
         super(GroupType, self)._validate(context)
@@ -711,7 +711,7 @@ class GroupType(ExtensiblePresentation):
             'interfaces'))
 
 @has_fields
-@dsl_specification('3.6.11', 'tosca-simple-profile-1.0')
+@dsl_specification('3.6.11', 'tosca-simple-1.0')
 class PolicyType(ExtensiblePresentation):
     """
     A Policy Type defines a type of requirement that affects or governs an application or service's topology at some stage of its lifecycle, but is not explicitly part of the topology itself (i.e., it does not prevent the application or service from being deployed or run if it did not exist).
@@ -769,12 +769,12 @@ class PolicyType(ExtensiblePresentation):
 
     @cachedmethod
     def _get_properties(self, context):
-        return ReadOnlyDict(get_inherited_property_definitions(context, self, 'properties'))
+        return FrozenDict(get_inherited_property_definitions(context, self, 'properties'))
 
     @cachedmethod
     def _get_targets(self, context):
         node_types, group_types = get_inherited_targets(context, self)
-        return ReadOnlyList(node_types), ReadOnlyList(group_types)
+        return FrozenList(node_types), FrozenList(group_types)
 
     def _validate(self, context):
         super(PolicyType, self)._validate(context)

@@ -19,7 +19,7 @@ from ..v1_0 import PropertyDefinition
 from ..v1_0.modeling.properties import get_inherited_property_definitions
 from aria import dsl_specification
 from aria.presentation import Presentation, has_fields, primitive_field, object_dict_field, field_validator, derived_from_validator
-from aria.utils import ReadOnlyDict, cachedmethod
+from aria.utils import FrozenDict, cachedmethod
 
 @has_fields
 @dsl_specification('data-types', 'cloudify-1.2')
@@ -62,7 +62,7 @@ class DataType(Presentation):
 
     @cachedmethod
     def _get_properties(self, context):
-        return ReadOnlyDict(get_inherited_property_definitions(context, self, 'properties'))
+        return FrozenDict(get_inherited_property_definitions(context, self, 'properties'))
 
     def _validate(self, context):
         super(DataType, self)._validate(context)

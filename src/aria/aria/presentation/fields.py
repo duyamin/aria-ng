@@ -17,7 +17,7 @@
 from .null import NULL
 from ..exceptions import InvalidValueError, AriaError
 from ..validation import Issue
-from ..utils import ReadOnlyList, ReadOnlyDict, print_exception, deepcopy_with_locators, merge, cachedmethod, puts, as_raw, full_type_name, safe_repr
+from ..utils import FrozenList, FrozenDict, print_exception, deepcopy_with_locators, merge, cachedmethod, puts, as_raw, full_type_name, safe_repr
 from functools import wraps
 from types import MethodType
 from collections import OrderedDict
@@ -457,7 +457,7 @@ class Field(object):
                     except ValueError:
                         raise InvalidValueError('%s is not a list of "%s": element %d is %s' % (self.full_name, self.full_cls_name, i, safe_repr(v)), locator=self.get_locator(raw))
                 r.append(v)
-        return ReadOnlyList(r)
+        return FrozenList(r)
 
     def _dump_primitive_list(self, context, value):
         puts('%s:' % self.name)
@@ -480,7 +480,7 @@ class Field(object):
                     except ValueError:
                         raise InvalidValueError('%s is not a dict of "%s" values: entry "%d" is %s' % (self.full_name, self.full_cls_name, k, safe_repr(v)), locator=self.get_locator(raw))
                 r[k] = v
-        return ReadOnlyDict(r)
+        return FrozenDict(r)
 
     def _dump_primitive_dict(self, context, value):
         puts('%s:' % self.name)
@@ -505,7 +505,7 @@ class Field(object):
     def _get_object_list(self, presentation, raw, value):
         if not isinstance(value, list):
             raise InvalidValueError('%s is not a list: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
-        return ReadOnlyList((self.cls(raw=v, container=presentation) for v in value))
+        return FrozenList((self.cls(raw=v, container=presentation) for v in value))
 
     def _dump_object_list(self, context, value):
         puts('%s:' % self.name)
@@ -517,7 +517,7 @@ class Field(object):
     def _get_object_dict(self, presentation, raw, value):
         if not isinstance(value, dict):
             raise InvalidValueError('%s is not a dict: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
-        return ReadOnlyDict(((k, self.cls(name=k, raw=v, container=presentation)) for k, v in value.iteritems()))
+        return FrozenDict(((k, self.cls(name=k, raw=v, container=presentation)) for k, v in value.iteritems()))
 
     def _dump_object_dict(self, context, value):
         puts('%s:' % self.name)
@@ -537,7 +537,7 @@ class Field(object):
                 raise InvalidValueError('%s list elements do not all have exactly one key: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
             k, vv = v.items()[0]
             sequence.append((k, self.cls(name=k, raw=vv, container=presentation)))
-        return ReadOnlyList(sequence)
+        return FrozenList(sequence)
 
     def _dump_sequenced_object_list(self, context, value):
         puts('%s:' % self.name)
@@ -557,7 +557,7 @@ class Field(object):
                                 r[k] = self.cls(v)
                             except ValueError:
                                 raise InvalidValueError('%s is not a dict of "%s" values: entry "%d" is %s' % (self.full_name, self.full_cls_name, k, safe_repr(v)), locator=self.get_locator(raw))
-            return ReadOnlyDict(r)
+            return FrozenDict(r)
         return None
 
     def _dump_primitive_dict_unknown_fields(self, context, value):
@@ -565,7 +565,7 @@ class Field(object):
 
     def _get_object_dict_unknown_fields(self, presentation, raw):
         if isinstance(raw, dict):
-            return ReadOnlyDict(((k, self.cls(name=k, raw=v, container=presentation)) for k, v in raw.iteritems() if k not in presentation.FIELDS))
+            return FrozenDict(((k, self.cls(name=k, raw=v, container=presentation)) for k, v in raw.iteritems() if k not in presentation.FIELDS))
         return None
 
     def _dump_object_dict_unknown_fields(self, context, value):

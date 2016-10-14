@@ -17,14 +17,14 @@
 from aria import dsl_specification, InvalidValueError
 from aria.validation import Issue
 from aria.modeling import Function, CannotEvaluateFunction
-from aria.utils import ReadOnlyList, as_raw, safe_repr
+from aria.utils import FrozenList, as_raw, safe_repr
 from cStringIO import StringIO
 
 #
 # Intrinsic
 #
 
-@dsl_specification('4.3.1', 'tosca-simple-profile-1.0')
+@dsl_specification('4.3.1', 'tosca-simple-1.0')
 class Concat(Function):
     """
     The :code:`concat` function is used to concatenate two or more string values within a TOSCA service template.
@@ -39,7 +39,7 @@ class Concat(Function):
         string_expressions = []
         for index in range(len(argument)):
             string_expressions.append(parse_string_expression(context, presentation, 'concat', index, None, argument[index]))
-        self.string_expressions = ReadOnlyList(string_expressions)    
+        self.string_expressions = FrozenList(string_expressions)    
 
     @property
     def as_raw(self):
@@ -58,7 +58,7 @@ class Concat(Function):
             r.write(str(e))
         return r.getvalue()
 
-@dsl_specification('4.3.2', 'tosca-simple-profile-1.0')
+@dsl_specification('4.3.2', 'tosca-simple-1.0')
 class Token(Function):
     """
     The :code:`token` function is used within a TOSCA service template on a string to parse out (tokenize) substrings separated by one or more token characters within a larger string.
@@ -93,7 +93,7 @@ class Token(Function):
 # Property
 #
 
-@dsl_specification('4.4.1', 'tosca-simple-profile-1.0')
+@dsl_specification('4.4.1', 'tosca-simple-1.0')
 class GetInput(Function):
     """
     The :code:`get_input` function is used to retrieve the values of properties declared within the inputs section of a TOSCA Service Template.
@@ -117,7 +117,7 @@ class GetInput(Function):
         the_input = context.modeling.model.inputs.get(self.input_property_name)
         return the_input.value if the_input is not None else None
 
-@dsl_specification('4.4.2', 'tosca-simple-profile-1.0')
+@dsl_specification('4.4.2', 'tosca-simple-1.0')
 class GetProperty(Function):
     """
     The :code:`get_property` function is used to retrieve property values between modelable entities defined in the same service template.
@@ -174,7 +174,7 @@ class GetProperty(Function):
 # Attribute
 #
 
-@dsl_specification('4.5.1', 'tosca-simple-profile-1.0')
+@dsl_specification('4.5.1', 'tosca-simple-1.0')
 class GetAttribute(Function):
     """
     The :code:`get_attribute` function is used to retrieve the values of named attributes declared by the referenced node or relationship template name.
@@ -200,7 +200,7 @@ class GetAttribute(Function):
 # Operation
 #
 
-@dsl_specification('4.6.1', 'tosca-simple-profile-1.0')
+@dsl_specification('4.6.1', 'tosca-simple-1.0')
 class GetOperationOutput(Function):
     """
     The :code:`get_operation_output` function is used to retrieve the values of variables exposed / exported from an interface operation.
@@ -234,7 +234,7 @@ class GetOperationOutput(Function):
 # Navigation
 #
 
-@dsl_specification('4.7.1', 'tosca-simple-profile-1.0')
+@dsl_specification('4.7.1', 'tosca-simple-1.0')
 class GetNodesOfType(Function):
     """
     The :code:`get_nodes_of_type` function can be used to retrieve a list of all known instances of nodes of the declared Node Type.
@@ -264,7 +264,7 @@ class GetNodesOfType(Function):
 # Artifact
 #
 
-@dsl_specification('4.8.1', 'tosca-simple-profile-1.0')
+@dsl_specification('4.8.1', 'tosca-simple-1.0')
 class GetArtifact(Function):
     """
     The :code:`get_artifact` function is used to retrieve artifact location between modelable entities defined in the same service template.
@@ -362,7 +362,7 @@ def parse_self(presentation):
     else:
         return parse_self(presentation._container)
 
-@dsl_specification('4.1', 'tosca-simple-profile-1.0')
+@dsl_specification('4.1', 'tosca-simple-1.0')
 def get_modelable_entities(context, container, locator, modelable_entity_name):
     """
     The following keywords MAY be used in some TOSCA function in place of a TOSCA Node or Relationship Template name.

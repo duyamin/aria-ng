@@ -103,7 +103,7 @@ def get_parameter_values(context, presentation, field_name):
                 if hasattr(parameter, 'value') and (parameter.value is not None):
                     values[name] = coerce_property_value(context, presentation, parameter, parameter.value) # for parameters only 
                 elif hasattr(parameter, 'default') and (parameter.default is not None):
-                    values[name] = coerce_property_value(context, presentation, parameter, parameter.default)
+                    values[name] = coerce_property_value(context, presentation, parameter, parameter.default, 'default')
     
     return values
 
@@ -157,14 +157,17 @@ def coerce_property_value(context, presentation, definition, value, aspect=None)
     entry_schema = definition.entry_schema if definition is not None else None
     constraints = definition._get_constraints(context) if definition is not None else None
     value = coerce_value(context, presentation, the_type, entry_schema, constraints, value, aspect)
-    the_type = getattr(definition, 'type', None)
+    if (the_type is not None) and hasattr(the_type, '_name'):
+        type_name = the_type._name
+    else:
+        type_name = getattr(definition, 'type', None)
     description = getattr(definition, 'description', None)
     description = description.value if description is not None else None
-    return Value(the_type, value, description)
+    return Value(type_name, value, description)
 
 def convert_property_definitions_to_values(context, presentation, definitions):
     values = OrderedDict()
     for name, definition in definitions.iteritems():
         default = definition.default
-        values[name] = coerce_property_value(context, presentation, definition, default)
+        values[name] = coerce_property_value(context, definition, definition, default, 'default')
     return values

@@ -39,6 +39,9 @@ def get_inherited_operations(context, presentation):
     our_operations = presentation.operations # OperationDefinition
     merge_operation_definitions(context, operations, our_operations, presentation._name, presentation, 'type')
 
+    for operation in operations.itervalues():
+        operation._reset_method_cache()
+
     return operations
 
 #

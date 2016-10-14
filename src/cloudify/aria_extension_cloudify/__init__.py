@@ -31,7 +31,6 @@ def install_aria_extension():
 
 MODULES = (
     'classic_modeling',
-    'modeling',
     'v1_0',
     'v1_1',
     'v1_2',

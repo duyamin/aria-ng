@@ -27,23 +27,23 @@ def get_data_type(context, presentation):
     Returns the type, whether it's a complex data type (a DataType instance) or a primitive (a Python primitive type class).
     """
     
-    the_type = presentation.type
+    type_name = presentation.type
     
-    if the_type is None:
+    if type_name is None:
         return None
     
     # Avoid circular definitions
     container_data_type = get_container_data_type(presentation)
-    if (container_data_type is not None) and (container_data_type._name == the_type):
+    if (container_data_type is not None) and (container_data_type._name == type_name):
         return None
     
     # Try complex data type
-    data_type = context.presentation.get_from_dict('service_template', 'data_types', the_type)
+    data_type = context.presentation.get_from_dict('service_template', 'data_types', type_name)
     if data_type is not None:
         return data_type
     
     # Try primitive data type
-    return get_primitive_data_type(the_type)
+    return get_primitive_data_type(type_name)
 
 #
 # Utils
@@ -108,11 +108,13 @@ def coerce_value(context, presentation, the_type, value, aspect=None):
     if hasattr(the_type, '_get_extension'):
         coerce_value_fn_name = the_type._get_extension('coerce_value')
         if coerce_value_fn_name is not None:
+            if value is None:
+                return None
             coerce_value_fn = import_fullname(coerce_value_fn_name)
             return coerce_value_fn(context, presentation, the_type, value, aspect)
 
     if hasattr(the_type, '_coerce_value'):
-        # Delegate to _coerce_value (likely a DataType instance)
+        # Delegate to '_coerce_value' (likely a DataType instance)
         return the_type._coerce_value(context, presentation, value, aspect)
 
     # Coerce to primitive type
@@ -146,11 +148,10 @@ def get_container_data_type(presentation):
     return get_container_data_type(presentation._container)
 
 def report_issue_for_bad_format(context, presentation, the_type, value, aspect, e):
-    aspect = None
     if aspect == 'default':
         aspect = '"default" value'
     elif aspect is not None:
-        aspect = '"%s" aspect'  
+        aspect = '"%s" aspect' % aspect
     
     if aspect is not None:
         context.validation.report('%s for field "%s" is not a valid "%s": %s' % (aspect, presentation._name or presentation._container._name, get_data_type_name(the_type), safe_repr(value)), locator=presentation._locator, level=Issue.BETWEEN_FIELDS, exception=e)

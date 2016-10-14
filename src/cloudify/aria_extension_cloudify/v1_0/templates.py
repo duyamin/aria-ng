@@ -24,7 +24,7 @@ from .modeling.relationships import get_relationship_assigned_and_defined_proper
 from .modeling.node_templates import get_node_template_scalable
 from aria import dsl_specification
 from aria.presentation import Presentation, has_fields, primitive_field, primitive_list_field, object_field, object_list_field, object_dict_field, field_validator, type_validator, list_type_validator
-from aria.utils import ReadOnlyDict, cachedmethod
+from aria.utils import FrozenDict, cachedmethod
 
 @has_fields
 @dsl_specification('relationships-1', 'cloudify-1.0')
@@ -94,15 +94,15 @@ class RelationshipTemplate(Presentation):
 
     @cachedmethod
     def _get_property_values(self, context):
-        return ReadOnlyDict(get_relationship_assigned_and_defined_property_values(context, self))
+        return FrozenDict(get_relationship_assigned_and_defined_property_values(context, self))
 
     @cachedmethod
     def _get_source_interfaces(self, context):
-        return ReadOnlyDict(get_template_interfaces(context, self, 'relationship template', 'source_interfaces', '_get_source_interfaces'))
+        return FrozenDict(get_template_interfaces(context, self, 'relationship template', 'source_interfaces', '_get_source_interfaces'))
 
     @cachedmethod
     def _get_target_interfaces(self, context):
-        return ReadOnlyDict(get_template_interfaces(context, self, 'relationship template', 'target_interfaces', '_get_target_interfaces'))
+        return FrozenDict(get_template_interfaces(context, self, 'relationship template', 'target_interfaces', '_get_target_interfaces'))
 
     def _validate(self, context):
         super(RelationshipTemplate, self)._validate(context)
@@ -178,11 +178,11 @@ class NodeTemplate(Presentation):
 
     @cachedmethod
     def _get_property_values(self, context):
-        return ReadOnlyDict(get_assigned_and_defined_property_values(context, self))
+        return FrozenDict(get_assigned_and_defined_property_values(context, self))
 
     @cachedmethod
     def _get_interfaces(self, context):
-        return ReadOnlyDict(get_template_interfaces(context, self, 'node template', 'interfaces', '_get_interfaces'))
+        return FrozenDict(get_template_interfaces(context, self, 'node template', 'interfaces', '_get_interfaces'))
 
     @cachedmethod
     def _get_scalable(self, context):
@@ -336,11 +336,11 @@ class ServiceTemplate(Presentation):
 
     @cachedmethod
     def _get_input_values(self, context):
-        return ReadOnlyDict(get_parameter_values(context, self, 'inputs'))
+        return FrozenDict(get_parameter_values(context, self, 'inputs'))
 
     @cachedmethod
     def _get_output_values(self, context):
-        return ReadOnlyDict(get_parameter_values(context, self, 'outputs'))
+        return FrozenDict(get_parameter_values(context, self, 'outputs'))
 
     def _validate(self, context):
         super(ServiceTemplate, self)._validate(context)

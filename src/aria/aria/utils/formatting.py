@@ -14,15 +14,15 @@
 # under the License.
 #
 
-from .collections import deepcopy_with_locators, ReadOnlyList, ReadOnlyDict, StrictList, StrictDict
+from .collections import deepcopy_with_locators, FrozenList, FrozenDict, StrictList, StrictDict
 import json
 from collections import OrderedDict
 from ruamel import yaml # @UnresolvedImport
 from types import MethodType
 
 # Add our types to ruamel.yaml (for round trips)
-yaml.representer.RoundTripRepresenter.add_representer(ReadOnlyList, yaml.representer.RoundTripRepresenter.represent_list)
-yaml.representer.RoundTripRepresenter.add_representer(ReadOnlyDict, yaml.representer.RoundTripRepresenter.represent_dict)
+yaml.representer.RoundTripRepresenter.add_representer(FrozenList, yaml.representer.RoundTripRepresenter.represent_list)
+yaml.representer.RoundTripRepresenter.add_representer(FrozenDict, yaml.representer.RoundTripRepresenter.represent_dict)
 yaml.representer.RoundTripRepresenter.add_representer(StrictList, yaml.representer.RoundTripRepresenter.represent_list)
 yaml.representer.RoundTripRepresenter.add_representer(StrictDict, yaml.representer.RoundTripRepresenter.represent_dict)
 

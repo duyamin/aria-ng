@@ -18,7 +18,7 @@ from .templates import ServiceTemplate
 from .functions import Concat, Token, GetInput, GetProperty, GetAttribute, GetOperationOutput, GetNodesOfType, GetArtifact
 from .modeling import create_service_model
 from aria.presentation import Presenter
-from aria.utils import ReadOnlyList, EMPTY_READ_ONLY_LIST, cachedmethod
+from aria.utils import FrozenList, EMPTY_READ_ONLY_LIST, cachedmethod
 
 class ToscaSimplePresenter1_0(Presenter):
     """
@@ -31,7 +31,7 @@ class ToscaSimplePresenter1_0(Presenter):
 
     DSL_VERSIONS = ('tosca_simple_yaml_1_0',)
     ALLOWED_IMPORTED_DSL_VERSIONS = ('tosca_simple_yaml_1_0',)
-    SIMPLE_PROFILE_LOCATION = 'tosca-simple-profile-1.0/tosca-simple-profile-1.0.yaml'
+    SIMPLE_PROFILE_LOCATION = 'tosca-simple-1.0/tosca-simple-1.0.yaml'
     
     @property
     @cachedmethod
@@ -66,9 +66,10 @@ class ToscaSimplePresenter1_0(Presenter):
         import_locations = []
         if context.presentation.import_profile:
             import_locations.append(self.SIMPLE_PROFILE_LOCATION)
-        if (self.service_template and self.service_template.imports):
-            import_locations += [i.file for i in self.service_template.imports]
-        return ReadOnlyList(import_locations) if import_locations else EMPTY_READ_ONLY_LIST
+        imports = self._get('service_template', 'imports')
+        if imports:
+            import_locations += [i.file for i in imports]
+        return FrozenList(import_locations) if import_locations else EMPTY_READ_ONLY_LIST
 
     @cachedmethod
     def _get_service_model(self, context):

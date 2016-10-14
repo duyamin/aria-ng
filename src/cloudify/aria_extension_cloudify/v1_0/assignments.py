@@ -16,7 +16,7 @@
 
 from .modeling.properties import get_assigned_and_defined_property_values
 from aria.presentation import Presentation, AsIsPresentation, has_fields, allow_unknown_fields, short_form_field, primitive_field, object_dict_field, object_dict_unknown_fields, field_validator, type_validator
-from aria.utils import ReadOnlyDict, cachedmethod
+from aria.utils import FrozenDict, cachedmethod
 from aria import dsl_specification
 
 class PropertyAssignment(AsIsPresentation):
@@ -47,7 +47,7 @@ class GroupPolicyTriggerAssignment(Presentation):
 
     @cachedmethod
     def _get_property_values(self, context):
-        return ReadOnlyDict(get_assigned_and_defined_property_values(context, self, 'parameters'))
+        return FrozenDict(get_assigned_and_defined_property_values(context, self, 'parameters'))
 
     def _validate(self, context):
         super(GroupPolicyTriggerAssignment, self)._validate(context)
@@ -86,7 +86,7 @@ class GroupPolicyAssignment(Presentation):
 
     @cachedmethod
     def _get_property_values(self, context):
-        return ReadOnlyDict(get_assigned_and_defined_property_values(context, self))
+        return FrozenDict(get_assigned_and_defined_property_values(context, self))
 
     def _validate(self, context):
         super(GroupPolicyAssignment, self)._validate(context)

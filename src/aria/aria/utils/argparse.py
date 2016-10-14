@@ -20,8 +20,34 @@ from argparse import ArgumentParser as BaseArgumentParser
 
 class ArgumentParser(BaseArgumentParser):
     """
+    Enhanced argument parser.
+    
     Applied patch to fix `this issue <https://bugs.python.org/issue22433>`__. 
     """
+
+    def add_flag_argument(self, name, help_true=None, help_false=None, default=False):
+        """
+        Adds a flag argument as two arguments: :code:`--my-flag` and :code:`--no-my-flag`.
+        """
+        
+        dest = name.replace('-', '_')
+        
+        if default:
+            if help_true is not None:
+                help_true += ' (default)'
+            else:
+                help_true = '(default)'
+        else:
+            if help_false is not None:
+                help_false += ' (default)'
+            else:
+                help_false = '(default)'
+        
+        group = self.add_mutually_exclusive_group()
+        group.add_argument('--%s' % name, action='store_true', help=help_true)
+        group.add_argument('--no-%s' % name, dest=dest, action='store_false', help=help_false)
+        
+        self.set_defaults(**{dest: default})
     
     def _parse_optional(self, arg_string):
         # if it's an empty string, it was meant to be a positional

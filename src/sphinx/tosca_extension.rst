@@ -23,7 +23,12 @@ This is the ARIA TOSCA extension.
 
 .. automodule:: aria_extension_tosca
 
-:mod:`aria_extension_tosca.v1_0`
-********************************
+:mod:`aria_extension_tosca.simple_v1_0`
+***************************************
 
-.. automodule:: aria_extension_tosca.v1_0
+.. automodule:: aria_extension_tosca.simple_v1_0
+
+:mod:`aria_extension_tosca.simple_nfv_v1_0`
+*******************************************
+
+.. automodule:: aria_extension_tosca.simple_nfv_v1_0

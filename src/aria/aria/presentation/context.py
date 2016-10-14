@@ -36,22 +36,21 @@ class PresentationContext(object):
         self.presenter_source = DefaultPresenterSource()
         self.presenter_class = None # overrides
         self.import_profile = True
-        self.threads = 8
+        self.threads = 8 # reasonable default for networking multithreading
         self.timeout = 10 # in seconds
         self.print_exceptions = False
 
     def get(self, *names):
-        o = self.presenter
-        if (o is not None) and names:
-            for name in names:
-                o = getattr(o, name, None)
-                if o is None:
-                    break
-        return o
+        """
+        Gets attributes recursively from the presenter.
+        """
+
+        return self.presenter._get(*names) if self.presenter is not None else None
 
     def get_from_dict(self, *names):
-        if names:
-            o = self.get(*names[:-1])
-            if isinstance(o, dict):
-                return o.get(names[-1])
-        return None
+        """
+        Gets attributes recursively from the presenter, except for the last name which is used
+        to get a value from the last dict.
+        """
+
+        return self.presenter._get_from_dict(*names) if self.presenter is not None else None

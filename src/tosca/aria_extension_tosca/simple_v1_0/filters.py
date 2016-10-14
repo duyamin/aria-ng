@@ -44,7 +44,7 @@ class CapabilityFilter(ExtensiblePresentation):
         return None
 
 @has_fields
-@dsl_specification('3.5.4', 'tosca-simple-profile-1.0')
+@dsl_specification('3.5.4', 'tosca-simple-1.0')
 class NodeFilter(ExtensiblePresentation):
     """
     A node filter definition defines criteria for selection of a TOSCA Node Template based upon the template's property values, capabilities and capability properties.
@@ -54,7 +54,7 @@ class NodeFilter(ExtensiblePresentation):
 
     @field_validator(node_filter_properties_validator)
     @object_sequenced_list_field(ConstraintClause)
-    @dsl_specification('3.5.3', 'tosca-simple-profile-1.0')
+    @dsl_specification('3.5.3', 'tosca-simple-1.0')
     def properties(self):
         """
         An optional sequenced list of property filters that would be used to select (filter) matching TOSCA entities (e.g., Node Template, Node Type, Capability Types, etc.) based upon their property definitions' values.

@@ -17,7 +17,7 @@
 from ..v1_0.functions import parse_string_expression
 from aria import InvalidValueError, dsl_specification
 from aria.modeling import Function
-from aria.utils import ReadOnlyList, as_raw, safe_repr
+from aria.utils import FrozenList, as_raw, safe_repr
 from cStringIO import StringIO
 
 @dsl_specification('intrinsic-functions-1', 'cloudify-1.1')
@@ -39,7 +39,7 @@ class Concat(Function):
         string_expressions = []
         for index in range(len(argument)):
             string_expressions.append(parse_string_expression(context, presentation, 'concat', index, None, argument[index]))
-        self.string_expressions = ReadOnlyList(string_expressions)    
+        self.string_expressions = FrozenList(string_expressions)    
 
     @property
     def as_raw(self):

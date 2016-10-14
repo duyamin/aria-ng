@@ -24,7 +24,7 @@ def cls_name(cls):
     name = str(cls.__name__)
     return name if module == '__builtin__' else '%s.%s' % (module, name)
 
-class ReadOnlyList(list):
+class FrozenList(list):
     """
     An immutable list.
     
@@ -35,46 +35,46 @@ class ReadOnlyList(list):
     """
     def __init__(self, *args, **kwargs):
         self.locked = False
-        super(ReadOnlyList, self).__init__(*args, **kwargs)
+        super(FrozenList, self).__init__(*args, **kwargs)
         self.locked = True
 
     def __setitem__(self, index, value):
         if self.locked:
             raise TypeError('read-only list')
-        return super(ReadOnlyList, self).__setitem__(index, value)
+        return super(FrozenList, self).__setitem__(index, value)
 
     def __delitem__(self, index):
         if self.locked:
             raise TypeError('read-only list')
-        return super(ReadOnlyList, self).__delitem__(index)
+        return super(FrozenList, self).__delitem__(index)
     
     def __iadd__(self, values):
         if self.locked:
             raise TypeError('read-only list')
-        return super(ReadOnlyList, self).__iadd__(values)
+        return super(FrozenList, self).__iadd__(values)
     
     def __deepcopy__(self, memo):
         r = [deepcopy(v, memo) for v in self]
-        return ReadOnlyList(r)
+        return FrozenList(r)
 
     def append(self, value):
         if self.locked:
             raise TypeError('read-only list')
-        return super(ReadOnlyList, self).append(value)
+        return super(FrozenList, self).append(value)
 
     def extend(self, values):
         if self.locked:
             raise TypeError('read-only list')
-        return super(ReadOnlyList, self).append(values)
+        return super(FrozenList, self).append(values)
 
     def insert(self, index, value):
         if self.locked:
             raise TypeError('read-only list')
-        return super(ReadOnlyList, self).insert(index, value)
+        return super(FrozenList, self).insert(index, value)
 
-EMPTY_READ_ONLY_LIST = ReadOnlyList()
+EMPTY_READ_ONLY_LIST = FrozenList()
 
-class ReadOnlyDict(OrderedDict):
+class FrozenDict(OrderedDict):
     """
     An immutable ordered dict.
     
@@ -86,24 +86,24 @@ class ReadOnlyDict(OrderedDict):
     
     def __init__(self, *args, **kwargs):
         self.locked = False
-        super(ReadOnlyDict, self).__init__(*args, **kwargs)
+        super(FrozenDict, self).__init__(*args, **kwargs)
         self.locked = True
 
     def __setitem__(self, key, value):
         if self.locked:
             raise TypeError('read-only dict')
-        return super(ReadOnlyDict, self).__setitem__(key, value)
+        return super(FrozenDict, self).__setitem__(key, value)
 
     def __delitem__(self, key):
         if self.locked:
             raise TypeError('read-only dict')
-        return super(ReadOnlyDict, self).__delitem__(key)
+        return super(FrozenDict, self).__delitem__(key)
     
     def __deepcopy__(self, memo):
         r = [(deepcopy(k, memo), deepcopy(v, memo)) for k, v in self.iteritems()]
-        return ReadOnlyDict(r)
+        return FrozenDict(r)
 
-EMPTY_READ_ONLY_DICT = ReadOnlyDict()
+EMPTY_READ_ONLY_DICT = FrozenDict()
 
 class StrictList(list):
     """

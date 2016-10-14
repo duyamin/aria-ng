@@ -20,7 +20,7 @@ node_types:
     _extensions:
       shorthand_name: Root
       type_qualified_name: tosca:Root
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.8.1
       specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_NODES_ROOT'
     description: >-
@@ -58,7 +58,7 @@ node_types:
     _extensions:
       shorthand_name: Compute
       type_qualified_name: tosca:Compute
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.8.2
       specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_NODES_COMPUTE'
     description: >-
@@ -108,7 +108,7 @@ node_types:
     _extensions:
       shorthand_name: LoadBalancer
       type_qualified_name: tosca:LoadBalancer
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.8.12
       specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#_Toc379548332'
     description: >-
@@ -142,7 +142,7 @@ node_types:
     _extensions:
       shorthand_name: SoftwareComponent
       type_qualified_name: tosca:SoftwareComponent
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.8.3
       specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_NODES_SOFTWARE_COMPONENT'
     description: >-
@@ -170,7 +170,7 @@ node_types:
     _extensions:
       shorthand_name: WebServer
       type_qualified_name: tosca:WebServer
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.8.4
       specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_NODES_WEBSERVER'
     description: >-
@@ -190,7 +190,7 @@ node_types:
     _extensions:
       shorthand_name: WebApplication
       type_qualified_name: tosca:WebApplication
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.8.5
       specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_NODES_WEBAPPLICATION'
     description: >-
@@ -216,7 +216,7 @@ node_types:
     _extensions:
       shorthand_name: DBMS # ommitted in the spec (seems to be a mistake)
       type_qualified_name: tosca:DBMS
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.8.6
       specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_NODES_DBMS'
     description: >-
@@ -242,7 +242,7 @@ node_types:
     _extensions:
       shorthand_name: Database
       type_qualified_name: tosca:Database
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.8.7
       specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_NODES_DATABASE'
     description: >-
@@ -286,7 +286,7 @@ node_types:
     _extensions:
       shorthand_name: Container.Runtime
       type_qualified_name: tosca:Container.Runtime
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.8.10
       specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_NODES_CONTAINER_RUNTIME'
     description: >-
@@ -303,7 +303,7 @@ node_types:
     _extensions:
       shorthand_name: Container.Application
       type_qualified_name: tosca:Container.Application
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.8.11
       specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_NODES_CONTAINER_APP'
     description: >-
@@ -323,7 +323,7 @@ node_types:
     _extensions:
       shorthand_name: ObjectStorage
       type_qualified_name: tosca:ObjectStorage
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.8.8
     description: >-
       The TOSCA ObjectStorage node represents storage that provides the ability to store data as objects (or BLOBs of data) without
@@ -356,7 +356,7 @@ node_types:
     _extensions:
       shorthand_name: BlockStorage
       type_qualified_name: tosca:BlockStorage
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 5.8.9
       specification_url: 'http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_TYPE_NODES_BLOCK_STORAGE'
     description: >-
@@ -390,7 +390,7 @@ node_types:
     _extensions:
       shorthand_name: Network
       type_qualified_name: tosca:Network
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 7.5.1
     description: >-
       The TOSCA Network node represents a simple, logical network service.
@@ -468,7 +468,7 @@ node_types:
     _extensions:
       shorthand_name: Port
       type_qualified_name: tosca:Port
-      specification: tosca-simple-profile-1.0
+      specification: tosca-simple-1.0
       specification_section: 7.5.2
     description: >-
       The TOSCA Port node represents a logical entity that associates between Compute and Network normative types.

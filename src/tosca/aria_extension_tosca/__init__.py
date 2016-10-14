@@ -17,8 +17,8 @@
 from aria import DSL_SPECIFICATION_PACKAGES
 from aria.presentation import PRESENTER_CLASSES
 from aria.loading import URI_LOADER_PREFIXES
-from .v1_0 import ToscaSimplePresenter1_0
-from .nfv_v1_0 import ToscaSimpleNfvPresenter1_0
+from .simple_v1_0 import ToscaSimplePresenter1_0
+from .simple_nfv_v1_0 import ToscaSimpleNfvPresenter1_0
 import os.path
 
 def install_aria_extension():
@@ -33,8 +33,8 @@ def install_aria_extension():
     URI_LOADER_PREFIXES.append(os.path.join(the_dir, 'profiles'))
 
 MODULES = (
-    'v1_0',
-    'nfv_v1_0')
+    'simple_v1_0',
+    'simple_nfv_v1_0')
 
 __all__ = (
     'MODULES',

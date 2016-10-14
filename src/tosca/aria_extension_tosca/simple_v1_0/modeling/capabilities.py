@@ -73,6 +73,9 @@ def get_inherited_capability_definitions(context, presentation, for_presentation
 
             merge_capability_definition_from_type(context, presentation, capability_definition)
         
+    for capability_definition in capability_definitions.itervalues():
+        capability_definition._reset_method_cache()
+
     return capability_definitions
 
 #
@@ -134,18 +137,18 @@ def convert_capability_from_definition_to_assignment(context, presentation, cont
 def merge_capability_definition_from_type(context, presentation, capability_definition):
     raw_properties = OrderedDict()
 
-    # Merge raw_properties from type
+    # Merge properties from type
     the_type = capability_definition._get_type(context)
     type_property_defintions = the_type._get_properties(context)
     merge_raw_property_definitions(context, presentation, raw_properties, type_property_defintions, 'properties')
 
-    # Merge our raw_properties
+    # Merge our properties
     merge_raw_property_definitions(context, presentation, raw_properties, capability_definition.properties, 'properties')
     
     if raw_properties:
         capability_definition._raw['properties'] = raw_properties
     
-    # Merge valid_source_types
+    # Override valid_source_types
     if capability_definition._raw.get('valid_source_types') is None:
         valid_source_types = the_type._get_valid_source_types(context)
         if valid_source_types is not None:

@@ -72,7 +72,7 @@ setup(
         'aria.tools': [
             'web/**'],
         'aria_extension_tosca': [
-            'profiles/tosca-simple-profile-1.0/**',
+            'profiles/tosca-simple-1.0/**',
             'profiles/tosca-simple-nfv-1.0/**']},
     
     scripts=[

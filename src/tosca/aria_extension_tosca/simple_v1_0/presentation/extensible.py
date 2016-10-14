@@ -14,14 +14,20 @@
 # under the License.
 #
 
-from aria.presentation import Presentation, has_fields, primitive_field
+from aria.presentation import Presentation, has_fields, primitive_dict_field
+from aria.utils import cachedmethod
 
 @has_fields
 class ExtensiblePresentation(Presentation):
-    @primitive_field()
+    """
+    A presentation that supports an optional :code:`_extensions` dict field.
+    """
+    
+    @primitive_dict_field()
     def _extensions(self):
         pass
 
+    @cachedmethod
     def _get_extension(self, name, default=None):
         extensions = self._extensions
         return extensions.get(name, default) if extensions is not None else None
