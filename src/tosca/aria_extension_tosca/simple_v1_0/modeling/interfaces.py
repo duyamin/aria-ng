@@ -384,11 +384,15 @@ def validate_required_inputs(context, presentation, assignment, definition, orig
     input_definitions = definition.inputs
     if input_definitions:
         for input_name, input_definition in input_definitions.iteritems():
-            if input_definition.required and ((assignment is None) or (assignment.inputs is None) or (assignment.inputs.get(input_name) is None)):
-                if operation_name is not None:
-                    context.validation.report('interface definition "%s" does not assign a value to a required operation input "%s.%s" in "%s"' % (interface_name, operation_name, input_name, presentation._fullname), locator=get_locator(original_assignment, presentation._locator), level=Issue.BETWEEN_TYPES)
-                else:
-                    context.validation.report('interface definition "%s" does not assign a value to a required input "%s" in "%s"' % (interface_name, input_name, presentation._fullname), locator=get_locator(original_assignment, presentation._locator), level=Issue.BETWEEN_TYPES)
+            if input_definition.required:
+                prop = assignment.inputs.get(input_name) if ((assignment is not None) and (assignment.inputs is not None)) else None
+                value = prop.value if prop is not None else None
+                value = value.value if value is not None else None
+                if value is None:
+                    if operation_name is not None:
+                        context.validation.report('interface definition "%s" does not assign a value to a required operation input "%s.%s" in "%s"' % (interface_name, operation_name, input_name, presentation._fullname), locator=get_locator(original_assignment, presentation._locator), level=Issue.BETWEEN_TYPES)
+                    else:
+                        context.validation.report('interface definition "%s" does not assign a value to a required input "%s" in "%s"' % (interface_name, input_name, presentation._fullname), locator=get_locator(original_assignment, presentation._locator), level=Issue.BETWEEN_TYPES)
 
     if operation_name is not None:
         return

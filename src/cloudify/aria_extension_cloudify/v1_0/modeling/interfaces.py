@@ -274,8 +274,12 @@ def validate_required_inputs(context, presentation, assignment, definition, orig
     input_definitions = definition.inputs
     if input_definitions:
         for input_name, input_definition in input_definitions.iteritems():
-            if input_definition.required and ((assignment is None) or (assignment.inputs is None) or (assignment.inputs.get(input_name) is None)):
-                context.validation.report('interface definition "%s" does not assign a value to a required operation input "%s.%s" in "%s"' % (interface_name, operation_name, input_name, presentation._fullname), locator=get_locator(original_assignment, presentation), level=Issue.BETWEEN_TYPES)
+            if input_definition.required:
+                prop = assignment.inputs.get(input_name) if ((assignment is not None) and (assignment.inputs is not None)) else None
+                value = prop.value if prop is not None else None
+                value = value.value if value is not None else None
+                if value is None:
+                    context.validation.report('interface definition "%s" does not assign a value to a required operation input "%s.%s" in "%s"' % (interface_name, operation_name, input_name, presentation._fullname), locator=get_locator(original_assignment, presentation), level=Issue.BETWEEN_TYPES)
 
 def validate_required_interface_inputs(context, presentation, assignment, definition, original_assignment, interface_name):
     assignment_operations = assignment.operations 

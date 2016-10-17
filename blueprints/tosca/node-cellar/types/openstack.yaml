@@ -57,7 +57,7 @@ node_types:
         type: map
         entry_schema: os.UserInfo
     interfaces:
-      standard:
+      Standard:
         type: tosca.interfaces.node.lifecycle.Standard
         inputs:
           openstack_credential:
@@ -77,7 +77,7 @@ node_types:
 #          relationship:
 #            type: tosca.relationships.AttachesTo
 #            interfaces:
-#              standard:
+#              Standard:
 #                inputs:
 #                  xxx:
 #                    type: string
@@ -130,7 +130,7 @@ node_types:
         entry_schema: string
         required: false
     interfaces:
-      standard:
+      Standard:
         type: tosca.interfaces.node.lifecycle.Standard
         inputs:
           openstack_credential:
@@ -152,7 +152,8 @@ group_types:
     members:
       - openstack.Instance
     interfaces:
-      standard:
+      Standard:
+        type: tosca.interfaces.node.lifecycle.Standard
         inputs:
           openstack_credential:
             description: The OpenStack API credential for all operations.

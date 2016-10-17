@@ -161,7 +161,7 @@ topology_template:
           root:
             password: admin123
       interfaces:
-        standard:
+        Standard:
           inputs:
             openstack_credential: { get_input: openstack_credential }
 
@@ -207,7 +207,7 @@ topology_template:
       properties:
         size: 10 GB
       interfaces:
-        standard:
+        Standard:
           inputs:
             openstack_credential: { get_input: openstack_credential }
 
@@ -220,7 +220,7 @@ topology_template:
         - application_host
         - data_host
       interfaces:
-        standard:
+        Standard:
           inputs:
             openstack_credential: { get_input: openstack_credential }
 

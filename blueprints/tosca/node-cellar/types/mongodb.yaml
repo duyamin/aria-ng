@@ -49,7 +49,7 @@ node_types:
       Supports importing database data if a mongodb.DatabaseDump is provided.
     derived_from: tosca.nodes.Database
     interfaces:
-      standard:
+      Standard:
         type: tosca.interfaces.node.lifecycle.Standard
         create:
           implementation:

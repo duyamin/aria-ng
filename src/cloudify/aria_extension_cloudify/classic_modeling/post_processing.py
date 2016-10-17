@@ -17,24 +17,68 @@
 from aria import InvalidValueError
 from aria.utils import deepcopy_with_locators, safe_repr
 
-class FunctionContext(object):
-    def __init__(self, context, get_node_instances_method, get_node_instance_method, get_node_method):
-        self.self_node_id = context.get('self')
-        self.source_node_id = context.get('source')
-        self.target_node_id = context.get('target')
+class PostProcessingContext(object):
+    """
+    Context for post-processing of classic modeling.
+    """
+    
+    def __init__(self, deployment_plan, context, get_node_instances_method, get_node_instance_method, get_node_method):
+        self.deployment_plan = deployment_plan
+        self.self_node_id = context.get('self') if context is not None else None
+        self.source_node_id = context.get('source') if context is not None else None
+        self.target_node_id = context.get('target') if context is not None else None
         self.get_nodes = get_node_instances_method
         self.get_node = get_node_instance_method
         self.get_node_template = get_node_method
+    
+    def process(self, value):
+        """
+        Processes the value, recursively.
+        """
+        
+        if isinstance(value, list):
+            for i in range(len(value)):
+                v = value[i]
+                fn = get_function(v)
+                if fn:
+                    value[i] = fn.evaluate(self)
+                else:
+                    self.process(v)
+        elif isinstance(value, dict):
+            for k, v in value.iteritems():
+                fn = get_function(v)
+                if fn:
+                    value[k] = fn.evaluate(self)
+                else:
+                    self.process(v)
+
+    def evalue(self, payload):
+        """
+        Processes the payload.
+        """
+
+        r = {}
+        
+        if payload:
+            for name, value in payload.iteritems():
+                fn = get_function(value)
+                if fn:
+                    r[name] = fn.evaluate(self)
+                # TODO: coerce to value['type']?
+        
+        return r    
 
 class GetInput(object):
     def __init__(self, value):
         self.input_property_name = value
     
     def evaluate(self, context):
-        inputs = self.context.modeling.classic_deployment_plan['inputs']
+        inputs = context.deployment_plan['inputs']
         if self.input_property_name not in inputs:
             raise InvalidValueError('input does not exist for function "get_input": %s' % safe_repr(self.input_property_name), locator=self.locator)
-        return deepcopy_with_locators(inputs[self.input_property_name])
+        the_input = inputs[self.input_property_name]
+        value = the_input.get('value', the_input.get('default'))
+        return deepcopy_with_locators(value)
 
 class GetProperty(object):
     def __init__(self, value):
@@ -82,29 +126,29 @@ def get_function(value):
 # Utils
 #
 
-def get_node(function_context, modelable_entity_name, function_name):
+def get_node(context, modelable_entity_name, function_name):
     node = None
     
     def get_node(node_id):
         try:
-            return function_context.get_node(node_id)
+            return context.get_node(node_id)
         except Exception as e:
             raise InvalidValueError('function "%s" refers to an unknown node: %s' % (function_name, safe_repr(node_id)), cause=e)
 
     if modelable_entity_name == 'SELF':
-        node = get_node(function_context.self_node_id)
+        node = get_node(context.self_node_id)
     elif modelable_entity_name == 'SOURCE':
-        node = get_node(function_context.source_node_id)
+        node = get_node(context.source_node_id)
     elif modelable_entity_name == 'TARGET':
-        node = get_node(function_context.target_node_id)
+        node = get_node(context.target_node_id)
     else:
         try:
-            nodes = function_context.get_nodes(modelable_entity_name)
+            nodes = context.get_nodes(modelable_entity_name)
             node = nodes[0]
         except Exception as e:
             raise InvalidValueError('function "%s" refers to an unknown modelable entity: %s' % (function_name, safe_repr(modelable_entity_name)), cause=e)
     
-    node_template = function_context.get_node_template(node['node_id'])
+    node_template = context.get_node_template(node['node_id'])
     
     return node, node_template
 

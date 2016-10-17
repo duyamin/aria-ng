@@ -48,8 +48,6 @@ class GetInput(Function):
     
     def _evaluate(self, context, container):
         raise CannotEvaluateFunction()
-        #the_input = context.modeling.model.inputs.get(self.input_property_name)
-        #return the_input.value if the_input is not None else None
 
 @dsl_specification('intrinsic-functions-3', 'cloudify-1.0')
 @dsl_specification('intrinsic-functions-3', 'cloudify-1.1')

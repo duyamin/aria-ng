@@ -14,6 +14,9 @@
 # under the License.
 #
 
+from .exceptions import UnknownInputError, MissingRequiredInputError
+from aria_extension_cloudify.classic_modeling import add_deployment_plan_attributes
+from aria_extension_cloudify.classic_modeling.post_processing import PostProcessingContext
 from aria.utils import deepcopy_with_locators
 
 def prepare_deployment_plan(plan, inputs=None, **kwargs):
@@ -23,13 +26,35 @@ def prepare_deployment_plan(plan, inputs=None, **kwargs):
     
     #print '!!! prepare_deployment_plan', inputs, kwargs
     
+    plan = deepcopy_with_locators(plan)
+    add_deployment_plan_attributes(plan)
+    
+    def repr_strings(strings):
+        return ', '.join('"%s"' % v for v in strings)
+    
     if inputs:
+        unknown_inputs = []
         for input_name, the_input in inputs.iteritems():
-            plan['inputs'][input_name] = deepcopy_with_locators(the_input)
+            if input_name in plan['inputs']:
+                plan['inputs'][input_name]['value'] = deepcopy_with_locators(the_input)
+            else:
+                unknown_inputs.append(input_name)
+        if unknown_inputs:
+            raise UnknownInputError('unknown inputs specified: %s' % repr_strings(unknown_inputs))
+
+    missing_inputs = []    
+    for input_name, the_input in plan['inputs'].iteritems():
+        if the_input.get('value') is None:
+            the_input['value'] = the_input.get('default')
+        if the_input.get('value') is None:
+            missing_inputs.append(input_name)
+    if missing_inputs:
+        raise MissingRequiredInputError('inputs not specified: %s' % repr_strings(missing_inputs))
             
     # TODO: now that we have inputs, we should scan properties and inputs
     # and evaluate functions
     
-    #print '!!!!', plan
+    context = PostProcessingContext(plan, None, None, None, None)
+    context.process(plan)
     
     return plan
