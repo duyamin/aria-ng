@@ -32,14 +32,13 @@ class GetInput(Function):
 
     def __init__(self, context, presentation, argument):
         self.locator = presentation._locator
-
+        
         self.input_property_name = parse_string_expression(context, presentation, 'get_input', None, 'the input property name', argument)
 
-        if context.presentation.presenter is not None:
-            if isinstance(self.input_property_name, basestring):
-                inputs = context.presentation.get('service_template', 'inputs')
-                if (inputs is None) or (self.input_property_name not in inputs):
-                    raise InvalidValueError('function "get_input" argument is not a valid input name: %s' % safe_repr(argument), locator=self.locator)
+        if isinstance(self.input_property_name, basestring):
+            the_input = context.presentation.get_from_dict('service_template', 'inputs', self.input_property_name)
+            if the_input is None:
+                raise InvalidValueError('function "get_input" argument is not a valid input name: %s' % safe_repr(argument), locator=self.locator)
         
         self.context = context
 
@@ -48,8 +47,9 @@ class GetInput(Function):
         return {'get_input': as_raw(self.input_property_name)}
     
     def _evaluate(self, context, container):
-        the_input = context.modeling.model.inputs.get(self.input_property_name)
-        return the_input.value if the_input is not None else None
+        raise CannotEvaluateFunction()
+        #the_input = context.modeling.model.inputs.get(self.input_property_name)
+        #return the_input.value if the_input is not None else None
 
 @dsl_specification('intrinsic-functions-3', 'cloudify-1.0')
 @dsl_specification('intrinsic-functions-3', 'cloudify-1.1')

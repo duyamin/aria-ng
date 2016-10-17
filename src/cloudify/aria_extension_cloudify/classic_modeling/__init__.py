@@ -39,8 +39,7 @@ class ClassicDeploymentPlan(Consumer):
         setattr(self.context.modeling, 'plugins', plugins)
 
         deployment_plan = convert_instance(self.context)
-        setattr(self.context.modeling, 'classic_deployment_plan_ordered', deployment_plan) # ordered version
-        setattr(self.context.modeling, 'classic_deployment_plan', as_agnostic(deployment_plan)) # agnostic version (does not maintain dict order)
+        setattr(self.context.modeling, 'classic_deployment_plan', deployment_plan)
     
     def dump(self):
         indent = self.context.get_arg_value_int('indent', 2)
@@ -52,21 +51,32 @@ class ClassicDeploymentPlan(Consumer):
 
 def convert_instance(context):
     r = OrderedDict((
-        # General
-        ('version', convert_version(context)),
+        # Meta
+        ('version',
+            convert_version(context)),
         ('description', context.modeling.instance.description),
-        ('inputs', convert_parameters(context, context.modeling.instance.inputs)),
-        ('outputs', convert_parameters(context, context.modeling.instance.outputs)),
+        
+        # General
+        ('inputs',
+            convert_parameter_defaults(context, context.modeling.instance.inputs)),
+        ('outputs',
+            convert_parameter_values(context, context.modeling.instance.outputs)),
         ('workflows', OrderedDict(
             (k, convert_workflow(context, v)) for k, v in context.modeling.instance.operations.iteritems())),
-        ('deployment_plugins_to_install', []),
-        ('workflow_plugins_to_install', plugins_to_install_for_operations(context, context.modeling.instance.operations, CENTRAL_DEPLOYMENT_AGENT)),
+        
+        # Plugins
+        ('deployment_plugins_to_install',
+            []),
+        ('workflow_plugins_to_install',
+            plugins_to_install_for_operations(context, context.modeling.instance.operations, CENTRAL_DEPLOYMENT_AGENT)),
 
         # Instances
-        ('node_instances', [convert_node(context, v) for v in context.modeling.instance.nodes.itervalues()]),
+        ('node_instances',
+            [convert_node(context, v) for v in context.modeling.instance.nodes.itervalues()]),
 
         # Templates
-        ('nodes', [convert_node_template(context, v) for v in context.modeling.model.node_templates.itervalues()]),
+        ('nodes',
+            [convert_node_template(context, v) for v in context.modeling.model.node_templates.itervalues()]),
         ('groups', OrderedDict(
             (k, convert_group_template(context, v)) for k, v in context.modeling.model.group_templates.iteritems())),
         ('scaling_groups', OrderedDict(
@@ -82,40 +92,31 @@ def convert_instance(context):
         ('relationships', OrderedDict(
             (v.name, convert_relationship_type(context, v)) for v in context.modeling.relationship_types.iter_descendants()))))
 
-    # Aggregate deployment_plugins_to_install from nodes
+    # Gather 'deployment_plugins_to_install' from node templates
     for node in r['nodes']:
         node_deployment_plugins_to_install = node.get('deployment_plugins_to_install')
         if node_deployment_plugins_to_install:
             for plugin in node_deployment_plugins_to_install:
                 if find_by_name(r['deployment_plugins_to_install'], plugin['name']) is None:
                     r['deployment_plugins_to_install'].append(plugin)
-    
-    # Some code needs to access these as Python attributes
-    setattr(r, 'version', r['version'])
-    setattr(r['version'], 'definitions_name', r['version']['definitions_name'])
-    setattr(r['version'], 'definitions_version', r['version']['definitions_version'])
-    setattr(r['version']['definitions_version'], 'number', r['version']['definitions_version']['number'])
-    setattr(r, 'inputs', r['inputs'])
-    setattr(r, 'outputs', r['outputs'])
-    setattr(r, 'node_templates', r['nodes'])
+
+    add_deployment_plan_attributes(r)
     
     return r
 
-#
-# General
-#
+def add_deployment_plan_attributes(deployment_plan):
+    # Some code needs to access these as Python attributes
+    setattr(deployment_plan, 'version', deployment_plan['version'])
+    setattr(deployment_plan['version'], 'definitions_name', deployment_plan['version']['definitions_name'])
+    setattr(deployment_plan['version'], 'definitions_version', deployment_plan['version']['definitions_version'])
+    setattr(deployment_plan['version']['definitions_version'], 'number', deployment_plan['version']['definitions_version']['number'])
+    setattr(deployment_plan, 'inputs', deployment_plan['inputs'])
+    setattr(deployment_plan, 'outputs', deployment_plan['outputs'])
+    setattr(deployment_plan, 'node_templates', deployment_plan['nodes'])
 
-def convert_version(context):
-    # The version number as a tuple of integers
-    number = context.presentation.get('service_template', 'tosca_definitions_version')
-    number = number[len('cloudify_dsl_'):]
-    number = number.split('_')
-    number = tuple(int(v) for v in number)
-
-    return OrderedDict((
-        ('definitions_name', 'cloudify_dsl'),
-        ('definitions_version', OrderedDict((
-            ('number', number),)))))
+#
+# Plugins
+#
 
 def convert_plugin(context, plugin):
     return OrderedDict((
@@ -131,13 +132,33 @@ def convert_plugin(context, plugin):
         ('source', plugin.source),
         ('supported_platform', getattr(plugin, 'supported_platform', None))))
 
+#
+# Meta
+#
+
+def convert_version(context):
+    # The version number as a tuple of integers
+    number = context.presentation.get('service_template', 'tosca_definitions_version')
+    number = number[len('cloudify_dsl_'):]
+    number = number.split('_')
+    number = tuple(int(v) for v in number)
+
+    return OrderedDict((
+        ('definitions_name', 'cloudify_dsl'),
+        ('definitions_version', OrderedDict((
+            ('number', number),)))))
+
+#
+# General
+#
+
 def convert_workflow(context, operation):
     plugin_name, _, operation_name, inputs = parse_implementation(context, operation.implementation, True)
 
     r = OrderedDict((
         ('plugin', plugin_name),
         ('operation', operation_name),
-        ('parameters', merge(convert_parameters(context, operation.inputs), inputs)),
+        ('parameters', merge(convert_parameter_defaults(context, operation.inputs), inputs)),
         ('has_intrinsic_functions', has_intrinsic_functions(context, operation.inputs)),
         ('executor', operation.executor),
         ('max_retries', operation.max_retries),
@@ -281,19 +302,19 @@ def convert_policy_template(context, policy_template):
 def convert_policy_type(context, policy_type):
     return OrderedDict((
         ('source', policy_type.implementation),
-        ('properties', convert_parameters(context, policy_type.properties))))
+        ('properties', convert_parameter_defaults(context, policy_type.properties))))
 
 def convert_policy_trigger_type(context, policy_trigger_type):
     return OrderedDict((
         ('source', policy_trigger_type.implementation),
-        ('parameters', convert_parameters(context, policy_trigger_type.properties))))
+        ('parameters', convert_parameter_defaults(context, policy_trigger_type.properties))))
 
 def convert_relationship_type(context, relationship_type):
     r = OrderedDict((
         ('name', relationship_type.name),
         ('derived_from', get_type_parent_name(relationship_type, context.modeling.relationship_types)),
         ('type_hierarchy', convert_type_hierarchy(context, relationship_type, context.modeling.relationship_types)),
-        ('properties', convert_parameters(context, relationship_type.properties)),
+        ('properties', convert_parameter_defaults(context, relationship_type.properties)),
         ('source_interfaces', convert_interfaces(context, relationship_type.source_interfaces)),
         ('target_interfaces', convert_interfaces(context, relationship_type.target_interfaces))))
     
@@ -311,16 +332,27 @@ def convert_properties(context, properties):
     return OrderedDict((
         (k, as_raw(v.value)) for k, v in properties.iteritems()))
 
-def convert_parameters(context, parameters):
+def convert_parameter_defaults(context, parameters):
     return OrderedDict((
-        (k, convert_parameter(context, v)) for k, v in parameters.iteritems()))
+        (k, convert_parameter_default(context, v)) for k, v in parameters.iteritems()))
 
-def convert_parameter(context, parameter):
+def convert_parameter_default(context, parameter):
     # prune removes any None (but not NULL), and then as_raw converts any NULL to None
     return as_raw(prune(OrderedDict((
         ('type', parameter.type_name),
         ('default', parameter.value),
         ('description', parameter.description)))))
+
+def convert_parameter_values(context, values):
+    return OrderedDict((
+        (k, convert_parameter_value(context, v)) for k, v in values.iteritems()))
+
+def convert_parameter_value(context, value):
+    # prune removes any None (but not NULL), and then as_raw converts any NULL to None
+    return as_raw(prune(OrderedDict((
+        ('type', value.type_name),
+        ('value', value.value),
+        ('description', value.description)))))
 
 def convert_interfaces(context, interfaces):
     r = OrderedDict()

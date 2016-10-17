@@ -105,8 +105,8 @@ class GetInput(Function):
         self.input_property_name = parse_string_expression(context, presentation, 'get_input', None, 'the input property name', argument)
 
         if isinstance(self.input_property_name, basestring):
-            inputs = context.presentation.get('service_template', 'topology_template', 'inputs')
-            if (inputs is None) or (self.input_property_name not in inputs):
+            the_input = context.presentation.get_from_dict('service_template', 'topology_template', 'inputs', self.input_property_name)
+            if the_input is None:
                 raise InvalidValueError('function "get_input" argument is not a valid input name: %s' % safe_repr(argument), locator=self.locator)
 
     @property

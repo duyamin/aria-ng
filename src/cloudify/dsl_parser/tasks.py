@@ -30,4 +30,6 @@ def prepare_deployment_plan(plan, inputs=None, **kwargs):
     # TODO: now that we have inputs, we should scan properties and inputs
     # and evaluate functions
     
+    #print '!!!!', plan
+    
     return plan

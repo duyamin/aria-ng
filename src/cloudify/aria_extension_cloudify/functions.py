@@ -82,29 +82,29 @@ def get_function(value):
 # Utils
 #
 
-def get_node(classic_context, modelable_entity_name, function_name):
+def get_node(function_context, modelable_entity_name, function_name):
     node = None
     
     def get_node(node_id):
         try:
-            return classic_context.get_node(node_id)
+            return function_context.get_node(node_id)
         except Exception as e:
             raise InvalidValueError('function "%s" refers to an unknown node: %s' % (function_name, safe_repr(node_id)), cause=e)
 
     if modelable_entity_name == 'SELF':
-        node = get_node(classic_context.self_node_id)
+        node = get_node(function_context.self_node_id)
     elif modelable_entity_name == 'SOURCE':
-        node = get_node(classic_context.source_node_id)
+        node = get_node(function_context.source_node_id)
     elif modelable_entity_name == 'TARGET':
-        node = get_node(classic_context.target_node_id)
+        node = get_node(function_context.target_node_id)
     else:
         try:
-            nodes = classic_context.get_nodes(modelable_entity_name)
+            nodes = function_context.get_nodes(modelable_entity_name)
             node = nodes[0]
         except Exception as e:
             raise InvalidValueError('function "%s" refers to an unknown modelable entity: %s' % (function_name, safe_repr(modelable_entity_name)), cause=e)
     
-    node_template = classic_context.get_node_template(node['node_id'])
+    node_template = function_context.get_node_template(node['node_id'])
     
     return node, node_template
 

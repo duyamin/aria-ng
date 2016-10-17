@@ -99,7 +99,7 @@ def coerce_value(context, presentation, the_type, value, aspect=None):
         return fn
     
     if the_type is None:
-        if isinstance(value, dict):
+        if isinstance(value, dict) or isinstance(value, list):
             value = deepcopy_with_locators(value)
             find_functions(context, presentation, value)
         return value
