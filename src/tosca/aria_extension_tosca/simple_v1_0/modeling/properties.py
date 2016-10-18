@@ -81,7 +81,7 @@ def get_assigned_and_defined_property_values(context, presentation):
     if definitions:
         for name, definition in definitions.iteritems():
             if (values.get(name) is None) and (definition.default is not None):
-                values[name] = coerce_property_value(context, presentation, definition, definition.default, 'default') 
+                values[name] = coerce_property_value(context, presentation, definition, definition.default) 
 
     validate_required_values(context, presentation, values, definitions)
     
@@ -103,7 +103,7 @@ def get_parameter_values(context, presentation, field_name):
                 if hasattr(parameter, 'value') and (parameter.value is not None):
                     values[name] = coerce_property_value(context, presentation, parameter, parameter.value) # for parameters only 
                 elif hasattr(parameter, 'default') and (parameter.default is not None):
-                    values[name] = coerce_property_value(context, presentation, parameter, parameter.default, 'default')
+                    values[name] = coerce_property_value(context, presentation, parameter, parameter.default)
     
     return values
 
@@ -169,5 +169,5 @@ def convert_property_definitions_to_values(context, presentation, definitions):
     values = OrderedDict()
     for name, definition in definitions.iteritems():
         default = definition.default
-        values[name] = coerce_property_value(context, definition, definition, default, 'default')
+        values[name] = coerce_property_value(context, definition, definition, default)
     return values

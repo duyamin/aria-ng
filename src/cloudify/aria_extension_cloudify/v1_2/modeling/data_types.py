@@ -43,7 +43,7 @@ def coerce_data_type_value(context, presentation, data_type, value, aspect):
             if name in definitions:
                 definition = definitions[name]
                 definition_type = definition._get_type(context)
-                r[name] = coerce_value(context, presentation, definition_type, v)
+                r[name] = coerce_value(context, presentation, definition_type, v, aspect)
             else:
                 context.validation.report('assignment to undefined property "%s" in type "%s" in "%s"' % (name, data_type._fullname, presentation._fullname), locator=get_locator(v, value, presentation), level=Issue.BETWEEN_TYPES)
 
@@ -51,9 +51,10 @@ def coerce_data_type_value(context, presentation, data_type, value, aspect):
         for name, definition in definitions.iteritems():
             if (r.get(name) is None) and hasattr(definition, 'default') and (definition.default is not None):
                 definition_type = definition._get_type(context)
-                r[name] = coerce_value(context, presentation, definition_type, definition.default)
+                r[name] = coerce_value(context, presentation, definition_type, definition.default, 'default')
             
-            if getattr(definition, 'required', False) and (r.get(name) is None):
+            if (aspect != 'default') and getattr(definition, 'required', False) and (r.get(name) is None):
+                # Note that we do not validate this for default aspects
                 context.validation.report('required property "%s" in type "%s" is not assigned a value in "%s"' % (name, data_type._fullname, presentation._fullname), locator=presentation._get_child_locator('definitions'), level=Issue.BETWEEN_TYPES)
         
         value = r

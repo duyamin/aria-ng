@@ -430,147 +430,6 @@ class Field(object):
 
         return getter(presentation, raw, value)
 
-    def _get_primitive(self, presentation, raw, value):
-        if (self.cls is not None) and (not isinstance(value, self.cls)) and (value is not None) and (value is not NULL):
-            try:
-                return self.cls(value)
-            except ValueError:
-                raise InvalidValueError('%s is not a valid "%s": %s' % (self.full_name, self.full_cls_name, safe_repr(value)), locator=self.get_locator(raw))
-        return value
-
-    def _dump_primitive(self, context, value):
-        if hasattr(value, 'as_raw'):
-            value = as_raw(value)
-        puts('%s: %s' % (self.name, context.style.literal(value)))
-
-    def _get_primitive_list(self, presentation, raw, value):
-        if not isinstance(value, list):
-            raise InvalidValueError('%s is not a list: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
-        r = value
-        if self.cls is not None:
-            r = []
-            for i in range(len(value)):
-                v = value[i]
-                if (self.cls is not None) and (not isinstance(v, self.cls)) and (v is not None) and (v is not NULL):
-                    try:
-                        v = self.cls(v)
-                    except ValueError:
-                        raise InvalidValueError('%s is not a list of "%s": element %d is %s' % (self.full_name, self.full_cls_name, i, safe_repr(v)), locator=self.get_locator(raw))
-                r.append(v)
-        return FrozenList(r)
-
-    def _dump_primitive_list(self, context, value):
-        puts('%s:' % self.name)
-        with context.style.indent:
-            for v in value:
-                if hasattr(v, 'as_raw'):
-                    v = as_raw(v)
-                puts(context.style.literal(v))
-
-    def _get_primitive_dict(self, presentation, raw, value):
-        if not isinstance(value, dict):
-            raise InvalidValueError('%s is not a dict: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
-        r = value
-        if self.cls is not None:
-            r = OrderedDict()
-            for k, v in value.iteritems():
-                if (self.cls is not None) and (not isinstance(v, self.cls)) and (v is not None) and (v is not NULL):
-                    try:
-                        v = self.cls(v)
-                    except ValueError:
-                        raise InvalidValueError('%s is not a dict of "%s" values: entry "%d" is %s' % (self.full_name, self.full_cls_name, k, safe_repr(v)), locator=self.get_locator(raw))
-                r[k] = v
-        return FrozenDict(r)
-
-    def _dump_primitive_dict(self, context, value):
-        puts('%s:' % self.name)
-        with context.style.indent:
-            for v in value.itervalues():
-                if hasattr(v, 'as_raw'):
-                    v = as_raw(v)
-                puts(context.style.literal(v))
-
-    def _get_object(self, presentation, raw, value):
-        try:
-            return self.cls(raw=value, container=presentation)
-        except TypeError as e:
-            raise InvalidValueError('%s cannot not be initialized to an instance of "%s": %s' % (self.full_name, self.full_cls_name, safe_repr(value)), cause=e, locator=self.get_locator(raw))
-
-    def _dump_object(self, context, value):
-        puts('%s:' % self.name)
-        with context.style.indent:
-            if hasattr(value, '_dump'):
-                value._dump(context)
-
-    def _get_object_list(self, presentation, raw, value):
-        if not isinstance(value, list):
-            raise InvalidValueError('%s is not a list: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
-        return FrozenList((self.cls(raw=v, container=presentation) for v in value))
-
-    def _dump_object_list(self, context, value):
-        puts('%s:' % self.name)
-        with context.style.indent:
-            for v in value:
-                if hasattr(v, '_dump'):
-                    v._dump(context)
-
-    def _get_object_dict(self, presentation, raw, value):
-        if not isinstance(value, dict):
-            raise InvalidValueError('%s is not a dict: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
-        return FrozenDict(((k, self.cls(name=k, raw=v, container=presentation)) for k, v in value.iteritems()))
-
-    def _dump_object_dict(self, context, value):
-        puts('%s:' % self.name)
-        with context.style.indent:
-            for v in value.itervalues():
-                if hasattr(v, '_dump'):
-                    v._dump(context)
-
-    def _get_sequenced_object_list(self, presentation, raw, value):
-        if not isinstance(value, list):
-            raise InvalidValueError('%s is not a sequenced list (a list of dicts, each with exactly one key): %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
-        sequence = []
-        for v in value:
-            if not isinstance(v, dict):
-                raise InvalidValueError('%s list elements are not all dicts with exactly one key: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
-            if len(v) != 1:
-                raise InvalidValueError('%s list elements do not all have exactly one key: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
-            k, vv = v.items()[0]
-            sequence.append((k, self.cls(name=k, raw=vv, container=presentation)))
-        return FrozenList(sequence)
-
-    def _dump_sequenced_object_list(self, context, value):
-        puts('%s:' % self.name)
-        for _, v in value:
-            if hasattr(v, '_dump'):
-                v._dump(context)
-
-    def _get_primitive_dict_unknown_fields(self, presentation, raw):
-        if isinstance(raw, dict):
-            r = raw
-            if self.cls is not None:
-                r = OrderedDict()
-                for k, v in raw.iteritems():
-                    if k not in presentation.FIELDS:
-                        if not isinstance(v, self.cls):
-                            try:
-                                r[k] = self.cls(v)
-                            except ValueError:
-                                raise InvalidValueError('%s is not a dict of "%s" values: entry "%d" is %s' % (self.full_name, self.full_cls_name, k, safe_repr(v)), locator=self.get_locator(raw))
-            return FrozenDict(r)
-        return None
-
-    def _dump_primitive_dict_unknown_fields(self, context, value):
-        self._dump_primitive_dict(context, value)
-
-    def _get_object_dict_unknown_fields(self, presentation, raw):
-        if isinstance(raw, dict):
-            return FrozenDict(((k, self.cls(name=k, raw=v, container=presentation)) for k, v in raw.iteritems() if k not in presentation.FIELDS))
-        return None
-
-    def _dump_object_dict_unknown_fields(self, context, value):
-        self._dump_object_dict(context, value)
-
     def _set(self, presentation, value):
         raw = presentation._raw
         old = self.get(presentation)
@@ -613,3 +472,162 @@ class Field(object):
         
         if hasattr(value, '_validate'):
             value._validate(context)
+
+    # primitive
+
+    def _get_primitive(self, presentation, raw, value):
+        if (self.cls is not None) and (not isinstance(value, self.cls)) and (value is not None) and (value is not NULL):
+            try:
+                return self.cls(value)
+            except ValueError:
+                raise InvalidValueError('%s is not a valid "%s": %s' % (self.full_name, self.full_cls_name, safe_repr(value)), locator=self.get_locator(raw))
+        return value
+
+    def _dump_primitive(self, context, value):
+        if hasattr(value, 'as_raw'):
+            value = as_raw(value)
+        puts('%s: %s' % (self.name, context.style.literal(value)))
+
+    # primitive list
+
+    def _get_primitive_list(self, presentation, raw, value):
+        if not isinstance(value, list):
+            raise InvalidValueError('%s is not a list: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
+        r = value
+        if self.cls is not None:
+            r = []
+            for i in range(len(value)):
+                v = value[i]
+                if (self.cls is not None) and (not isinstance(v, self.cls)) and (v is not None) and (v is not NULL):
+                    try:
+                        v = self.cls(v)
+                    except ValueError:
+                        raise InvalidValueError('%s is not a list of "%s": element %d is %s' % (self.full_name, self.full_cls_name, i, safe_repr(v)), locator=self.get_locator(raw))
+                #if v in r:
+                #    raise InvalidValueError('%s has a duplicate "%s": %s' % (self.full_name, self.full_cls_name, safe_repr(v)), locator=self.get_locator(raw))
+                r.append(v)
+        return FrozenList(r)
+
+    def _dump_primitive_list(self, context, value):
+        puts('%s:' % self.name)
+        with context.style.indent:
+            for v in value:
+                if hasattr(v, 'as_raw'):
+                    v = as_raw(v)
+                puts(context.style.literal(v))
+
+    # primitive dict
+
+    def _get_primitive_dict(self, presentation, raw, value):
+        if not isinstance(value, dict):
+            raise InvalidValueError('%s is not a dict: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
+        r = value
+        if self.cls is not None:
+            r = OrderedDict()
+            for k, v in value.iteritems():
+                if (self.cls is not None) and (not isinstance(v, self.cls)) and (v is not None) and (v is not NULL):
+                    try:
+                        v = self.cls(v)
+                    except ValueError:
+                        raise InvalidValueError('%s is not a dict of "%s" values: entry "%d" is %s' % (self.full_name, self.full_cls_name, k, safe_repr(v)), locator=self.get_locator(raw))
+                r[k] = v
+        return FrozenDict(r)
+
+    def _dump_primitive_dict(self, context, value):
+        puts('%s:' % self.name)
+        with context.style.indent:
+            for v in value.itervalues():
+                if hasattr(v, 'as_raw'):
+                    v = as_raw(v)
+                puts(context.style.literal(v))
+
+    # object
+
+    def _get_object(self, presentation, raw, value):
+        try:
+            return self.cls(raw=value, container=presentation)
+        except TypeError as e:
+            raise InvalidValueError('%s cannot not be initialized to an instance of "%s": %s' % (self.full_name, self.full_cls_name, safe_repr(value)), cause=e, locator=self.get_locator(raw))
+
+    def _dump_object(self, context, value):
+        puts('%s:' % self.name)
+        with context.style.indent:
+            if hasattr(value, '_dump'):
+                value._dump(context)
+
+    # object list
+
+    def _get_object_list(self, presentation, raw, value):
+        if not isinstance(value, list):
+            raise InvalidValueError('%s is not a list: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
+        return FrozenList((self.cls(raw=v, container=presentation) for v in value))
+
+    def _dump_object_list(self, context, value):
+        puts('%s:' % self.name)
+        with context.style.indent:
+            for v in value:
+                if hasattr(v, '_dump'):
+                    v._dump(context)
+
+    def _get_object_dict(self, presentation, raw, value):
+        if not isinstance(value, dict):
+            raise InvalidValueError('%s is not a dict: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
+        return FrozenDict(((k, self.cls(name=k, raw=v, container=presentation)) for k, v in value.iteritems()))
+
+    def _dump_object_dict(self, context, value):
+        puts('%s:' % self.name)
+        with context.style.indent:
+            for v in value.itervalues():
+                if hasattr(v, '_dump'):
+                    v._dump(context)
+
+    # sequenced object list
+
+    def _get_sequenced_object_list(self, presentation, raw, value):
+        if not isinstance(value, list):
+            raise InvalidValueError('%s is not a sequenced list (a list of dicts, each with exactly one key): %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
+        sequence = []
+        for v in value:
+            if not isinstance(v, dict):
+                raise InvalidValueError('%s list elements are not all dicts with exactly one key: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
+            if len(v) != 1:
+                raise InvalidValueError('%s list elements do not all have exactly one key: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
+            k, vv = v.items()[0]
+            sequence.append((k, self.cls(name=k, raw=vv, container=presentation)))
+        return FrozenList(sequence)
+
+    def _dump_sequenced_object_list(self, context, value):
+        puts('%s:' % self.name)
+        for _, v in value:
+            if hasattr(v, '_dump'):
+                v._dump(context)
+
+    # primitive dict for unknown fields
+
+    def _get_primitive_dict_unknown_fields(self, presentation, raw):
+        if isinstance(raw, dict):
+            r = raw
+            if self.cls is not None:
+                r = OrderedDict()
+                for k, v in raw.iteritems():
+                    if k not in presentation.FIELDS:
+                        if not isinstance(v, self.cls):
+                            try:
+                                r[k] = self.cls(v)
+                            except ValueError:
+                                raise InvalidValueError('%s is not a dict of "%s" values: entry "%d" is %s' % (self.full_name, self.full_cls_name, k, safe_repr(v)), locator=self.get_locator(raw))
+            return FrozenDict(r)
+        return None
+
+    def _dump_primitive_dict_unknown_fields(self, context, value):
+        self._dump_primitive_dict(context, value)
+
+    # object dict for unknown fields
+
+    def _get_object_dict_unknown_fields(self, presentation, raw):
+        if isinstance(raw, dict):
+            return FrozenDict(((k, self.cls(name=k, raw=v, container=presentation)) for k, v in raw.iteritems() if k not in presentation.FIELDS))
+        return None
+
+    def _dump_object_dict_unknown_fields(self, context, value):
+        self._dump_object_dict(context, value)

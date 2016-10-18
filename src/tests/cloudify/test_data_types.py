@@ -357,9 +357,8 @@ data_types:
       e:
         type: integer
 """
-        self.assert_parser_issue_messages([
-            'field "b" is not a valid "int": \'should be int\'',
-        ])
+        self.assert_parser_issue_messages(
+            ['"default" value for field "b" is not a valid "int": \'should be int\''])
 
     def test_nested_merging(self):
         self.template.version_section('cloudify_dsl', '1.2')
@@ -612,7 +611,8 @@ node_templates:
     type: type
 """
         self.assert_parser_issue_messages(
-            ['assignment to undefined property "prop2" in type "datatype" in "node"'])
+            ['assignment to undefined property "prop2" in type "datatype" in "node"',
+             'assignment to undefined property "prop2" in type "datatype" in "prop"'])
 
     def test_nested_required_false(self):
         self.template.version_section('cloudify_dsl', '1.2')
