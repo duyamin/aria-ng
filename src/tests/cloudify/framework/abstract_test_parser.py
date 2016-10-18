@@ -216,7 +216,7 @@ imports:"""
             title=PARSING_ISSUES_TITLE,
             messages='\n\t'.join(msg for msg in issue_messages))
 
-        self.assertEqual(expected_error_message, ex.message)
+        self.assertIn(expected_error_message, ex.message)
 
     def parse_1_0(self, dsl_string, resources_base_url=None):
         return self.parse(dsl_string, resources_base_url=resources_base_url,
@@ -248,8 +248,8 @@ imports:"""
         self._validate_parse_no_issues(context)
         return context
 
-    def parse_multi(self, yaml):
-        return create_deployment_plan(self.parse_1_3(yaml))
+    def parse_multi(self, dsl_string):
+        return create_deployment_plan(self.parse_1_3(dsl_string))
 
     @staticmethod
     def modify_multi(plan, modified_nodes):

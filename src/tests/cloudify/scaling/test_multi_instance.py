@@ -19,7 +19,7 @@ import random
 from mock import patch
 
 from dsl_parser import exceptions
-from dsl_parser.tests import scaling
+from cloudify import scaling
 
 
 class TestMultiInstance(scaling.BaseTestMultiInstance):
@@ -415,8 +415,11 @@ class TestMultiInstance(scaling.BaseTestMultiInstance):
                 properties:
                     connection_type: invalid
 """
-        self.assertRaises(exceptions.IllegalConnectedToConnectionType,
-                          self.parse_multi, yaml)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            parsing_method=self.parse_multi,
+            issue_messages=['"connection_type" property is not "all_to_all" or "all_to_one" '
+                            'in relationship in node template "db":'])
 
     def test_unsupported_relationship(self):
         yaml = self.BASE_BLUEPRINT + """
@@ -444,7 +447,7 @@ node_templates:
 node_types:
   type: {1}
 '''.format(instances, '{}')
-        with patch('dsl_parser.rel_graph._generate_id',
+        with patch('cloudify.framework.rel_graph._generate_id',
                    lambda: random.randint(1, instances)):
             plan = self.parse_multi(blueprint)
         self.assertEqual(instances, len(plan['node_instances']))

@@ -13,7 +13,7 @@
 #    * See the License for the specific language governing permissions and
 #    * limitations under the License.
 
-from dsl_parser.tests import scaling
+from cloudify import scaling
 
 
 class TestMultiInstanceModify(scaling.BaseTestMultiInstance):
