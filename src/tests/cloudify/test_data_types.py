@@ -79,7 +79,7 @@ class TestDataTypes(ParserTestCase, TempDirectoryTestCase):
             '          head: 1\n'
         )
         self.assert_parser_issue_messages(
-            ['type of property "tail" creates a circular value hierarchy: u\'list_type\''])
+            ['type of property "tail" creates a circular value hierarchy: \'list_type\''])
 
     def test_definitions_with_default_error(self):
         extras = (
@@ -114,7 +114,7 @@ data_types:
       second: {}
 """
         self.assert_parser_issue_messages(
-            ['"type" refers to an unknown data type in "first": u\'unknown-type\''])
+            ['"type" refers to an unknown data type in "first": \'unknown-type\''])
 
     def test_nested_validation(self):
         self.template.version_section('cloudify_dsl', '1.2')

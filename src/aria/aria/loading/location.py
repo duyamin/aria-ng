@@ -17,6 +17,13 @@
 import os
 
 class Location(object):
+    """
+    Base class for ARIA locations.
+    
+    Locations are used by :class:`aria.loading.LoaderSource` to delegate to
+    an appropriate :class:`aria.loading.Loader`.
+    """
+    
     def is_equivalent(self, location):
         return False
     
@@ -25,6 +32,14 @@ class Location(object):
         return None
 
 class UriLocation(Location):
+    """
+    A URI location can be absolute or relative, and can include a scheme or not.
+    
+    If no scheme is included, it should be treated as a filesystem path.
+
+    See :class:`aria.loading.UriTextLoader`.
+    """
+
     def __init__(self, uri):
         self.uri = uri
 
@@ -40,11 +55,18 @@ class UriLocation(Location):
         return self.uri
 
 class LiteralLocation(Location):
-    def __init__(self, content):
+    """
+    A location that embeds content.
+    
+    See :class:`aria.loading.LiteralLoader`.
+    """
+    
+    def __init__(self, content, name='literal'):
         self.content = content
+        self.name = name
 
     def is_equivalent(self, location):
         return isinstance(location, LiteralLocation) and (location.content == self.content)
     
     def __str__(self):
-        return '<literal>'
+        return '<%s>' % self.name

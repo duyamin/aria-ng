@@ -20,7 +20,7 @@ class LiteralLoader(Loader):
     """
     ARIA literal loader.
     
-    This loader is a trivial holder for the provided value.
+    See :class:`aria.loading.LiteralLocation`.
     """
 
     def __init__(self, location):
