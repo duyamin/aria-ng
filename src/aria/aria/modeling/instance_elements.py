@@ -389,8 +389,8 @@ class Relationship(Element):
             raise ValueError('type_name must be string')
         if template_name and not isinstance(template_name, basestring):
             raise ValueError('template_name must be string')
-        if (type_name and template_name) or ((not type_name) and (not template_name)):
-            raise ValueError('must set either type_name or template_name')
+        if (not type_name) and (not template_name):
+            raise ValueError('must set either type_name or template_name or both')
         
         self.target_node_id = None
         self.target_capability_name = None
@@ -432,7 +432,7 @@ class Relationship(Element):
                 puts('Target capability: %s' % context.style.node(self.target_capability_name))
             if self.type_name is not None:
                 puts('Relationship type: %s' % context.style.type(self.type_name))
-            else:
+            if self.template_name is not None:
                 puts('Relationship template: %s' % context.style.node(self.template_name))
             dump_properties(context, self.properties)
             dump_interfaces(context, self.source_interfaces, 'Source interfaces')

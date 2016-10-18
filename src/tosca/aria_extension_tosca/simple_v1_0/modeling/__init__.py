@@ -192,7 +192,9 @@ def create_relationship_model(context, relationship):
     if relationship_type_variant == 'relationship_type':
         r = RelationshipTemplate(type_name=relationship_type._name)
     else:
-        r = RelationshipTemplate(template_name=relationship_type._name)
+        relationship_template = relationship_type
+        relationship_type = relationship_template._get_type(context)
+        r = RelationshipTemplate(type_name=relationship_type._name, template_name=relationship_template._name)
 
     create_property_models(r.properties, relationship.properties)
     create_interface_models(context, r.source_interfaces, relationship.interfaces)
