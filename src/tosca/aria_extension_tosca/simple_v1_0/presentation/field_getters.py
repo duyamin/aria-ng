@@ -24,8 +24,8 @@ def data_type_class_getter(cls):
     Can be used with the :func:`field_getter` decorator.
     """
     
-    def getter(field, presentation):
-        raw = field._get(presentation)
+    def getter(field, presentation, context=None):
+        raw = field.default_get(presentation, context)
         if raw is not None:
             try:
                 return cls(None, None, raw, None)

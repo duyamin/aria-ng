@@ -14,8 +14,9 @@
 # under the License.
 #
 
+from .null import NULL
 from ..validation import Issue
-from ..utils import safe_repr
+from ..utils import full_type_name, safe_repr
 
 def get_locator(*values):
     """
@@ -31,7 +32,25 @@ def get_locator(*values):
                 return locator
     return None
 
-def validate_no_short_form(presentation, context):
+def validate_primitive(value, cls, coerce=False):
+    """
+    Checks if the value is of the primitive type, optionally attempting to coerce it
+    if it is not.
+    
+    Raises a :code:`ValueError` if it isn't or if coercion failed.
+    """
+    
+    base_cls = cls
+    if (base_cls is unicode) or (base_cls is str):
+        base_cls = basestring
+    if (base_cls is not None) and (not isinstance(value, base_cls)) and (value is not None) and (value is not NULL):
+        if coerce:
+            return cls(value)
+        else:
+            raise ValueError('not a "%s": %s' % (full_type_name(base_cls), safe_repr(value)))
+    return value
+
+def validate_no_short_form(context, presentation):
     """
     Makes sure that we can use short form definitions only if we allowed it.
     """
@@ -39,7 +58,7 @@ def validate_no_short_form(presentation, context):
     if (not hasattr(presentation, 'SHORT_FORM_FIELD')) and (not isinstance(presentation._raw, dict)):
         context.validation.report('short form not allowed for field "%s"' % presentation._fullname, locator=presentation._locator, level=Issue.BETWEEN_FIELDS)
 
-def validate_no_unknown_fields(presentation, context):
+def validate_no_unknown_fields(context, presentation):
     """
     Make sure that we can use unknown fields only if we allowed it.
     """
@@ -49,7 +68,7 @@ def validate_no_unknown_fields(presentation, context):
             if k not in presentation.FIELDS:
                 context.validation.report('field "%s" is not supported in "%s"' % (k, presentation._fullname), locator=presentation._get_child_locator(k), level=Issue.BETWEEN_FIELDS)
 
-def validate_known_fields(presentation, context):
+def validate_known_fields(context, presentation):
     """
     Validates all known fields.
     """

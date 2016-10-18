@@ -36,7 +36,7 @@ def copy_validator(template_type_name, templates_dict_name):
     """
     
     def validator_fn(field, presentation, context):
-        field._validate(presentation, context)
+        field.default_validate(presentation, context)
         
         # Make sure type exists
         value = getattr(presentation, field.name)
@@ -64,7 +64,7 @@ def data_type_validator(type_name='data type'):
     """
 
     def validator(field, presentation, context):
-        field._validate(presentation, context)
+        field.default_validate(presentation, context)
         
         value = getattr(presentation, field.name)
         if value is not None:
@@ -97,7 +97,7 @@ def entry_schema_validator(field, presentation, context):
     Used with the :func:`field_validator` decorator for the :code:`entry_schema` field in :class:`PropertyDefinition` and :class:`AttributeDefinition`.
     """
 
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
 
     def type_uses_entry_schema(the_type):
         use_entry_schema = the_type._get_extension('use_entry_schema', False) if hasattr(the_type, '_get_extension') else False
@@ -128,7 +128,7 @@ def data_value_validator(field, presentation, context):
     Used with the :func:`field_validator` decorator for the :code:`default` field in :class:`PropertyDefinition` and :class:`AttributeDefinition`.
     """
 
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
 
     value = getattr(presentation, field.name)
     if value is not None:
@@ -160,7 +160,7 @@ def data_type_constraints_validator(field, presentation, context):
     Makes sure that we do not have constraints if we are a complex type (with no primitive ancestor).
     """
 
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
     
     value = getattr(presentation, field.name)
     if value is not None:
@@ -174,7 +174,7 @@ def data_type_properties_validator(field, presentation, context):
     Used with the :func:`field_validator` decorator for the :code:`properties` field in :class:`DataType`.
     """
 
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
     
     values = getattr(presentation, field.name)
     if values is not None:
@@ -192,7 +192,7 @@ def constraint_clause_field_validator(field, presentation, context):
     Used with the :func:`field_validator` decorator for various field in :class:`ConstraintClause`.
     """
 
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
 
     value = getattr(presentation, field.name)
     if value is not None:
@@ -209,7 +209,7 @@ def constraint_clause_in_range_validator(field, presentation, context):
     Used with the :func:`field_validator` decorator for the :code:`in_range` field in :class:`ConstraintClause`.
     """
 
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
 
     values = getattr(presentation, field.name)
     if isinstance(values, list):
@@ -238,7 +238,7 @@ def constraint_clause_valid_values_validator(field, presentation, context):
     Used with the :func:`field_validator` decorator for the :code:`valid_values` field in :class:`ConstraintClause`.
     """
     
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
     
     values = getattr(presentation, field.name)
     if isinstance(values, list):
@@ -253,7 +253,7 @@ def constraint_clause_pattern_validator(field, presentation, context):
     Used with the :func:`field_validator` decorator for the :code:`pattern` field in :class:`ConstraintClause`.
     """
 
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
 
     value = getattr(presentation, field.name)
     if value is not None:
@@ -274,7 +274,7 @@ def node_template_or_type_validator(field, presentation, context):
     Used with the :func:`field_validator` decorator for the :code:`node` field in :class:`RequirementAssignment`.
     """
     
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
     
     value = getattr(presentation, field.name)
     if value is not None:
@@ -293,7 +293,7 @@ def capability_definition_or_type_validator(field, presentation, context):
     Used with the :func:`field_validator` decorator for the :code:`capability` field in :class:`RequirementAssignment`.
     """
     
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
     
     value = getattr(presentation, field.name)
     if value is not None:
@@ -321,7 +321,7 @@ def node_filter_validator(field, presentation, context):
     Used with the :func:`field_validator` decorator for the :code:`node_filter` field in :class:`RequirementAssignment`.
     """
 
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
     
     value = getattr(presentation, field.name)
     if value is not None:
@@ -340,7 +340,7 @@ def relationship_template_or_type_validator(field, presentation, context):
     Used with the :func:`field_validator` decorator for the :code:`type` field in :class:`RelationshipAssignment`.
     """
     
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
     
     value = getattr(presentation, field.name)
     if value is not None:
@@ -360,7 +360,7 @@ def list_node_type_or_group_type_validator(field, presentation, context):
     Used with the :func:`field_validator` decorator for the :code:`targets` field in :class:`PolicyType`.
     """
     
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
     
     values = getattr(presentation, field.name)
     if values is not None:
@@ -382,7 +382,7 @@ def policy_targets_validator(field, presentation, context):
     Used with the :func:`field_validator` decorator for the :code:`targets` field in :class:`PolicyTemplate`.
     """
     
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
     
     values = getattr(presentation, field.name)
     if values is not None:
@@ -426,7 +426,7 @@ def node_filter_properties_validator(field, presentation, context):
     Used with the :func:`field_validator` decorator for the :code:`properties` field in :class:`NodeFilter`.
     """
     
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
     
     values = getattr(presentation, field.name)
     if values is not None:
@@ -444,7 +444,7 @@ def node_filter_capabilities_validator(field, presentation, context):
     Used with the :func:`field_validator` decorator for the :code:`capabilities` field in :class:`NodeFilter`.
     """
 
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
     
     values = getattr(presentation, field.name)
     if values is not None:

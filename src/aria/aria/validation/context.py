@@ -22,11 +22,13 @@ class ValidationContext(object):
     Properties:
     
     * :code:`allow_unknown_fields`: When False (the default) will report an issue if an unknown field is used
+    * :code:`allow_primitive_coersion`: When False (the default) will not attempt to coerce primitive field types
     * :code:`max_level`: Maximum validation level to report (default is all)
     """
 
     def __init__(self):
         self.allow_unknown_fields = False
+        self.allow_primitive_coersion = False
         self.max_level = Issue.ALL
 
         self._issues = LockedList()

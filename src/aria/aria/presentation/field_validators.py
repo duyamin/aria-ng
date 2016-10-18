@@ -33,7 +33,7 @@ def type_validator(type_name, *types_dict_names):
     types_dict_names, convert = _parse_types_dict_names(types_dict_names)
     
     def validator_fn(field, presentation, context):
-        field._validate(presentation, context)
+        field.default_validate(presentation, context)
 
         # Make sure type exists
         value = getattr(presentation, field.name)
@@ -65,7 +65,7 @@ def list_type_validator(type_name, *types_dict_names):
     types_dict_names, convert = _parse_types_dict_names(types_dict_names)
 
     def validator_fn(field, presentation, context):
-        field._validate(presentation, context)
+        field.default_validate(presentation, context)
         
         # Make sure types exist
         values = getattr(presentation, field.name)
@@ -91,7 +91,7 @@ def list_length_validator(length):
     """
 
     def validator_fn(field, presentation, context):
-        field._validate(presentation, context)
+        field.default_validate(presentation, context)
         
         # Make sure list has exactly the length
         values = getattr(presentation, field.name)
@@ -116,7 +116,7 @@ def derived_from_validator(*types_dict_names):
     types_dict_names, convert = _parse_types_dict_names(types_dict_names)
 
     def validator_fn(field, presentation, context):
-        field._validate(presentation, context)
+        field.default_validate(presentation, context)
 
         value = getattr(presentation, field.name)
         if value is not None:

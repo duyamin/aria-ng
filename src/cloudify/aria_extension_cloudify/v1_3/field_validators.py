@@ -27,7 +27,7 @@ def node_templates_or_groups_validator(field, presentation, context):
     Used with the :func:`field_validator` decorator for the "targets" field in :class:`GroupTemplate`.
     """
     
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
     
     values = getattr(presentation, field.name)
     if values is not None:
@@ -50,7 +50,7 @@ def policy_type_validator(field, presentation, context):
     Used with the :func:`field_validator` decorator for the "type" field in :class:`PolicyTemplate`.
     """
     
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
     
     value = getattr(presentation, field.name)
     if value is not None:
