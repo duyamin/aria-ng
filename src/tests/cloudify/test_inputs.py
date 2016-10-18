@@ -251,7 +251,13 @@ node_templates:
                 port: { get_input: port }
                 some_prop: { get_input: unknown }
 """
-        self.assertRaises(UnknownInputError, self.parse, yaml)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=[
+                'function "get_input" argument is not a valid input name: '
+                '\'unknown\''
+            ]
+        )
 
     def test_get_input_list_property(self):
         yaml = """
@@ -289,7 +295,13 @@ node_templates:
                 - item1
                 - port: { get_input: port1122 }
 """
-        self.assertRaises(UnknownInputError, self.parse, yaml)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=[
+                'function "get_input" argument is not a valid input name: '
+                '\'port1122\''
+            ]
+        )
 
     def test_input_in_interface(self):
         yaml = """
@@ -437,10 +449,13 @@ plugins:
     install: false
     executor: central_deployment_agent
 """
-        self.parse(yaml)
-        # ex = self._assert_dsl_parsing_exception_error_code(
-        #     yaml, 107, DSLParsingLogicException)
-        # self.assertIn('some_input', ex.message)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=[
+                'interface definition "interface" does not assign a value to '
+                'a required operation input "op.some_input" in "node"'
+            ]
+        )
 
     def test_missing_inputs_both_reported(self):
         yaml = """
@@ -463,7 +478,13 @@ plugins:
     install: false
     executor: central_deployment_agent
 """
-        ex = self._assert_dsl_parsing_exception_error_code(
-            yaml, 107, DSLParsingLogicException)
-        self.assertIn('some_input', ex.message)
-        self.assertIn('another_input', ex.message)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=[
+                'interface definition "interface" does not assign a value to '
+                'a required operation input "op.another_input" in "node"',
+                'interface definition "interface" does not assign a value to '
+                'a required operation input "op.some_input" in "node"'
+            ]
+        )
+
