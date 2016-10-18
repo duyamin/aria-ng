@@ -18,7 +18,7 @@ import copy
 import networkx as nx
 import yaml
 
-from cloudify.framework import constants
+from dsl_parser import constants
 from cloudify.framework import rel_graph
 from cloudify import scaling
 

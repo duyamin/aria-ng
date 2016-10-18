@@ -16,7 +16,8 @@
 
 import copy
 
-from . import models, rel_graph, constants
+from dsl_parser import constants
+from . import models, rel_graph
 
 
 def create_deployment_plan(plan):
