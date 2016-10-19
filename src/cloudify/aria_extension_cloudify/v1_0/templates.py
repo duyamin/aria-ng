@@ -28,9 +28,6 @@ from aria.utils import FrozenDict, cachedmethod
 
 @has_fields
 @dsl_specification('relationships-1', 'cloudify-1.0')
-@dsl_specification('relationships-1', 'cloudify-1.1')
-@dsl_specification('relationships-1', 'cloudify-1.2')
-@dsl_specification('relationships-1', 'cloudify-1.3')
 class RelationshipTemplate(Presentation):
     """
     :code:`relationships` let you define how nodes relate to one another. For example, a :code:`web_server` node can be :code:`contained_in` a :code:`vm` node or an :code:`application` node can be :code:`connected_to` a :code:`database` node.
@@ -112,8 +109,6 @@ class RelationshipTemplate(Presentation):
 
 @has_fields
 @dsl_specification('node-templates', 'cloudify-1.0')
-@dsl_specification('node-templates', 'cloudify-1.1')
-@dsl_specification('node-templates', 'cloudify-1.2')
 class NodeTemplate(Presentation):
     """
     :code:`node_templates` represent the actual instances of node types which would eventually represent a running application/service as described in the blueprint.
@@ -224,14 +219,6 @@ class GroupTemplate(Presentation):
 
 @has_fields
 class ServiceTemplate(Presentation):
-    @object_field(Description)
-    def description(self):
-        """
-        ARIA NOTE: Not mentioned in the spec.
-        
-        :rtype: :class:`Description`
-        """
-
     @primitive_field(str)
     @dsl_specification('versioning', 'cloudify-1.0')
     @dsl_specification('versioning', 'cloudify-1.1')
@@ -267,8 +254,6 @@ class ServiceTemplate(Presentation):
     @object_dict_field(PropertyDefinition)
     @dsl_specification('inputs', 'cloudify-1.0')
     @dsl_specification('inputs', 'cloudify-1.1')
-    @dsl_specification('inputs', 'cloudify-1.2')
-    @dsl_specification('inputs', 'cloudify-1.3')
     def inputs(self):
         """
         :code:`inputs` are parameters injected into the blueprint upon deployment creation. These parameters can be referenced by using the :code:`get_input` intrinsic function.

@@ -97,14 +97,14 @@ def get_template_interfaces(context, presentation, type_name, field_name, fn_nam
 #
 
 def convert_interface_definition_from_type_to_template(context, presentation, container):
-    from ..assignments import InterfaceAssignment
+    cls = context.presentation.presenter.INTERFACE_ASSIGNMENT_CLASS
 
-    if isinstance(presentation, InterfaceAssignment):
+    if isinstance(presentation, cls):
         # Nothing to convert, so just clone
         return presentation._clone(container)
     
     raw = convert_interface_definition_from_type_to_raw_template(context, presentation)
-    return InterfaceAssignment(name=presentation._name, raw=raw, container=container)
+    return cls(name=presentation._name, raw=raw, container=container)
 
 def convert_interface_definition_from_type_to_raw_template(context, presentation):
     raw = OrderedDict()
@@ -120,12 +120,13 @@ def convert_interface_definition_from_type_to_raw_template(context, presentation
             executor = operation.executor
             if executor is not None:
                 raw[operation_name]['executor'] = deepcopy_with_locators(executor)
-            max_retries = operation.max_retries
-            if max_retries is not None:
-                raw[operation_name]['max_retries'] = deepcopy_with_locators(max_retries)
-            retry_interval = operation.retry_interval
-            if retry_interval is not None:
-                raw[operation_name]['retry_interval'] = deepcopy_with_locators(retry_interval)
+            if hasattr(operation, 'max_retries'): # Introduced in DSL v1.1
+                max_retries = operation.max_retries
+                if max_retries is not None:
+                    raw[operation_name]['max_retries'] = deepcopy_with_locators(max_retries)
+                retry_interval = operation.retry_interval
+                if retry_interval is not None:
+                    raw[operation_name]['retry_interval'] = deepcopy_with_locators(retry_interval)
             inputs = operation.inputs
             if inputs is not None:
                 raw[operation_name]['inputs'] = convert_property_definitions_to_values(context, presentation, inputs)
@@ -153,12 +154,13 @@ def merge_interface(context, presentation, interface_assignment, our_interface_a
             our_executor = our_operation_template.executor
             if our_executor is not None:
                 interface_assignment._raw[operation_name]['executor'] = deepcopy_with_locators(our_executor)
-            our_max_retries = our_operation_template.max_retries
-            if our_max_retries is not None:
-                interface_assignment._raw[operation_name]['max_retries'] = deepcopy_with_locators(our_max_retries)
-            our_retry_interval = our_operation_template.retry_interval
-            if our_retry_interval is not None:
-                interface_assignment._raw[operation_name]['retry_interval'] = deepcopy_with_locators(our_retry_interval)
+            if hasattr(our_operation_template, 'max_retries'): # Introduced in DSL v1.1
+                our_max_retries = our_operation_template.max_retries
+                if our_max_retries is not None:
+                    interface_assignment._raw[operation_name]['max_retries'] = deepcopy_with_locators(our_max_retries)
+                our_retry_interval = our_operation_template.retry_interval
+                if our_retry_interval is not None:
+                    interface_assignment._raw[operation_name]['retry_interval'] = deepcopy_with_locators(our_retry_interval)
 
             # Assign/merge operation inputs
             input_definitions = operation_definition.inputs if operation_definition is not None else None
@@ -274,7 +276,7 @@ def validate_required_inputs(context, presentation, assignment, definition, orig
     input_definitions = definition.inputs
     if input_definitions:
         for input_name, input_definition in input_definitions.iteritems():
-            if input_definition.required:
+            if getattr(input_definition, 'required', False):
                 prop = assignment.inputs.get(input_name) if ((assignment is not None) and (assignment.inputs is not None)) else None
                 value = prop.value if prop is not None else None
                 value = value.value if value is not None else None

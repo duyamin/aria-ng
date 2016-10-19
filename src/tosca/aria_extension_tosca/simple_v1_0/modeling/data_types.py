@@ -18,7 +18,7 @@ from ..functions import get_function
 from ..presentation.types import get_type_by_full_or_shorthand_name
 from aria import dsl_specification
 from aria.validation import Issue
-from aria.presentation import get_locator
+from aria.presentation import get_locator, validate_primitive
 from aria.utils import import_fullname, full_type_name, safe_repr
 from collections import OrderedDict
 import re
@@ -126,6 +126,10 @@ def get_data_type(context, presentation, field_name, allow_none=False):
             return None
         else:
             return str
+
+    # Make sure not derived from self
+    if type_name == presentation._name:
+        return None
     
     # Avoid circular definitions
     container_data_type = get_container_data_type(presentation)
@@ -364,7 +368,7 @@ def coerce_to_primitive(context, presentation, primitive_type, constraints, valu
 
     try:
         # Coerce
-        value = primitive_type(value)
+        value = validate_primitive(value, primitive_type, context.validation.allow_primitive_coersion)
         
         # Check constraints
         apply_constraints_to_value(context, presentation, constraints, value)

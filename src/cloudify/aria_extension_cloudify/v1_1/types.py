@@ -21,8 +21,6 @@ from aria.presentation import has_fields, object_dict_field
 
 @has_fields
 @dsl_specification('node-types', 'cloudify-1.1')
-@dsl_specification('node-types', 'cloudify-1.2')
-@dsl_specification('node-types', 'cloudify-1.3')
 class NodeType(NodeType1_0):
     @object_dict_field(InterfaceDefinition)
     def interfaces(self):
@@ -34,8 +32,6 @@ class NodeType(NodeType1_0):
 
 @has_fields
 @dsl_specification('relationships-2', 'cloudify-1.1')
-@dsl_specification('relationships-2', 'cloudify-1.2')
-@dsl_specification('relationships-2', 'cloudify-1.3')
 class RelationshipType(RelationshipType1_0):
     @object_dict_field(InterfaceDefinition)
     def source_interfaces(self):

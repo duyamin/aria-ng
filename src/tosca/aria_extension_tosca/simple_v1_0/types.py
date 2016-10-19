@@ -21,7 +21,7 @@ from .data_types import Version
 from .presentation.extensible import ExtensiblePresentation
 from .presentation.field_getters import data_type_class_getter
 from .presentation.field_validators import data_type_derived_from_validator, data_type_constraints_validator, data_type_properties_validator, list_node_type_or_group_type_validator
-from .presentation.types import convert_shorthand_to_full_type_name, get_type_by_full_or_shorthand_name
+from .presentation.types import convert_shorthand_to_full_type_name
 from .modeling.properties import get_inherited_property_definitions
 from .modeling.interfaces import get_inherited_interface_definitions, get_inherited_operations
 from .modeling.requirements import get_inherited_requirement_definitions
@@ -31,7 +31,7 @@ from .modeling.policies import get_inherited_targets
 from .modeling.data_types import get_data_type, get_inherited_constraints, coerce_data_type_value, validate_data_type_name
 from aria import dsl_specification
 from aria.utils import FrozenDict, FrozenList, cachedmethod
-from aria.presentation import has_fields, allow_unknown_fields, primitive_field, primitive_list_field, object_field, object_dict_field, object_list_field, object_sequenced_list_field, object_dict_unknown_fields, field_getter, field_validator, list_type_validator, derived_from_validator
+from aria.presentation import has_fields, allow_unknown_fields, primitive_field, primitive_list_field, object_field, object_dict_field, object_list_field, object_sequenced_list_field, object_dict_unknown_fields, field_getter, field_validator, list_type_validator, derived_from_validator, get_parent_presentation
 
 @has_fields
 @dsl_specification('3.6.3', 'tosca-simple-1.0')
@@ -94,7 +94,7 @@ class ArtifactType(ExtensiblePresentation):
     
     @cachedmethod
     def _get_parent(self, context):
-        return get_type_by_full_or_shorthand_name(context, self.derived_from, 'artifact_types')
+        return get_parent_presentation(context, self, convert_shorthand_to_full_type_name, 'artifact_types')
 
     @cachedmethod
     def _get_properties(self, context):
@@ -266,7 +266,7 @@ class CapabilityType(ExtensiblePresentation):
         
     @cachedmethod
     def _get_parent(self, context):
-        return get_type_by_full_or_shorthand_name(context, self.derived_from, 'capability_types')
+        return get_parent_presentation(context, self, convert_shorthand_to_full_type_name, 'capability_types')
 
     @cachedmethod
     def _is_descendant(self, context, the_type):
@@ -348,7 +348,7 @@ class InterfaceType(ExtensiblePresentation):
 
     @cachedmethod
     def _get_parent(self, context):
-        return get_type_by_full_or_shorthand_name(context, self.derived_from, 'interface_types')
+        return get_parent_presentation(context, self, convert_shorthand_to_full_type_name, 'interface_types')
 
     @cachedmethod
     def _get_inputs(self, context):
@@ -441,7 +441,7 @@ class RelationshipType(ExtensiblePresentation):
 
     @cachedmethod
     def _get_parent(self, context):
-        return get_type_by_full_or_shorthand_name(context, self.derived_from, 'relationship_types')
+        return get_parent_presentation(context, self, convert_shorthand_to_full_type_name, 'relationship_types')
 
     @cachedmethod
     def _get_properties(self, context):
@@ -558,7 +558,7 @@ class NodeType(ExtensiblePresentation):
 
     @cachedmethod
     def _get_parent(self, context):
-        return get_type_by_full_or_shorthand_name(context, self.derived_from, 'node_types')
+        return get_parent_presentation(context, self, convert_shorthand_to_full_type_name, 'node_types')
 
     @cachedmethod
     def _is_descendant(self, context, the_type):
@@ -678,7 +678,7 @@ class GroupType(ExtensiblePresentation):
 
     @cachedmethod
     def _get_parent(self, context):
-        return get_type_by_full_or_shorthand_name(context, self.derived_from, 'group_types')
+        return get_parent_presentation(context, self, convert_shorthand_to_full_type_name, 'group_types')
 
     @cachedmethod
     def _is_descendant(self, context, the_type):
@@ -765,7 +765,7 @@ class PolicyType(ExtensiblePresentation):
 
     @cachedmethod
     def _get_parent(self, context):
-        return get_type_by_full_or_shorthand_name(context, self.derived_from, 'policy_types')
+        return get_parent_presentation(context, self, convert_shorthand_to_full_type_name, 'policy_types')
 
     @cachedmethod
     def _get_properties(self, context):

@@ -14,8 +14,8 @@
 # under the License.
 #
 
-from ..v1_1 import CloudifyPresenter1_1
 from .templates import ServiceTemplate
+from ..v1_1 import CloudifyPresenter1_1
 from aria.utils import cachedmethod
 
 class CloudifyPresenter1_2(CloudifyPresenter1_1):
@@ -32,6 +32,8 @@ class CloudifyPresenter1_2(CloudifyPresenter1_1):
     * `Upload resources <http://docs.getcloudify.org/3.3.1/blueprints/spec-upload-resources/>`__.
     * Addition of `dsl_definitions` to `blueprint <http://docs.getcloudify.org/3.3.1/blueprints/spec-dsl-definitions/>`__.
     * Addition of `package_name`, `package_version`, `supported_platform`, `distribution`, `distribution_version`, and `distribution_release` to `plugin definitions <http://docs.getcloudify.org/3.3.1/blueprints/spec-plugins/>`__.
+    * Addition of `description` to blueprint.
+    * Addition of `required` to property definitions.
     """
 
     DSL_VERSIONS = ('cloudify_dsl_1_2',)

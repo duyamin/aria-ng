@@ -17,7 +17,8 @@
 from .assignments import CapabilityAssignment
 from .field_validators import node_templates_or_groups_validator, policy_type_validator
 from .modeling.node_templates import get_node_template_scalable
-from ..v1_0 import NodeTemplate as NodeTemplate1_0, GroupTemplate as GroupTemplate1_0, PropertyAssignment
+from ..v1_0 import GroupTemplate as GroupTemplate1_0, PropertyAssignment
+from ..v1_1 import NodeTemplate as NodeTemplate1_1
 from ..v1_2 import ServiceTemplate as ServiceTemplate1_2
 from aria import dsl_specification
 from aria.presentation import Presentation, has_fields, primitive_field, primitive_list_field, object_dict_field, field_validator, list_type_validator
@@ -26,7 +27,7 @@ from aria.utils import FrozenList, cachedmethod
 
 @has_fields
 @dsl_specification('node-templates-1', 'cloudify-1.3')
-class NodeTemplate(NodeTemplate1_0):
+class NodeTemplate(NodeTemplate1_1):
     @object_dict_field(CapabilityAssignment)
     def capabilities(self):
         """
@@ -161,4 +162,3 @@ class ServiceTemplate(ServiceTemplate1_2):
             'outputs',
             'workflows',
             'upload_resources'))
-

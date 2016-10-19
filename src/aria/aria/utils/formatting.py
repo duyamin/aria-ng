@@ -84,6 +84,13 @@ def safe_repr(value):
     
     return repr(as_agnostic(as_raw(value)))
 
+def string_list_as_string(strings):
+    """
+    Nice representation of a list of strings.
+    """
+    
+    return ', '.join('"%s"' % safe_str(v) for v in strings)
+
 def as_raw(value):
     """
     Converts values using their :code:`as_raw` property, if it exists, recursively.

@@ -14,8 +14,8 @@
 # under the License.
 #
 
-from ..v1_2 import CloudifyPresenter1_2
 from .templates import ServiceTemplate
+from ..v1_2 import CloudifyPresenter1_2
 from aria.presentation import Presenter
 from aria.utils import cachedmethod
 

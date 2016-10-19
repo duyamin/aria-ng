@@ -14,9 +14,10 @@
 # under the License.
 #
 
-from ..v1_0 import CloudifyPresenter1_0
+from .assignments import InterfaceAssignment
 from .templates import ServiceTemplate
 from .functions import Concat
+from ..v1_0 import CloudifyPresenter1_0
 from aria.utils import cachedmethod
 
 class CloudifyPresenter1_1(CloudifyPresenter1_0):
@@ -36,6 +37,7 @@ class CloudifyPresenter1_1(CloudifyPresenter1_0):
 
     DSL_VERSIONS = ('cloudify_dsl_1_1',)
     ALLOWED_IMPORTED_DSL_VERSIONS = ('cloudify_dsl_1_1', 'cloudify_dsl_1_0')
+    INTERFACE_ASSIGNMENT_CLASS = InterfaceAssignment
 
     @property
     @cachedmethod

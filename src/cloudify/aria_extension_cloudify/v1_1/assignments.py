@@ -14,13 +14,13 @@
 # under the License.
 #
 
-from ..v1_0 import OperationDefinition as OperationDefinition1_0, InterfaceDefinition as InterfaceDefinition1_0
+from ..v1_0 import OperationAssignment as OperationAssignment1_0, InterfaceAssignment as InterfaceAssignment1_0
 from aria import dsl_specification
 from aria.presentation import has_fields, allow_unknown_fields, short_form_field, primitive_field, object_dict_unknown_fields
 
 @short_form_field('implementation')
 @has_fields
-class OperationDefinition(OperationDefinition1_0):
+class OperationAssignment(OperationAssignment1_0):
     @primitive_field(int)
     def max_retries(self):
         """
@@ -39,10 +39,12 @@ class OperationDefinition(OperationDefinition1_0):
 
 @allow_unknown_fields
 @has_fields
-@dsl_specification('interfaces-1', 'cloudify-1.1')
-class InterfaceDefinition(InterfaceDefinition1_0):
-    @object_dict_unknown_fields(OperationDefinition)
+@dsl_specification('interfaces-2', 'cloudify-1.1')
+@dsl_specification('interfaces-2', 'cloudify-1.2')
+@dsl_specification('interfaces-2', 'cloudify-1.3')
+class InterfaceAssignment(InterfaceAssignment1_0):
+    @object_dict_unknown_fields(OperationAssignment)
     def operations(self):
         """
-        :rtype: dict of str, :class:`OperationDefinition`
+        :rtype: dict of str, :class:`OperationAssignment`
         """

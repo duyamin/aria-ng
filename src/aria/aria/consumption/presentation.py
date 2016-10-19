@@ -99,7 +99,7 @@ class Read(Consumer):
                 # We'll use the presenter class we were given (from the presenter that imported us)
                 pass
             if presenter_class is None:
-                raise PresenterNotFoundError()
+                raise PresenterNotFoundError('presenter not found')
         
         presentation = presenter_class(raw=raw)
 

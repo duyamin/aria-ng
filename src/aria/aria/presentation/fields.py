@@ -452,8 +452,7 @@ class Field(object):
         old = self.get(presentation, context)
         raw[self.name] = value
         try:
-            # Validates our value
-            self.get(presentation, context)
+            self.validate(presentation, context)
         except Exception as e:
             raw[self.name] = old
             raise e
@@ -523,6 +522,8 @@ class Field(object):
             raise InvalidValueError('%s is not a list: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
         r = value
         if self.cls is not None:
+            if context is None:
+                context = Field._get_context()
             r = []
             for i in range(len(value)):
                 v = value[i]
@@ -550,6 +551,8 @@ class Field(object):
             raise InvalidValueError('%s is not a dict: %s' % (self.full_name, safe_repr(value)), locator=self.get_locator(raw))
         r = value
         if self.cls is not None:
+            if context is None:
+                context = Field._get_context()
             r = OrderedDict()
             for k, v in value.iteritems():
                 try:
@@ -635,6 +638,8 @@ class Field(object):
         if isinstance(raw, dict):
             r = raw
             if self.cls is not None:
+                if context is None:
+                    context = Field._get_context()
                 r = OrderedDict()
                 for k, v in raw.iteritems():
                     if k not in presentation.FIELDS:

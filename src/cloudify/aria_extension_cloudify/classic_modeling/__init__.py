@@ -18,11 +18,13 @@ from .elements import find_by_name, get_type_parent_name
 from .parameters import has_intrinsic_functions
 from .nodes import is_host, find_host_node_template, find_host_node
 from .groups import find_groups, iter_scaling_groups, prune_redundant_members
-from .plugins import plugins_to_install_for_operations, add_plugins_to_install_for_node_template, parse_implementation, CENTRAL_DEPLOYMENT_AGENT
+from .relationships import is_contained_in
+from .plugins import CENTRAL_DEPLOYMENT_AGENT, SCRIPT_PLUGIN_NAME, plugins_to_install_for_operations, add_plugins_to_install_for_node_template, parse_implementation, is_file
 from .policies import SCALING_POLICY_NAME
+from aria import InvalidValueError
 from aria.consumption import Consumer
 from aria.validation import Issue
-from aria.utils import as_raw, as_agnostic, merge, prune, json_dumps
+from aria.utils import as_raw, as_agnostic, merge, prune, json_dumps, string_list_as_string, safe_repr
 from collections import OrderedDict
 
 class ClassicDeploymentPlan(Consumer):
@@ -211,15 +213,27 @@ def convert_node_template(context, node_template):
             current_instances += 1
 
     # Plugins to install
-    plugins_to_install = [] if is_a_host else None
+    plugins_to_install = []
     deployment_plugins_to_install = []
     add_plugins_to_install_for_node_template(context, node_template, plugins_to_install, deployment_plugins_to_install)
     
+    if plugins_to_install and not is_a_host:
+        raise InvalidValueError('node template "%s" has plugins to install but is not a host: %s' % (node_template.name, string_list_as_string(v['name'] for v in plugins_to_install)), level=Issue.BETWEEN_TYPES)
+    
     # Relationships
     relationships = []
+    contained_in = 0
     for requirement in node_template.requirements:
         if requirement.relationship_template is not None:
+            if is_contained_in(context, requirement.relationship_template):
+                contained_in += 1
             relationships.append(convert_relationship_template(context, requirement))
+            if contained_in > 1:
+                raise InvalidValueError('node template "%s" has more than one contained-in relationship' % node_template.name, level=Issue.BETWEEN_TYPES)
+    
+    for relationship in relationships:
+        if relationship['target_id'] == node_template.name:
+            raise InvalidValueError('node template "%s" has a "%s" relationship to itself' % (node_template.name, relationship['type']), level=Issue.BETWEEN_TYPES)
 
     r = OrderedDict((
         ('name', node_template.name),
@@ -271,7 +285,7 @@ def convert_group_template(context, group_template, policy_template=None):
     members = list(node_members | group_members)
     
     if not members:
-        context.validation.report('group "%s" has no members' % group_template.name, level=Issue.BETWEEN_TYPES)
+        raise InvalidValueError('group "%s" has no members' % group_template.name, level=Issue.BETWEEN_TYPES)
 
     r = OrderedDict((
         ('members', members),
@@ -372,7 +386,7 @@ def convert_interfaces(context, interfaces):
 
 def convert_interface_operation(context, operation):
     _, plugin_executor, _, _ = parse_implementation(context, operation.implementation)
-
+    
     return OrderedDict((
         ('implementation', operation.implementation or ''),
         ('inputs', convert_inputs(context, operation.inputs)),
@@ -403,10 +417,17 @@ def convert_operations(context, interfaces):
 def convert_operation(context, operation):
     plugin_name, plugin_executor, operation_name, inputs = parse_implementation(context, operation.implementation)
 
+    inputs = merge(inputs, convert_inputs(context, operation.inputs))
+
+    if plugin_name == SCRIPT_PLUGIN_NAME:
+        script_path = inputs.get('script_path')
+        if script_path and (not is_file(context, script_path)):
+            raise InvalidValueError('"script_path" input for "script" plugin does not refer to a file: %s' % safe_repr(script_path), level=Issue.BETWEEN_TYPES)
+
     return OrderedDict((
         ('plugin', plugin_name),
         ('operation', operation_name),
-        ('inputs', merge(convert_inputs(context, operation.inputs), inputs)),
+        ('inputs', inputs),
         ('has_intrinsic_functions', has_intrinsic_functions(context, operation.inputs)),
         ('executor', operation.executor or plugin_executor),
         ('max_retries', operation.max_retries),

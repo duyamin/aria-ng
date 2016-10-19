@@ -101,12 +101,13 @@ def create_operation_model(context, operation, is_definition=False):
     executor = operation.executor
     if executor is not None:
         r.executor = executor
-    max_retries = operation.max_retries
-    if max_retries is not None:
-        r.max_retries = max_retries
-    retry_interval = operation.retry_interval
-    if retry_interval is not None:
-        r.retry_interval = retry_interval
+    if hasattr(operation, 'max_retries'): # Introduced in DSL v1.1
+        max_retries = operation.max_retries
+        if max_retries is not None:
+            r.max_retries = max_retries
+        retry_interval = operation.retry_interval
+        if retry_interval is not None:
+            r.retry_interval = retry_interval
 
     inputs = operation.inputs
     if inputs:

@@ -17,11 +17,14 @@
 from .elements import find_by_name
 from .nodes import find_hosted_node_templates
 from aria import InvalidValueError
+from aria.validation import Issue
+from aria.utils import safe_repr
 from collections import OrderedDict
 import os
 
 CENTRAL_DEPLOYMENT_AGENT = 'central_deployment_agent'
 HOST_AGENT = 'host_agent'
+SCRIPT_PLUGIN_NAME = 'script'
 SCRIPT_RUNNER_RUN_OPERATION = 'script_runner.tasks.run'
 SCRIPT_RUNNER_EXECUTE_WORKFLOW_OPERATION = 'script_runner.tasks.execute_workflow'
 
@@ -59,6 +62,17 @@ def add_plugins_to_install_for_node_template(context, node_template, plugins_to_
     for t in find_hosted_node_templates(context, node_template):
         add_plugins_to_install_for_node_template(context, t, plugins_to_install, deployment_plugins_to_install)
 
+def is_file(context, name):
+    """
+    Returns True if the name points to a file under one of our loading prefixes.
+    """
+    
+    for prefix in context.loading.prefixes:
+        path = os.path.join(prefix, name)
+        if os.path.isfile(path):
+            return True
+    return False
+
 def parse_implementation(context, implementation, is_workflow=False):
     """
     Parses an operation's :code:`implementation` string, differentiating between references Python plugin functions
@@ -77,27 +91,24 @@ def parse_implementation(context, implementation, is_workflow=False):
         parsed = True
     
     if not parsed:
-        for prefix in context.loading.prefixes:
-            path = os.path.join(prefix, implementation)
-            if os.path.isfile(path):
-                # Explicit script
-                plugin = _find_plugin(context)
-                plugin_name = plugin['name'] 
-                plugin_executor = plugin['executor']
-                if is_workflow:
-                    operation_name = SCRIPT_RUNNER_EXECUTE_WORKFLOW_OPERATION
-                    inputs = OrderedDict((
-                        ('script_path', OrderedDict((('default', implementation),))),)) 
-                else:
-                    operation_name = SCRIPT_RUNNER_RUN_OPERATION
-                    inputs = OrderedDict((('script_path', implementation),))
-                parsed = True
-                break
+        if is_file(context, implementation):
+            # Explicit script
+            plugin = _find_plugin(context, SCRIPT_PLUGIN_NAME)
+            plugin_name = plugin['name'] 
+            plugin_executor = plugin['executor']
+            if is_workflow:
+                operation_name = SCRIPT_RUNNER_EXECUTE_WORKFLOW_OPERATION
+                inputs = OrderedDict((
+                    ('script_path', OrderedDict((('default', implementation),))),)) 
+            else:
+                operation_name = SCRIPT_RUNNER_RUN_OPERATION
+                inputs = OrderedDict((('script_path', implementation),))
+            parsed = True
 
     if not parsed:
         # plugin.operation
-        plugin_name, operation_name = implementation.split('.', 1)
-        plugin = _find_plugin(context, plugin_name)
+        plugin, operation_name = _parse_implementation(context, implementation)
+        plugin_name = plugin['name'] 
         plugin_executor = plugin['executor']
         inputs = OrderedDict()
 
@@ -107,19 +118,34 @@ def parse_implementation(context, implementation, is_workflow=False):
 # Utils
 #
 
-def _find_plugin(context, name=None):
+def _find_plugin(context, name):
     for plugin in context.modeling.plugins:
-        if name is None:
-            # The first one is fine
+        if plugin['name'] == name:
             return plugin
-        elif plugin['name'] == name:
-            return plugin
-    raise InvalidValueError('unknown plugin: %s' % name)
+    raise InvalidValueError('can\'t find plugin: %s' % safe_repr(name), level=Issue.BETWEEN_TYPES)
+
+def _parse_implementation(context, implementation):
+    plugins = []
+    
+    for plugin in context.modeling.plugins:
+        if implementation.startswith(plugin['name'] + '.'):
+            plugins.append(plugin)
+            
+    length = len(plugins)
+    if length > 1:
+        raise InvalidValueError('ambiguous plugin name in implementation: %s' % safe_repr(implementation), level=Issue.BETWEEN_TYPES)
+    elif length == 1:
+        plugin = plugins[0]
+        operation = implementation[len(plugin['name']) + 1:]
+        if not operation:
+            raise InvalidValueError('no operation name in implementation: %s' % safe_repr(implementation), level=Issue.BETWEEN_TYPES)
+        return plugin, operation
+    elif context.modeling.plugins:
+        plugin = context.modeling.plugins[0]
+        return plugin, implementation
+    raise InvalidValueError('unknown plugin for implementation: %s' % safe_repr(implementation), level=Issue.BETWEEN_TYPES)
 
 def _add_plugins_to_install_for_interface(context, plugins_to_install, interfaces, agent):
-    if plugins_to_install is None:
-        return
-    
     for interface in interfaces.itervalues():
         for operation in interface.operations.itervalues():
             plugin_name, plugin_executor, _, _ = parse_implementation(context, operation.implementation)
