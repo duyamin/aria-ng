@@ -22,6 +22,7 @@ from ..utils import FrozenList, FrozenDict, print_exception, deepcopy_with_locat
 from functools import wraps
 from types import MethodType
 from collections import OrderedDict
+import threading
 
 #
 # Class decorators
@@ -489,7 +490,14 @@ class Field(object):
         if hasattr(value, '_validate'):
             value._validate(context)
     
+    @staticmethod
+    def _get_context():
+        thread_locals = threading.local()
+        return getattr(thread_locals, 'aria_consumption_context', None)
+    
     def _coerce_primitive(self, value, context):
+        if context is None:
+            context = Field._get_context()
         allow_primitive_coersion = context.validation.allow_primitive_coersion if context is not None else True
         return validate_primitive(value, self.cls, allow_primitive_coersion)
 
