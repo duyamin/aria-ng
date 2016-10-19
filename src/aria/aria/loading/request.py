@@ -26,9 +26,9 @@ SESSION_CACHE_PATH = '/tmp'
 
 class RequestLoader(Loader):
     """
-    Base class for ARIA URI loaders.
+    Base class for ARIA request-based loaders.
     
-    Extracts a document from a URI.
+    Extracts a document from a URI by performing a request.
     
     Note that the "file:" schema is not supported: :class:`FileTextLoader` should
     be used instead.
@@ -62,7 +62,7 @@ class RequestLoader(Loader):
 
 class RequestTextLoader(RequestLoader):
     """
-    ARIA URI text loader.
+    ARIA request-based text loader.
     """
 
     def load(self):

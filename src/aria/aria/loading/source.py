@@ -24,9 +24,6 @@ class LoaderSource(object):
     Base class for ARIA loader sources.
     
     Loader sources provide appropriate :class:`Loader` instances for locations.
-    
-    A :class:`LiteralLocation` is handled specially by wrapping the literal value
-    in a :class:`LiteralLoader`.
     """
     
     def get_loader(self, context, location, origin_location):

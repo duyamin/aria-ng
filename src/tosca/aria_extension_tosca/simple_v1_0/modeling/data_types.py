@@ -76,7 +76,7 @@ def coerce_data_type_value(context, presentation, data_type, entry_schema, const
                     definition_type = definition._get_type(context)
                     definition_entry_schema = definition.entry_schema
                     definition_constraints = definition._get_constraints(context)
-                    r[name] = coerce_value(context, presentation, definition_type, definition_entry_schema, definition_constraints, v)
+                    r[name] = coerce_value(context, presentation, definition_type, definition_entry_schema, definition_constraints, v, aspect)
                 else:
                     context.validation.report('assignment to undefined property "%s" in type "%s" in "%s"' % (name, data_type._fullname, presentation._fullname), locator=get_locator(v, value, presentation), level=Issue.BETWEEN_TYPES)
 
@@ -86,7 +86,7 @@ def coerce_data_type_value(context, presentation, data_type, entry_schema, const
                     definition_type = definition._get_type(context)
                     definition_entry_schema = definition.entry_schema
                     definition_constraints = definition._get_constraints(context)
-                    r[name] = coerce_value(context, presentation, definition_type, definition_entry_schema, definition_constraints, definition.default)
+                    r[name] = coerce_value(context, presentation, definition_type, definition_entry_schema, definition_constraints, definition.default, 'default')
     
                 if getattr(definition, 'required', False) and (r.get(name) is None):
                     context.validation.report('required property "%s" in type "%s" is not assigned a value in "%s"' % (name, data_type._fullname, presentation._fullname), locator=presentation._get_child_locator('definitions'), level=Issue.BETWEEN_TYPES)

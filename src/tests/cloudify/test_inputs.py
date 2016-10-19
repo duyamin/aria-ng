@@ -1,17 +1,18 @@
-########
-# Copyright (c) 2014 GigaSpaces Technologies Ltd. All rights reserved
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#        http://www.apache.org/licenses/LICENSE-2.0
-#
+# Copyright (c) 2016 GigaSpaces Technologies Ltd. All rights reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-#    * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#    * See the License for the specific language governing permissions and
-#    * limitations under the License.
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
 
 from dsl_parser.tasks import prepare_deployment_plan
 from dsl_parser.exceptions import (MissingRequiredInputError,
@@ -251,7 +252,13 @@ node_templates:
                 port: { get_input: port }
                 some_prop: { get_input: unknown }
 """
-        self.assertRaises(UnknownInputError, self.parse, yaml)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=[
+                'function "get_input" argument is not a valid input name: '
+                '\'unknown\''
+            ]
+        )
 
     def test_get_input_list_property(self):
         yaml = """
@@ -289,7 +296,13 @@ node_templates:
                 - item1
                 - port: { get_input: port1122 }
 """
-        self.assertRaises(UnknownInputError, self.parse, yaml)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=[
+                'function "get_input" argument is not a valid input name: '
+                '\'port1122\''
+            ]
+        )
 
     def test_input_in_interface(self):
         yaml = """
@@ -437,10 +450,13 @@ plugins:
     install: false
     executor: central_deployment_agent
 """
-        self.parse(yaml)
-        # ex = self._assert_dsl_parsing_exception_error_code(
-        #     yaml, 107, DSLParsingLogicException)
-        # self.assertIn('some_input', ex.message)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=[
+                'interface definition "interface" does not assign a value to '
+                'a required operation input "op.some_input" in "node"'
+            ]
+        )
 
     def test_missing_inputs_both_reported(self):
         yaml = """
@@ -463,7 +479,13 @@ plugins:
     install: false
     executor: central_deployment_agent
 """
-        ex = self._assert_dsl_parsing_exception_error_code(
-            yaml, 107, DSLParsingLogicException)
-        self.assertIn('some_input', ex.message)
-        self.assertIn('another_input', ex.message)
+        self.assert_parser_issue_messages(
+            dsl_string=yaml,
+            issue_messages=[
+                'interface definition "interface" does not assign a value to '
+                'a required operation input "op.another_input" in "node"',
+                'interface definition "interface" does not assign a value to '
+                'a required operation input "op.some_input" in "node"'
+            ]
+        )
+

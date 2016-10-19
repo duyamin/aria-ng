@@ -195,17 +195,17 @@ topology_template:
         MongoDB instance.
       type: mongodb.Server
       requirements:
-        #- host: data_host
-        - host:
-            node: openstack.Instance #tosca.nodes.Compute
-            node_filter:
-              properties:
-                - flavor_name: { valid_values: [ m1.medium, m1.large ] }
-                - flavor_id: { pattern: '5d6' }
-              capabilities:
-                - scalable:
-                    properties:
-                      - max_instances: { greater_or_equal: 8 }
+        - host: data_host
+#        - host:
+#            node: openstack.Instance #tosca.nodes.Compute
+#            node_filter:
+#              properties:
+#                - flavor_name: { valid_values: [ m1.medium, m1.large ] }
+#                - flavor_id: { pattern: '5d6' }
+#              capabilities:
+#                - scalable:
+#                    properties:
+#                      - max_instances: { greater_or_equal: 8 }
     
     # Hosts
 
@@ -223,7 +223,7 @@ topology_template:
             groups:
               - www-data
       interfaces:
-        standard:
+        Standard:
           inputs:
             openstack_credential: *OPENSTACK_CREDENTIAL
       capabilities:
@@ -244,7 +244,7 @@ topology_template:
           mongodb:
             password: mongo123
       interfaces:
-        standard:
+        Standard:
           inputs:
             openstack_credential: *OPENSTACK_CREDENTIAL
       requirements:
@@ -262,9 +262,9 @@ topology_template:
       type: openstack.Volume
       properties:
         size: 10 GB
-        volume_type: { get_property: [ SELF, size, a, b, c] }
+        #volume_type: { get_property: [ SELF, size, a, b, c] }
       interfaces:
-        standard:
+        Standard:
           inputs:
             openstack_credential: { get_input: openstack_credential }
 
@@ -276,7 +276,7 @@ topology_template:
         - application_host
         - data_host
       interfaces:
-        standard:
+        Standard:
           inputs:
             openstack_credential: *OPENSTACK_CREDENTIAL
 
@@ -293,8 +293,8 @@ topology_template:
     user_port:
       type: tosca.datatypes.network.PortInfo
       value: { get_nodes_of_type: openstack.Instance }
-    prop:
-      value: { get_property: [ connects_to, size, a, b, c] }
+    #prop:
+    #  value: { get_property: [ connects_to, size, a, b, c] }
     in:
       type: string
       value: { get_input: { get_input: openstack_credential } }

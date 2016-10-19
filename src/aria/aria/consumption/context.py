@@ -20,14 +20,14 @@ from ..reading import ReadingContext
 from ..presentation import PresentationContext
 from ..modeling import ModelingContext
 from .style import Style
-import sys
+import sys, threading
 
 class ConsumptionContext(object):
     """
     Properties:
     
     * :code:`args`: The runtime arguments (usually provided on the command line)
-    * :code:`out`: Message output stream
+    * :code:`out`: Message output stream (defaults to stdout)
     * :code:`style`: Message output style
     * :code:`validation`: :class:`aria.validation.ValidationContext`
     * :code:`loading`: :class:`aria.loading.LoadingContext`
@@ -35,6 +35,15 @@ class ConsumptionContext(object):
     * :code:`presentation`: :class:`aria.presentation.PresentationContext`
     * :code:`modeling`: :class:`aria.service.ModelingContext`
     """
+    
+    @staticmethod
+    def get_thread_local():
+        """
+        Gets the context attached to the current thread if there is one.
+        """
+
+        thread_locals = threading.local()
+        return getattr(thread_locals, 'aria_consumption_context', None)
     
     def __init__(self):
         self.args = []
@@ -45,8 +54,22 @@ class ConsumptionContext(object):
         self.reading = ReadingContext()
         self.presentation = PresentationContext()
         self.modeling = ModelingContext()
+        
+        self.set_thread_local()
+    
+    def set_thread_local(self):
+        """
+        Attaches this context to the current thread.
+        """
+        
+        thread_locals = threading.local()
+        thread_locals.aria_consumption_context = self
     
     def write(self, s):
+        """
+        Writes to our :code:`out`, making sure to encode UTF-8 if required.
+        """
+        
         try:
             self.out.write(s)
         except UnicodeEncodeError:

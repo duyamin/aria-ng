@@ -24,12 +24,6 @@ class FileTextLoader(Loader):
     
     Extracts a text document from a file. The default encoding is UTF-8, but other supported
     encoding can be specified instead.
-    
-    Supports a list of search paths that are tried in order if the file cannot be found.
-    They can be specified in the context, as well as globally in :code:`FILE_LOADER_SEARCH_PATHS`. 
-    
-    If :code:`origin_location` is provided, a base path will be extracted from it and prepended
-    to the search paths.
     """
 
     def __init__(self, context, path, encoding='utf-8'):

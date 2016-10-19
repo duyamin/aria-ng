@@ -21,6 +21,7 @@ from .groups import find_groups, iter_scaling_groups, prune_redundant_members
 from .plugins import plugins_to_install_for_operations, add_plugins_to_install_for_node_template, parse_implementation, CENTRAL_DEPLOYMENT_AGENT
 from .policies import SCALING_POLICY_NAME
 from aria.consumption import Consumer
+from aria.validation import Issue
 from aria.utils import as_raw, as_agnostic, merge, prune, json_dumps
 from collections import OrderedDict
 
@@ -31,7 +32,7 @@ class ClassicDeploymentPlan(Consumer):
 
     def consume(self):
         if self.context.modeling.instance is None:
-            self.context.validation.report('ClassicPlan consumer: missing deployment plan')
+            self.context.validation.report('ClassicDeploymentPlan consumer: missing deployment plan')
             return
 
         plugins = self.context.presentation.get('service_template', 'plugins')
@@ -267,9 +268,13 @@ def convert_group_template(context, group_template, policy_template=None):
     node_members = set(group_template.member_node_template_names)
     group_members = set(group_template.member_group_template_names)
     prune_redundant_members(context, node_members, group_members)
+    members = list(node_members | group_members)
+    
+    if not members:
+        context.validation.report('group "%s" has no members' % group_template.name, level=Issue.BETWEEN_TYPES)
 
     r = OrderedDict((
-        ('members', list(node_members | group_members)),
+        ('members', members),
         ('policies', OrderedDict(
             (k, convert_group_policy(context, v)) for k, v in group_template.policies.iteritems()))))
 
