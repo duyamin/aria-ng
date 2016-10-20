@@ -326,20 +326,27 @@ class Scalar(object):
         if match is None:
             raise ValueError('scalar must be formatted as <scalar> <unit>: %s' % safe_repr(value))
 
-        scalar = float(match.group('scalar'))
-        unit = match.group('unit')
+        self.factor = float(match.group('scalar'))
+        self.unit = match.group('unit')
 
-        unit_lower = unit.lower() 
-        units_lower = {k.lower(): v for k, v in self.UNITS.iteritems()}
-        factor = units_lower.get(unit_lower)
-        if factor is None:
-            raise ValueError('scalar specified with unsupported unit: %s' % safe_repr(unit))
+        unit_lower = self.unit.lower()
+        unit_size = None
+        for k, v in self.UNITS.iteritems():
+            if k.lower() == unit_lower:
+                self.unit = k
+                unit_size = v
+                break
+        if unit_size is None:
+            raise ValueError('scalar specified with unsupported unit: %s' % safe_repr(self.unit))
         
-        self.value = self.TYPE(scalar * factor)
+        self.value = self.TYPE(self.factor * unit_size)
     
     @property
     def as_raw(self):
-        return self.value
+        return OrderedDict((
+            ('value', self.value),
+            ('factor', self.factor),
+            ('unit', self.unit)))
 
     def __str__(self):
         return '%s %s' % (self.value, self.UNIT)
