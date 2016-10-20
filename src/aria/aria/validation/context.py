@@ -15,7 +15,7 @@
 #
 
 from .issue import Issue
-from ..utils import LockedList, FrozenList, print_exception, puts, colored, indent
+from ..utils import LockedList, FrozenList, print_exception, puts, colored, indent, as_raw
 
 class ValidationContext(object):
     """
@@ -54,6 +54,10 @@ class ValidationContext(object):
         issues = [i for i in self._issues if i.level <= self.max_level] 
         issues.sort(key=lambda i: (i.level, i.location, i.line, i.column, i.message))
         return FrozenList(issues)
+
+    @property
+    def issues_as_raw(self):
+        return [as_raw(i) for i in self.issues]
 
     def dump_issues(self):
         issues = self.issues

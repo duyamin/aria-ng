@@ -14,6 +14,7 @@
 # under the License.
 #
 
+from ..utils import as_file
 import os
 
 class Location(object):
@@ -48,8 +49,12 @@ class UriLocation(Location):
 
     @property
     def prefix(self):
-        return os.path.dirname(self.uri)
-        # Yes, it's weird, but dirname handles URIs, too: http://stackoverflow.com/a/35616478/849021
+        prefix = os.path.dirname(self.uri)
+        if prefix and (as_file(prefix) is None):
+            # Yes, it's weird, but dirname handles URIs, too: http://stackoverflow.com/a/35616478/849021
+            # We just need to massage it with a trailing slash
+            prefix += '/'
+        return prefix
 
     def __str__(self):
         return self.uri

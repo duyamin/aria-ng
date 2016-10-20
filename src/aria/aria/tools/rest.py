@@ -16,21 +16,23 @@
 
 from .. import install_aria_extensions
 from ..consumption import ConsumerChain, Read, Validate, Model, Inputs, Instance
-from ..utils import RestServer, JsonAsRawEncoder, print_exception, as_raw
+from ..utils import RestServer, JsonAsRawEncoder, print_exception
 from ..loading import LiteralLocation
 from .utils import CommonArgumentParser, create_context_from_namespace
 from collections import OrderedDict
 from urlparse import urlparse, parse_qs
 import urllib, os
 
-API_VERSION = 1
-PATH_PREFIX = 'openoapi/tosca/v%d' % API_VERSION
-VALIDATE_PATH = '%s/validate' % PATH_PREFIX
-INDIRECT_VALIDATE_PATH = '%s/indirect/validate' % PATH_PREFIX
-MODEL_PATH = '%s/model' % PATH_PREFIX
-INDIRECT_MODEL_PATH = '%s/indirect/model' % PATH_PREFIX
-INSTANCE_PATH = '%s/instance' % PATH_PREFIX
-INDIRECT_INSTANCE_PATH = '%s/indirect/instance' % PATH_PREFIX
+VALIDATE_PATH = 'validate'
+INDIRECT_VALIDATE_PATH = 'indirect/validate'
+MODEL_PATH = 'model'
+INDIRECT_MODEL_PATH = 'indirect/model'
+INSTANCE_PATH = 'instance'
+INDIRECT_INSTANCE_PATH = 'indirect/instance'
+
+DEFAULT_PORT = 8080
+
+arguments = None
 
 #
 # Utils
@@ -63,18 +65,18 @@ def parse_indirect_payload(handler):
     
     return uri, inputs 
 
-def validate(uri):
-    context = create_context_from_namespace(args, uri=uri)
+def validate(handler, uri):
+    context = create_context_from_namespace(handler.rest_server.configuration, uri=uri)
     ConsumerChain(context, (Read, Validate)).consume()
     return context
 
-def model(uri):
-    context = create_context_from_namespace(args, uri=uri)
+def model(handler, uri):
+    context = create_context_from_namespace(handler.rest_server.configuration, uri=uri)
     ConsumerChain(context, (Read, Validate, Model)).consume()
     return context
 
-def instance(uri, inputs):
-    context = create_context_from_namespace(args, uri=uri)
+def instance(handler, uri, inputs):
+    context = create_context_from_namespace(handler.rest_server.configuration, uri=uri)
     if inputs:
         if isinstance(inputs, dict):
             for name, value in inputs.iteritems():
@@ -85,7 +87,7 @@ def instance(uri, inputs):
     return context
 
 def issues(context):
-    return {'issues': [as_raw(i) for i in context.validation.issues]}
+    return {'issues': context.validation.issues_as_raw}
 
 #
 # Handlers
@@ -96,19 +98,19 @@ def issues(context):
 def validate_get(handler):
     path, _ = parse_path(handler)
     uri = path[len(VALIDATE_PATH) + 2:]
-    context = validate(uri)
+    context = validate(handler, uri)
     return issues(context) if context.validation.has_issues else {}
 
 def validate_post(handler):
     payload = handler.payload
-    context = validate(LiteralLocation(payload))
+    context = validate(handler, LiteralLocation(payload))
     return issues(context) if context.validation.has_issues else {}
 
 def indirect_validate_post(handler):
     uri, _ = parse_indirect_payload(handler)
     if uri is None:
         return None  
-    context = validate(uri)
+    context = validate(handler, uri)
     return issues(context) if context.validation.has_issues else {}
 
 # Model
@@ -116,20 +118,20 @@ def indirect_validate_post(handler):
 def model_get(handler):
     path, _ = parse_path(handler)
     uri = path[len(MODEL_PATH) + 2:]
-    context = model(uri)
-    return issues(context) if context.validation.has_issues else context.modeling.model_as_raw
+    context = model(handler, uri)
+    return issues(context) if context.validation.has_issues else {'model': context.modeling.model_as_raw}
 
 def model_post(handler):
     payload = handler.payload
-    context = model(LiteralLocation(payload))
-    return issues(context) if context.validation.has_issues else context.modeling.model_as_raw
+    context = model(handler, LiteralLocation(payload))
+    return issues(context) if context.validation.has_issues else {'model': context.modeling.model_as_raw}
 
 def indirect_model_post(handler):
     uri, _ = parse_indirect_payload(handler)
     if uri is None:
         return None
-    context = model(uri)
-    return issues(context) if context.validation.has_issues else context.modeling.model_as_raw
+    context = model(handler, uri)
+    return issues(context) if context.validation.has_issues else {'model': context.modeling.model_as_raw}
 
 # Instance
 
@@ -139,8 +141,8 @@ def instance_get(handler):
     inputs = query.get('inputs')
     if inputs:
         inputs = inputs[0]
-    context = instance(uri, inputs)
-    return issues(context) if context.validation.has_issues else context.modeling.instance_as_raw
+    context = instance(handler, uri, inputs)
+    return issues(context) if context.validation.has_issues else {'model': context.modeling.model_as_raw, 'instance': context.modeling.instance_as_raw}
 
 def instance_post(handler):
     _, query = parse_path(handler)
@@ -148,15 +150,15 @@ def instance_post(handler):
     if inputs:
         inputs = inputs[0]
     payload = handler.payload
-    context = instance(LiteralLocation(payload), inputs)
-    return issues(context) if context.validation.has_issues else context.modeling.instance_as_raw
+    context = instance(handler, LiteralLocation(payload), inputs)
+    return issues(context) if context.validation.has_issues else {'model': context.modeling.model_as_raw, 'instance': context.modeling.instance_as_raw}
 
 def indirect_instance_post(handler):
     uri, inputs = parse_indirect_payload(handler)
     if uri is None:
         return None
-    context = instance(uri, inputs)
-    return issues(context) if context.validation.has_issues else context.modeling.instance_as_raw
+    context = instance(handler, uri, inputs)
+    return issues(context) if context.validation.has_issues else {'model': context.modeling.model_as_raw, 'instance': context.modeling.instance_as_raw}
 
 #
 # Server
@@ -168,26 +170,26 @@ ROUTES = OrderedDict((
     ('^/' + MODEL_PATH, {'GET': model_get, 'POST': model_post, 'media_type': 'application/json'}),
     ('^/' + INSTANCE_PATH, {'GET': instance_get, 'POST': instance_post, 'media_type': 'application/json'}),
     ('^/' + INDIRECT_VALIDATE_PATH, {'POST': indirect_validate_post, 'media_type': 'application/json'}),
-    ('^/' + INDIRECT_INSTANCE_PATH, {'POST': indirect_instance_post, 'media_type': 'application/json'}),
-    ('^/' + INDIRECT_MODEL_PATH, {'POST': indirect_model_post, 'media_type': 'application/json'})))
+    ('^/' + INDIRECT_MODEL_PATH, {'POST': indirect_model_post, 'media_type': 'application/json'}),
+    ('^/' + INDIRECT_INSTANCE_PATH, {'POST': indirect_instance_post, 'media_type': 'application/json'})))
 
 class ArgumentParser(CommonArgumentParser):
     def __init__(self):
         super(ArgumentParser, self).__init__(description='REST Server', prog='aria-rest')
-        self.add_argument('--port', type=int, default=8204, help='HTTP port')
+        self.add_argument('--port', type=int, default=DEFAULT_PORT, help='HTTP port')
         self.add_argument('--root', help='web root directory')
 
 def main():
     try:
         install_aria_extensions()
         
-        global args
-        args, _ = ArgumentParser().parse_known_args()
+        arguments, _ = ArgumentParser().parse_known_args()
 
         rest_server = RestServer()
-        rest_server.port = args.port
+        rest_server.configuration = arguments
+        rest_server.port = arguments.port
         rest_server.routes = ROUTES
-        rest_server.static_root = args.root or os.path.join(os.path.dirname(__file__), 'web')
+        rest_server.static_root = arguments.root or os.path.join(os.path.dirname(__file__), 'web')
         rest_server.json_encoder = JsonAsRawEncoder(ensure_ascii=False, separators=(',', ':'))
         
         rest_server.start()

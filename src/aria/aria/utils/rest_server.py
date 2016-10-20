@@ -27,6 +27,7 @@ class RestServer(object):
 
     Properties:
 
+    * :code:`configuration`: An optional configuration object
     * :code:`port`: HTTP server port
     * :code:`routes`: :class:`OrderedDict` of routes (see below)
     * :code:`static_root`: Root directory for static files 
@@ -69,6 +70,7 @@ class RestServer(object):
     """
     
     def __init__(self):
+        self.configuration = None
         self.port = 8080
         self.routes = OrderedDict()
         self.static_root = '.'
