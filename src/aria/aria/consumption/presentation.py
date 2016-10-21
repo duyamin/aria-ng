@@ -87,6 +87,9 @@ class Read(Consumer):
         super(Read, self)._handle_exception(e)
     
     def _present(self, location, origin_location, presenter_class, executor):
+        # Link the context to this thread
+        self.context.set_thread_local()
+        
         raw = self._read(location, origin_location)
 
         if self.context.presentation.presenter_class is not None:
