@@ -119,19 +119,19 @@ def model_get(handler):
     path, _ = parse_path(handler)
     uri = path[len(MODEL_PATH) + 2:]
     context = model(handler, uri)
-    return issues(context) if context.validation.has_issues else {'model': context.modeling.model_as_raw}
+    return issues(context) if context.validation.has_issues else {'types': context.modeling.types_as_raw, 'model': context.modeling.model_as_raw}
 
 def model_post(handler):
     payload = handler.payload
     context = model(handler, LiteralLocation(payload))
-    return issues(context) if context.validation.has_issues else {'model': context.modeling.model_as_raw}
+    return issues(context) if context.validation.has_issues else {'types': context.modeling.types_as_raw, 'model': context.modeling.model_as_raw}
 
 def indirect_model_post(handler):
     uri, _ = parse_indirect_payload(handler)
     if uri is None:
         return None
     context = model(handler, uri)
-    return issues(context) if context.validation.has_issues else {'model': context.modeling.model_as_raw}
+    return issues(context) if context.validation.has_issues else {'types': context.modeling.types_as_raw, 'model': context.modeling.model_as_raw}
 
 # Instance
 
@@ -142,7 +142,7 @@ def instance_get(handler):
     if inputs:
         inputs = inputs[0]
     context = instance(handler, uri, inputs)
-    return issues(context) if context.validation.has_issues else {'model': context.modeling.model_as_raw, 'instance': context.modeling.instance_as_raw}
+    return issues(context) if context.validation.has_issues else {'types': context.modeling.types_as_raw, 'model': context.modeling.model_as_raw, 'instance': context.modeling.instance_as_raw}
 
 def instance_post(handler):
     _, query = parse_path(handler)
@@ -151,14 +151,14 @@ def instance_post(handler):
         inputs = inputs[0]
     payload = handler.payload
     context = instance(handler, LiteralLocation(payload), inputs)
-    return issues(context) if context.validation.has_issues else {'model': context.modeling.model_as_raw, 'instance': context.modeling.instance_as_raw}
+    return issues(context) if context.validation.has_issues else {'types': context.modeling.types_as_raw, 'model': context.modeling.model_as_raw, 'instance': context.modeling.instance_as_raw}
 
 def indirect_instance_post(handler):
     uri, inputs = parse_indirect_payload(handler)
     if uri is None:
         return None
     context = instance(handler, uri, inputs)
-    return issues(context) if context.validation.has_issues else {'model': context.modeling.model_as_raw, 'instance': context.modeling.instance_as_raw}
+    return issues(context) if context.validation.has_issues else {'types': context.modeling.types_as_raw, 'model': context.modeling.model_as_raw, 'instance': context.modeling.instance_as_raw}
 
 #
 # Server

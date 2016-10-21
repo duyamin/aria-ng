@@ -20,7 +20,7 @@ from .style import Style
 from .consumer import Consumer, ConsumerChain
 from .presentation import Read
 from .validation import Validate
-from .modeling import Model, Instance
+from .modeling import Model, Types, Instance
 from .inputs import Inputs
 
 __all__ = (
@@ -32,5 +32,6 @@ __all__ = (
     'Read',
     'Validate',
     'Model',
+    'Types',
     'Instance',
     'Inputs')

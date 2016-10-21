@@ -15,7 +15,7 @@
 #
 
 from .. import install_aria_extensions
-from ..consumption import ConsumerChain, Read, Validate, Model, Inputs, Instance
+from ..consumption import ConsumerChain, Read, Validate, Model, Types, Inputs, Instance
 from ..utils import print_exception, import_fullname
 from .utils import CommonArgumentParser, create_context_from_namespace
 
@@ -43,6 +43,8 @@ def main():
             dumper = consumer.consumers[0]
         elif consumer_class_name == 'model':
             consumer.append(Model)
+        elif consumer_class_name == 'types':
+            consumer.append(Model, Types)
         elif consumer_class_name == 'instance':
             consumer.append(Model, Inputs, Instance)
         else:

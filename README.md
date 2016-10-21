@@ -145,8 +145,8 @@ chain:
    classes wrapping the blueprint.
 * `model`: emits a colorized textual representation of the complete service model derived
    from the validated blueprint. This includes all the node templates, with their
-   requirements satisfied at the level of relating to other node templates. Use `--types`
-   to see just the type hierarchy.
+   requirements satisfied at the level of relating to other node templates.
+* `types`: emits a colorized textual representation of the type hierarchies.
 * `instance`: **this is the default command**; emits a colorized textual representation of
    a service instance instantiated from the service model. Here the node templates
    are each used to create one or more nodes, with the appropriate relationships between

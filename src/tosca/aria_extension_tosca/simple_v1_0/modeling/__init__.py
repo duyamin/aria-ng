@@ -203,16 +203,12 @@ def create_relationship_model(context, relationship):
     relationship_type, relationship_type_variant = relationship._get_type(context)
     if relationship_type_variant == 'relationship_type':
         r = RelationshipTemplate(type_name=relationship_type._name)
-        if relationship_type.description:
-            r.description = relationship_type.description.value
     else:
         relationship_template = relationship_type
         relationship_type = relationship_template._get_type(context)
         r = RelationshipTemplate(type_name=relationship_type._name, template_name=relationship_template._name)
         if relationship_template.description:
             r.description = relationship_template.description.value
-        elif relationship_type.description:
-            r.description = relationship_type.description.value
 
     create_property_models(r.properties, relationship.properties)
     create_interface_models(context, r.source_interfaces, relationship.interfaces)
@@ -296,6 +292,8 @@ def create_type_models(context, root, types, normalize=None):
                     r = normalize(context, the_type)
                 else:
                     r = Type(the_type._name)
+                if the_type.description:
+                    r.description = the_type.description.value
                 if parent_type is None:
                     root.children.append(r)
                 else:

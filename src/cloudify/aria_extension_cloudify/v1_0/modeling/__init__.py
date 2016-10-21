@@ -257,6 +257,8 @@ def create_type_models(context, root, types, normalize=None):
                     r = normalize(context, the_type)
                 else:
                     r = Type(the_type._name)
+                if getattr(the_type, 'description', None):
+                    r.description = the_type.description.value
                 if parent_type is None:
                     root.children.append(r)
                 else:
