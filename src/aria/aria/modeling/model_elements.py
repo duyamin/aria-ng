@@ -16,11 +16,11 @@
 
 from __future__ import absolute_import # so we can import standard 'types'
 
-from .elements import Element, ModelElement, Parameter
+from .elements import ModelElement, Parameter
 from .instance_elements import ServiceInstance, Node, Capability, Relationship, Artifact, Group, Policy, GroupPolicy, GroupPolicyTrigger, Mapping, Substitution, Interface, Operation
 from .utils import validate_dict_values, validate_list_values, coerce_dict_values, coerce_list_values, instantiate_dict, dump_list_values, dump_dict_values, dump_parameters, dump_interfaces
 from ..validation import Issue
-from ..utils import StrictList, StrictDict, puts, safe_repr, as_raw, as_agnostic
+from ..utils import StrictList, StrictDict, puts, safe_repr, as_raw, as_raw_list, as_raw_dict, as_agnostic, deepcopy_with_locators
 from collections import OrderedDict
 from types import FunctionType
 
@@ -60,20 +60,20 @@ class ServiceModel(ModelElement):
     def as_raw(self):
         return OrderedDict((
             ('description', self.description),
-            ('metadata', as_raw(self.metadata) if self.metadata is not None else None),
-            ('node_templates', [as_raw(v) for v in self.node_templates.itervalues()]),
-            ('group_templates', [as_raw(v) for v in self.group_templates.itervalues()]),
-            ('policy_templates', [as_raw(v) for v in self.policy_templates.itervalues()]),
-            ('substitution_template', as_raw(self.substitution_template) if self.substitution_template is not None else None),
-            ('inputs', {k: as_raw(v) for k, v in self.inputs.iteritems()}),
-            ('outputs', {k: as_raw(v) for k, v in self.outputs.iteritems()}),
-            ('operations', [as_raw(v) for v in self.operations.itervalues()])))
+            ('metadata', as_raw(self.metadata)),
+            ('node_templates', as_raw_list(self.node_templates)),
+            ('group_templates', as_raw_list(self.group_templates)),
+            ('policy_templates', as_raw_list(self.policy_templates)),
+            ('substitution_template', as_raw(self.substitution_template)),
+            ('inputs', as_raw_dict(self.inputs)),
+            ('outputs', as_raw_dict(self.outputs)),
+            ('operations', as_raw_list(self.operations))))
 
     def instantiate(self, context, container):
         r = ServiceInstance()
         context.modeling.instance = r
         
-        r.description = self.description
+        r.description = deepcopy_with_locators(self.description)
         
         if self.metadata is not None:
             r.metadata = self.metadata.instantiate(context, container)
@@ -178,7 +178,7 @@ class NodeTemplate(ModelElement):
         self.interfaces = StrictDict(key_class=basestring, value_class=InterfaceTemplate)
         self.artifacts = StrictDict(key_class=basestring, value_class=ArtifactTemplate)
         self.capabilities = StrictDict(key_class=basestring, value_class=CapabilityTemplate)
-        self.requirements = StrictList(value_class=Requirement)
+        self.requirements = StrictList(value_class=RequirementTemplate)
         self.target_node_template_constraints = StrictList(value_class=FunctionType)
     
     def is_target_node_valid(self, target_node_template):
@@ -197,11 +197,11 @@ class NodeTemplate(ModelElement):
             ('default_instances', self.default_instances),
             ('min_instances', self.min_instances),
             ('max_instances', self.max_instances),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
-            ('interfaces', [as_raw(v) for v in self.interfaces.itervalues()]),
-            ('artifacts', [as_raw(v) for v in self.artifacts.itervalues()]),
-            ('capabilities', [as_raw(v) for v in self.capabilities.itervalues()]),
-            ('requirements', [as_raw(v) for v in self.requirements])))
+            ('properties', as_raw_dict(self.properties)),
+            ('interfaces', as_raw_list(self.interfaces)),
+            ('artifacts', as_raw_list(self.artifacts)),
+            ('capabilities', as_raw_list(self.capabilities)),
+            ('requirements', as_raw_list(self.requirements))))
     
     def instantiate(self, context, container):
         r = Node(context, self.type_name, self.name)
@@ -241,7 +241,7 @@ class NodeTemplate(ModelElement):
             dump_dict_values(context, self.capabilities, 'Capabilities')
             dump_list_values(context, self.requirements, 'Requirements')
 
-class Requirement(Element):
+class RequirementTemplate(ModelElement):
     """
     A requirement for a :class:`NodeTemplate`. During instantiation will be matched with a capability of another
     node.
@@ -260,19 +260,19 @@ class Requirement(Element):
     """
     
     def __init__(self, name=None, target_node_type_name=None, target_node_template_name=None, target_capability_type_name=None, target_capability_name=None):
-        if name and not isinstance(name, basestring):
-            raise ValueError('name must be a string)')
-        if target_node_type_name and not isinstance(target_node_type_name, basestring):
-            raise ValueError('target_node_type_name must be string')
-        if target_node_template_name and not isinstance(target_node_template_name, basestring):
-            raise ValueError('target_node_template_name must be string')
-        if target_capability_type_name and not isinstance(target_capability_type_name, basestring):
-            raise ValueError('target_capability_type_name must be string')
-        if target_capability_name and not isinstance(target_capability_name, basestring):
-            raise ValueError('target_capability_name must be string')
-        if (target_node_type_name and target_node_template_name) or ((not target_node_type_name) and (not target_node_template_name)):
+        if (name is not None) and (not isinstance(name, basestring)):
+            raise ValueError('name must be a string or None')
+        if (target_node_type_name is not None) and (not isinstance(target_node_type_name, basestring)):
+            raise ValueError('target_node_type_name must be a string or None')
+        if (target_node_template_name is not None) and (not isinstance(target_node_template_name, basestring)):
+            raise ValueError('target_node_template_name must be a string or None')
+        if (target_capability_type_name is not None) and (not isinstance(target_capability_type_name, basestring)):
+            raise ValueError('target_capability_type_name must be a string or None')
+        if (target_capability_name is not None) and (not isinstance(target_capability_name, basestring)):
+            raise ValueError('target_capability_name must be a string or None')
+        if ((target_node_type_name is not None) and (target_node_template_name is not None)) or ((target_node_type_name is None) and (target_node_template_name is None)):
             raise ValueError('must set either target_node_type_name or target_node_template_name')
-        if target_capability_type_name and target_capability_name:
+        if (target_capability_type_name is not None) and (target_capability_name is not None):
             raise ValueError('can set either target_capability_type_name or target_capability_name')
         
         self.name = name
@@ -332,7 +332,7 @@ class Requirement(Element):
             ('target_node_template_name', self.target_node_template_name),
             ('target_capability_type_name', self.target_capability_type_name),
             ('target_capability_name', self.target_capability_name),
-            ('relationship_template', as_raw(self.relationship_template) if self.relationship_template is not None else None)))
+            ('relationship_template', as_raw(self.relationship_template))))
 
     def validate(self, context):
         if (self.target_node_type_name) and (context.modeling.node_types.get_descendant(self.target_node_type_name) is None):
@@ -389,9 +389,9 @@ class CapabilityTemplate(ModelElement):
     
     def __init__(self, name, type_name):
         if not isinstance(name, basestring):
-            raise ValueError('name must be string')
+            raise ValueError('name must be a string or None')
         if not isinstance(type_name, basestring):
-            raise ValueError('type_name must be string')
+            raise ValueError('type_name must be a string or None')
         
         self.name = name
         self.description = None
@@ -429,7 +429,7 @@ class CapabilityTemplate(ModelElement):
             ('min_occurrences', self.min_occurrences),
             ('max_occurrences', self.max_occurrences),
             ('valid_source_node_type_names', self.valid_source_node_type_names),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()})))
+            ('properties', as_raw_dict(self.properties))))
 
     def instantiate(self, context, container):
         r = Capability(self.name, self.type_name)
@@ -474,11 +474,11 @@ class RelationshipTemplate(ModelElement):
     """
     
     def __init__(self, type_name=None, template_name=None):
-        if type_name and not isinstance(type_name, basestring):
-            raise ValueError('type_name must be string')
-        if template_name and not isinstance(template_name, basestring):
-            raise ValueError('template_name must be string')
-        if (type_name and template_name) or ((not type_name) and (not template_name)):
+        if (type_name is not None) and (not isinstance(type_name, basestring)):
+            raise ValueError('type_name must be a string or None')
+        if (template_name is not None) and (not isinstance(template_name, basestring)):
+            raise ValueError('template_name must be a string or None')
+        if ((type_name is not None) and (template_name is not None)) or ((type_name is None) and (template_name is None)):
             raise ValueError('must set either type_name or template_name')
         
         self.type_name = type_name
@@ -494,9 +494,9 @@ class RelationshipTemplate(ModelElement):
             ('type_name', self.type_name),
             ('template_name', self.template_name),
             ('description', self.description),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
-            ('source_interfaces', [as_raw(v) for v in self.source_interfaces.itervalues()]),            
-            ('target_interfaces', [as_raw(v) for v in self.target_interfaces.itervalues()])))            
+            ('properties', as_raw_dict(self.properties)),
+            ('source_interfaces', as_raw_list(self.source_interfaces)),            
+            ('target_interfaces', as_raw_list(self.target_interfaces))))
 
     def instantiate(self, context, container):
         r = Relationship(self.type_name, self.template_name)
@@ -573,11 +573,11 @@ class ArtifactTemplate(ModelElement):
             ('target_path', self.target_path),
             ('repository_url', self.repository_url),
             ('repository_credential', as_agnostic(self.repository_credential)),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()})))
+            ('properties', as_raw_dict(self.properties.iteritems()))))
 
     def instantiate(self, context, container):
         r = Artifact(self.name, self.type_name, self.source_path)
-        r.description = self.description
+        r.description = deepcopy_with_locators(self.description)
         r.target_path = self.target_path
         r.repository_url = self.repository_url
         r.repository_credential = self.repository_credential
@@ -630,8 +630,8 @@ class GroupTemplate(ModelElement):
     def __init__(self, name, type_name=None):
         if not isinstance(name, basestring):
             raise ValueError('must set name (string)')
-        if type_name and not isinstance(type_name, basestring):
-            raise ValueError('type_name must be string')
+        if (type_name is not None) and (not isinstance(type_name, basestring)):
+            raise ValueError('type_name must be a string or None')
         
         self.name = name
         self.description = None
@@ -648,9 +648,9 @@ class GroupTemplate(ModelElement):
             ('name', self.name),
             ('description', self.description),
             ('type_name', self.type_name),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
-            ('interfaces', [as_raw(v) for v in self.interfaces.itervalues()]),
-            ('policies', [as_raw(v) for v in self.policies.itervalues()]),
+            ('properties', as_raw_dict(self.properties)),
+            ('interfaces', as_raw_list(self.interfaces)),
+            ('policies', as_raw_list(self.policies)),
             ('member_node_template_names', self.member_node_template_names),
             ('member_group_template_names', self.member_group_template_names)))
 
@@ -724,7 +724,7 @@ class PolicyTemplate(ModelElement):
             ('name', self.name),
             ('description', self.description),
             ('type_name', self.type_name),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
+            ('properties', as_raw_dict(self.properties)),
             ('target_node_template_names', self.target_node_template_names),
             ('target_group_template_names', self.target_group_template_names)))
 
@@ -789,12 +789,12 @@ class GroupPolicyTemplate(ModelElement):
             ('name', self.name),
             ('description', self.description),
             ('type_name', self.type_name),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
-            ('triggers', [as_raw(v) for v in self.triggers.itervalues()])))
+            ('properties', as_raw_dict(self.properties)),
+            ('triggers', as_raw_list(self.triggers))))
 
     def instantiate(self, context, container):
         r = GroupPolicy(self.name, self.type_name)
-        r.description = self.description
+        r.description = deepcopy_with_locators(self.description)
         instantiate_dict(context, container, r.properties, self.properties)
         instantiate_dict(context, container, r.triggers, self.triggers)
         return r
@@ -848,11 +848,11 @@ class GroupPolicyTriggerTemplate(ModelElement):
             ('name', self.name),
             ('description', self.description),
             ('implementation', self.implementation),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()})))
+            ('properties', as_raw_dict(self.properties))))
 
     def instantiate(self, context, container):
         r = GroupPolicyTrigger(self.name, self.implementation)
-        r.description = self.description
+        r.description = deepcopy_with_locators(self.description)
         instantiate_dict(context, container, r.properties, self.properties)
         return r
 
@@ -937,8 +937,8 @@ class SubstitutionTemplate(ModelElement):
     def as_raw(self):
         return OrderedDict((
             ('node_type_name', self.node_type_name),
-            ('capabilities', [as_raw(v) for v in self.capabilities.itervalues()]),
-            ('requirements', [as_raw(v) for v in self.requirements.itervalues()])))
+            ('capabilities', as_raw_list(self.capabilities)),
+            ('requirements', as_raw_list(self.requirements))))
 
     def instantiate(self, context, container):
         r = Substitution(self.node_type_name)
@@ -993,12 +993,12 @@ class InterfaceTemplate(ModelElement):
             ('name', self.name),
             ('description', self.description),
             ('type_name', self.type_name),
-            ('inputs', {k: as_raw(v) for k, v in self.inputs.iteritems()}),
-            ('operations', [as_raw(v) for v in self.operations.itervalues()])))
+            ('inputs', as_raw_dict(self.properties)),
+            ('operations', as_raw_list(self.operations))))
 
     def instantiate(self, context, container):
         r = Interface(self.name, self.type_name)
-        r.description = self.description
+        r.description = deepcopy_with_locators(self.description)
         instantiate_dict(context, container, r.inputs, self.inputs)
         instantiate_dict(context, container, r.operations, self.operations)
         return r
@@ -1063,11 +1063,11 @@ class OperationTemplate(ModelElement):
             ('executor', self.executor),
             ('max_retries', self.max_retries),
             ('retry_interval', self.retry_interval),
-            ('inputs', {k: as_raw(v) for k, v in self.inputs.iteritems()})))
+            ('inputs', as_raw_dict(self.inputs))))
 
     def instantiate(self, context, container):
         r = Operation(self.name)
-        r.description = self.description
+        r.description = deepcopy_with_locators(self.description)
         r.implementation = self.implementation
         r.dependencies = self.dependencies
         r.executor = self.executor

@@ -15,7 +15,7 @@
 #
 
 from ..data_types import coerce_value
-from aria.modeling import Type, RelationshipType, PolicyType, ServiceModel, NodeTemplate, RelationshipTemplate, CapabilityTemplate, GroupTemplate, PolicyTemplate, SubstitutionTemplate, MappingTemplate, InterfaceTemplate, OperationTemplate, ArtifactTemplate, Requirement, Metadata, Parameter
+from aria.modeling import Type, RelationshipType, PolicyType, ServiceModel, NodeTemplate, RequirementTemplate, RelationshipTemplate, CapabilityTemplate, GroupTemplate, PolicyTemplate, SubstitutionTemplate, MappingTemplate, InterfaceTemplate, OperationTemplate, ArtifactTemplate, Metadata, Parameter
 import re
 
 def create_service_model(context):
@@ -183,7 +183,7 @@ def create_requirement_model(context, requirement):
         else:
             r['target_capability_name'] = capability._name
 
-    r = Requirement(**r)
+    r = RequirementTemplate(**r)
 
     create_node_filter_constraint_lambdas(context, requirement.node_filter, r.target_node_template_constraints)
 

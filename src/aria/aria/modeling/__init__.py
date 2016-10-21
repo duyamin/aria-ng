@@ -18,7 +18,7 @@ from .exceptions import CannotEvaluateFunction
 from .context import IdType, ModelingContext
 from .elements import Element, ModelElement, Function, Parameter, Metadata
 from .instance_elements import ServiceInstance, Node, Capability, Relationship, Artifact, Group, Policy, GroupPolicy, GroupPolicyTrigger, Mapping, Substitution, Interface, Operation
-from .model_elements import ServiceModel, NodeTemplate, Requirement, CapabilityTemplate, RelationshipTemplate, ArtifactTemplate, GroupTemplate, PolicyTemplate, GroupPolicyTemplate, GroupPolicyTriggerTemplate, MappingTemplate, SubstitutionTemplate, InterfaceTemplate, OperationTemplate
+from .model_elements import ServiceModel, NodeTemplate, RequirementTemplate, CapabilityTemplate, RelationshipTemplate, ArtifactTemplate, GroupTemplate, PolicyTemplate, GroupPolicyTemplate, GroupPolicyTriggerTemplate, MappingTemplate, SubstitutionTemplate, InterfaceTemplate, OperationTemplate
 from .types import TypeHierarchy, Type, RelationshipType, PolicyType, PolicyTriggerType
 
 __all__ = (
@@ -45,7 +45,7 @@ __all__ = (
     'Operation',
     'ServiceModel',
     'NodeTemplate',
-    'Requirement',
+    'RequirementTemplate',
     'CapabilityTemplate',
     'RelationshipTemplate',
     'ArtifactTemplate',

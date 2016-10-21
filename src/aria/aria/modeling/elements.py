@@ -16,7 +16,7 @@
 
 from .utils import coerce_value
 from .. import UnimplementedFunctionalityError
-from ..utils import StrictDict, full_type_name, deepcopy_with_locators, puts
+from ..utils import StrictDict, full_type_name, puts
 from collections import OrderedDict
 
 class Function(object):
@@ -111,7 +111,7 @@ class Metadata(ModelElement):
 
     @property
     def as_raw(self):
-        return deepcopy_with_locators(self.values)
+        return self.values
 
     def instantiate(self, context, container):
         r = Metadata()

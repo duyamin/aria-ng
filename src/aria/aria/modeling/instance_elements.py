@@ -17,7 +17,7 @@
 from .elements import Element, Parameter
 from .utils import validate_dict_values, validate_list_values, coerce_dict_values, coerce_list_values, dump_list_values, dump_dict_values, dump_parameters, dump_interfaces
 from ..validation import Issue
-from ..utils import StrictList, StrictDict, FrozenList, puts, indent, as_raw, as_agnostic, safe_repr 
+from ..utils import StrictList, StrictDict, FrozenList, puts, indent, as_raw, as_raw_list, as_raw_dict, as_agnostic, safe_repr 
 from collections import OrderedDict
 
 class ServiceInstance(Element):
@@ -107,14 +107,14 @@ class ServiceInstance(Element):
     def as_raw(self):
         return OrderedDict((
             ('description', self.description),
-            ('metadata', as_raw(self.metadata) if self.metadata is not None else None),
-            ('nodes', [as_raw(v) for v in self.nodes.itervalues()]),
-            ('groups', [as_raw(v) for v in self.groups.itervalues()]),
-            ('policies', [as_raw(v) for v in self.policies.itervalues()]),
-            ('substitution', as_raw(self.substitution) if self.substitution is not None else None),
-            ('inputs', {k: as_raw(v) for k, v in self.inputs.iteritems()}),
-            ('outputs', {k: as_raw(v) for k, v in self.outputs.iteritems()}),
-            ('operations', [as_raw(v) for v in self.operations.itervalues()])))
+            ('metadata', as_raw(self.metadata)),
+            ('nodes', as_raw_list(self.nodes)),
+            ('groups', as_raw_list(self.groups)),
+            ('policies', as_raw_list(self.policies)),
+            ('substitution', as_raw(self.substitution)),
+            ('inputs', as_raw_dict(self.inputs)),
+            ('outputs', as_raw_dict(self.outputs)),
+            ('operations', as_raw_list(self.operations))))
     
     def validate(self, context):
         if self.metadata is not None:
@@ -213,7 +213,9 @@ class Node(Element):
     def satisfy_requirements(self, context):
         node_template = context.modeling.model.node_templates.get(self.template_name)
         satisfied = True
-        for requirement in node_template.requirements:
+        for i in range(len(node_template.requirements)):
+            requirement = node_template.requirements[i]
+            
             # Find target template
             target_node_template, target_node_capability = requirement.find_target(context, node_template)
             if target_node_template is not None:
@@ -237,10 +239,14 @@ class Node(Element):
                     if target_node is not None:
                         if requirement.relationship_template is not None:
                             relationship = requirement.relationship_template.instantiate(context, self)
-                            relationship.target_node_id = target_node.id
-                            if target_capability is not None:
-                                relationship.target_capability_name = target_capability.name
-                            self.relationships.append(relationship)
+                        else:
+                            relationship = Relationship()
+                        relationship.name = requirement.name
+                        relationship.source_requirement_index = i
+                        relationship.target_node_id = target_node.id
+                        if target_capability is not None:
+                            relationship.target_capability_name = target_capability.name
+                        self.relationships.append(relationship)
                     else:
                         context.validation.report('requirement "%s" of node "%s" targets node template "%s" but its instantiated nodes do not have enough capacity' % (requirement.name, self.id, target_node_template.name), level=Issue.BETWEEN_INSTANCES)
                         satisfied = False
@@ -266,11 +272,11 @@ class Node(Element):
             ('id', self.id),
             ('type_name', self.type_name),
             ('template_name', self.template_name),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
-            ('interfaces', [as_raw(v) for v in self.interfaces.itervalues()]),
-            ('artifacts', [as_raw(v) for v in self.artifacts.itervalues()]),
-            ('capabilities', [as_raw(v) for v in self.capabilities.itervalues()]),
-            ('relationships', [as_raw(v) for v in self.relationships])))
+            ('properties', as_raw_dict(self.properties)),
+            ('interfaces', as_raw_list(self.interfaces)),
+            ('artifacts', as_raw_list(self.artifacts)),
+            ('capabilities', as_raw_list(self.capabilities)),
+            ('relationships', as_raw_list(self.relationships))))
             
     def validate(self, context):
         if len(self.id) > context.modeling.id_max_length:
@@ -319,9 +325,9 @@ class Capability(Element):
     
     def __init__(self, name, type_name):
         if not isinstance(name, basestring):
-            raise ValueError('name must be string')
+            raise ValueError('name must be a string or None')
         if not isinstance(type_name, basestring):
-            raise ValueError('type_name must be string')
+            raise ValueError('type_name must be a string or None')
         
         self.name = name
         self.type_name = type_name
@@ -349,7 +355,7 @@ class Capability(Element):
         return OrderedDict((
             ('name', self.name),
             ('type_name', self.type_name),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()})))
+            ('properties', as_raw_dict(self.properties))))
 
     def validate(self, context):
         if context.modeling.capability_types.get_descendant(self.type_name) is None:
@@ -375,8 +381,10 @@ class Relationship(Element):
 
     Properties:
 
+    * :code:`name`: Name (usually the name of the requirement at the source node template)
+    * :code:`source_requirement_index`: Must be represented in the source node template
     * :code:`target_node_id`: Must be represented in the :class:`ServiceInstance`
-    * :code:`target_capability_name`: The matches capability at the target node
+    * :code:`target_capability_name`: Matches the capability at the target node
     * :code:`type_name`: Must be represented in the :class:`ModelingContext`
     * :code:`template_name`: Must be represented in the :class:`ServiceModel`
     * :code:`properties`: Dict of :class:`Parameter`
@@ -384,14 +392,18 @@ class Relationship(Element):
     * :code:`target_interfaces`: Dict of :class:`Interface`
     """
     
-    def __init__(self, type_name=None, template_name=None):
-        if type_name and not isinstance(type_name, basestring):
-            raise ValueError('type_name must be string')
-        if template_name and not isinstance(template_name, basestring):
-            raise ValueError('template_name must be string')
-        if (not type_name) and (not template_name):
-            raise ValueError('must set either type_name or template_name or both')
+    def __init__(self, name=None, source_requirement_index=None, type_name=None, template_name=None):
+        if (name is not None) and (not isinstance(name, basestring)):
+            raise ValueError('name must be a string or None')
+        if (source_requirement_index is not None) and ((not isinstance(source_requirement_index, int)) or (source_requirement_index < 0)):
+            raise ValueError('source_requirement_index must be int > 0')
+        if (type_name is not None) and (not isinstance(type_name, basestring)):
+            raise ValueError('type_name must be a string or None')
+        if (template_name is not None) and (not isinstance(template_name, basestring)):
+            raise ValueError('template_name must be a string or None')
         
+        self.name = name
+        self.source_requirement_index = source_requirement_index
         self.target_node_id = None
         self.target_capability_name = None
         self.type_name = type_name
@@ -403,13 +415,15 @@ class Relationship(Element):
     @property
     def as_raw(self):
         return OrderedDict((
+            ('name', self.name),
+            ('source_requirement_index', self.source_requirement_index),
             ('target_node_id', self.target_node_id),
             ('target_capability_name', self.target_capability_name),
             ('type_name', self.type_name),
             ('template_name', self.template_name),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
-            ('source_interfaces', [as_raw(v) for v in self.source_interfaces.itervalues()]),            
-            ('target_interfaces', [as_raw(v) for v in self.target_interfaces.itervalues()])))            
+            ('properties', as_raw_dict(self.properties)),
+            ('source_interfaces', as_raw_list(self.source_interfaces)),            
+            ('target_interfaces', as_raw_list(self.target_interfaces))))
 
     def validate(self, context):
         if self.type_name:
@@ -426,10 +440,17 @@ class Relationship(Element):
         coerce_dict_values(context, container, self.target_interfaces, report_issues)
 
     def dump(self, context):
-        puts('Target node: %s' % context.style.node(self.target_node_id))
+        if self.name:
+            if self.source_requirement_index is not None:
+                puts('%s (%d) ->' % (context.style.node(self.name), self.source_requirement_index))
+            else:
+                puts('%s ->' % context.style.node(self.name))
+        else:
+            puts('->')
         with context.style.indent:
+            puts('Node: %s' % context.style.node(self.target_node_id))
             if self.target_capability_name is not None:
-                puts('Target capability: %s' % context.style.node(self.target_capability_name))
+                puts('Capability: %s' % context.style.node(self.target_capability_name))
             if self.type_name is not None:
                 puts('Relationship type: %s' % context.style.type(self.type_name))
             if self.template_name is not None:
@@ -482,7 +503,7 @@ class Artifact(Element):
             ('target_path', self.target_path),
             ('repository_url', self.repository_url),
             ('repository_credential', as_agnostic(self.repository_credential)),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()})))
+            ('properties', as_raw_dict(self.properties))))
 
     def validate(self, context):
         if context.modeling.artifact_types.get_descendant(self.type_name) is None:
@@ -543,9 +564,9 @@ class Group(Element):
             ('id', self.id),
             ('type_name', self.type_name),
             ('template_name', self.template_name),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
-            ('interfaces', [as_raw(v) for v in self.interfaces.itervalues()]),
-            ('policies', [as_raw(v) for v in self.policies.itervalues()]),
+            ('properties', as_raw_dict(self.properties)),
+            ('interfaces', as_raw_list(self.interfaces)),
+            ('policies', as_raw_list(self.policies)),
             ('member_node_ids', self.member_node_ids),
             ('member_group_ids', self.member_group_ids)))
 
@@ -606,7 +627,7 @@ class Policy(Element):
         return OrderedDict((
             ('name', self.name),
             ('type_name', self.type_name),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
+            ('properties', as_raw_dict(self.properties)),
             ('target_node_ids', self.target_node_ids),
             ('target_group_ids', self.target_group_ids)))
 
@@ -666,8 +687,8 @@ class GroupPolicy(Element):
             ('name', self.name),
             ('description', self.description),
             ('type_name', self.type_name),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
-            ('triggers', [as_raw(v) for v in self.triggers.itervalues()])))
+            ('properties', as_raw_dict(self.properties)),
+            ('triggers', as_raw_list(self.triggers))))
 
     def validate(self, context):
         if context.modeling.policy_types.get_descendant(self.type_name) is None:
@@ -718,7 +739,7 @@ class GroupPolicyTrigger(Element):
             ('name', self.name),
             ('description', self.description),
             ('implementation', self.implementation),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()})))
+            ('properties', as_raw_dict(self.properties))))
 
     def validate(self, context):
         validate_dict_values(context, self.properties)
@@ -790,8 +811,8 @@ class Substitution(Element):
     def as_raw(self):
         return OrderedDict((
             ('node_type_name', self.node_type_name),
-            ('capabilities', [as_raw(v) for v in self.capabilities.itervalues()]),
-            ('requirements', [as_raw(v) for v in self.requirements.itervalues()])))
+            ('capabilities', as_raw_list(self.capabilities)),
+            ('requirements', as_raw_list(self.requirements))))
 
     def validate(self, context):
         if context.modeling.node_types.get_descendant(self.node_type_name) is None:
@@ -840,8 +861,8 @@ class Interface(Element):
             ('name', self.name),
             ('description', self.description),
             ('type_name', self.type_name),
-            ('inputs', {k: as_raw(v) for k, v in self.inputs.iteritems()}),
-            ('operations', [as_raw(v) for v in self.operations.itervalues()])))
+            ('inputs', as_raw_dict(self.inputs)),
+            ('operations', as_raw_list(self.operations))))
 
     def validate(self, context):
         if self.type_name:
@@ -903,7 +924,7 @@ class Operation(Element):
             ('executor', self.executor),
             ('max_retries', self.max_retries),
             ('retry_interval', self.retry_interval),
-            ('inputs', {k: as_raw(v) for k, v in self.inputs.iteritems()})))
+            ('inputs', as_raw_dict(self.inputs))))
 
     def validate(self, context):
         validate_dict_values(context, self.inputs)

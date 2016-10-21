@@ -107,7 +107,7 @@ class Timestamp(object):
     
     @property
     def as_raw(self):
-        return self.value
+        return self.__str__()
     
     def __str__(self):
         dt = self.as_datetime_utc
@@ -214,33 +214,31 @@ class Range(object):
         if len(value) != 2:
             raise ValueError('range value does not have exactly 2 elements: %s' % safe_repr(value))
         
-        try:
-            value[0] = int(value[0])
-        except ValueError:
+        def is_int(v):
+            return isinstance(v, int) and (not isinstance(v, bool)) # In Python bool is an int
+        
+        if not is_int(value[0]):
             raise ValueError('lower bound of range is not a valid integer: %s' % safe_repr(value[0]))
 
         if value[1] != 'UNBOUNDED':
-            try:
-                value[1] = int(value[1])
-            except ValueError:
+            if not is_int(value[1]):
                 raise ValueError('upper bound of range is not a valid integer or "UNBOUNDED": %s' % safe_repr(value[0]))
-
-        if value[0] >= value[1]:
-            raise ValueError('upper bound of range is not greater than the lower bound: %s >= %s' % (safe_repr(value[0]), safe_repr(value[1])))
+    
+            if value[0] >= value[1]:
+                raise ValueError('upper bound of range is not greater than the lower bound: %s >= %s' % (safe_repr(value[0]), safe_repr(value[1])))
         
         self.value = value
     
     def is_in(self, value):
         if value < self.value[0]:
             return False
-        if self.value[1] != 'UNBOUNDED':
-            if value > self.value[1]:
-                return False
+        if (self.value[1] != 'UNBOUNDED') and (value > self.value[1]):
+            return False
         return True
 
     @property
     def as_raw(self):
-        return self.value
+        return list(self.value)
 
 @dsl_specification('3.2.4', 'tosca-simple-1.0')
 class List(list):
@@ -346,7 +344,8 @@ class Scalar(object):
         return OrderedDict((
             ('value', self.value),
             ('factor', self.factor),
-            ('unit', self.unit)))
+            ('unit', self.unit),
+            ('unit_size', self.UNITS[self.unit])))
 
     def __str__(self):
         return '%s %s' % (self.value, self.UNIT)

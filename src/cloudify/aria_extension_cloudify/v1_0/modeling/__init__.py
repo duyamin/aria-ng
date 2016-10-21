@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from aria.modeling import Type, RelationshipType, PolicyType, PolicyTriggerType, ServiceModel, NodeTemplate, RelationshipTemplate, GroupTemplate, PolicyTemplate, GroupPolicyTemplate, GroupPolicyTriggerTemplate, InterfaceTemplate, OperationTemplate, Requirement, Parameter
+from aria.modeling import Type, RelationshipType, PolicyType, PolicyTriggerType, ServiceModel, NodeTemplate, RequirementTemplate, RelationshipTemplate, GroupTemplate, PolicyTemplate, GroupPolicyTemplate, GroupPolicyTriggerTemplate, InterfaceTemplate, OperationTemplate, Parameter
 from aria.validation import Issue
 
 POLICY_SCALING = 'cloudify.policies.scaling'
@@ -123,7 +123,7 @@ def create_operation_model(context, operation, is_definition=False):
     return r
 
 def create_requirement_model(context, relationship):
-    r = Requirement(name=relationship._name, target_node_template_name=relationship.target)
+    r = RequirementTemplate(target_node_template_name=relationship.target)
     
     r.relationship_template = create_relationship_model(context, relationship)
     

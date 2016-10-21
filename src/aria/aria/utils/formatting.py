@@ -111,6 +111,28 @@ def as_raw(value):
             value[k] = as_raw(v)
     return value
 
+def as_raw_list(value):
+    """
+    Assuming value is a list, converts its values using :code:`as_raw`.
+    """
+    
+    if value is None:
+        return []
+    if isinstance(value, dict):
+        value = value.itervalues()
+    return [as_raw(v) for v in value]
+
+def as_raw_dict(value):
+    """
+    Assuming value is a dict, converts its values using :code:`as_raw`.
+    The keys are left as is.
+    """
+    
+    if value is None:
+        return OrderedDict()
+    return OrderedDict((
+        (k, as_raw(v)) for k, v in value.iteritems()))
+ 
 def as_agnostic(value):
     """
     Converts subclasses of list and dict to standard lists and dicts, and Unicode strings
