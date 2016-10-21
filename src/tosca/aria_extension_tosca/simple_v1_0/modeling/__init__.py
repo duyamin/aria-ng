@@ -15,7 +15,7 @@
 #
 
 from ..data_types import coerce_value
-from aria.modeling import Type, RelationshipType, PolicyType, ServiceModel, NodeTemplate, RelationshipTemplate, CapabilityTemplate, GroupTemplate, PolicyTemplate, SubstitutionTemplate, MappingTemplate, Interface, Operation, Artifact, Requirement, Metadata, Parameter
+from aria.modeling import Type, RelationshipType, PolicyType, ServiceModel, NodeTemplate, RelationshipTemplate, CapabilityTemplate, GroupTemplate, PolicyTemplate, SubstitutionTemplate, MappingTemplate, InterfaceTemplate, OperationTemplate, ArtifactTemplate, Requirement, Metadata, Parameter
 import re
 
 def create_service_model(context):
@@ -80,6 +80,9 @@ def create_service_model(context):
 
 def create_node_template_model(context, node_template):
     r = NodeTemplate(name=node_template._name, type_name=node_template.type)
+    
+    if node_template.description:
+        r.description = node_template.description.value
 
     create_property_value_models(r.properties, node_template._get_property_values(context))
     create_interface_models(context, r.interfaces, node_template._get_interfaces(context))
@@ -106,7 +109,10 @@ def create_node_template_model(context, node_template):
 def create_interface_model(context, interface):
     the_type = interface._get_type(context)
     
-    r = Interface(name=interface._name, type_name=the_type._name)
+    r = InterfaceTemplate(name=interface._name, type_name=the_type._name)
+
+    if the_type.description:
+        r.description = the_type.description.value
 
     inputs = interface.inputs
     if inputs:
@@ -121,7 +127,10 @@ def create_interface_model(context, interface):
     return r if r.operations else None
 
 def create_operation_model(context, operation):
-    r = Operation(name=operation._name)
+    r = OperationTemplate(name=operation._name)
+
+    if operation.description:
+        r.description = operation.description.value
 
     implementation = operation.implementation
     if implementation is not None:
@@ -138,7 +147,10 @@ def create_operation_model(context, operation):
     return r
 
 def create_artifact_model(context, artifact):
-    r = Artifact(name=artifact._name, type_name=artifact.type, source_path=artifact.file)
+    r = ArtifactTemplate(name=artifact._name, type_name=artifact.type, source_path=artifact.file)
+
+    if artifact.description:
+        r.description = artifact.description.value
 
     r.target_path = artifact.deploy_path
 
@@ -191,10 +203,16 @@ def create_relationship_model(context, relationship):
     relationship_type, relationship_type_variant = relationship._get_type(context)
     if relationship_type_variant == 'relationship_type':
         r = RelationshipTemplate(type_name=relationship_type._name)
+        if relationship_type.description:
+            r.description = relationship_type.description.value
     else:
         relationship_template = relationship_type
         relationship_type = relationship_template._get_type(context)
         r = RelationshipTemplate(type_name=relationship_type._name, template_name=relationship_template._name)
+        if relationship_template.description:
+            r.description = relationship_template.description.value
+        elif relationship_type.description:
+            r.description = relationship_type.description.value
 
     create_property_models(r.properties, relationship.properties)
     create_interface_models(context, r.source_interfaces, relationship.interfaces)
@@ -204,8 +222,10 @@ def create_relationship_model(context, relationship):
 def create_capability_model(context, capability):
     capability_type = capability._get_type(context)
     r = CapabilityTemplate(name=capability._name, type_name=capability_type._name)
-    
+
     capability_definition = capability._get_definition(context)
+    if capability_definition.description:
+        r.description = capability_definition.description.value
     occurrences = capability_definition.occurrences
     if occurrences is not None:
         r.min_occurrences = occurrences.value[0]
@@ -224,6 +244,9 @@ def create_group_model(context, group):
     group_type = group._get_type(context)
     r = GroupTemplate(name=group._name, type_name=group_type._name)
 
+    if group.description:
+        r.description = group.description.value
+
     create_property_value_models(r.properties, group._get_property_values(context))
     create_interface_models(context, r.interfaces, group._get_interfaces(context))
     
@@ -237,6 +260,9 @@ def create_group_model(context, group):
 def create_policy_model(context, policy):
     policy_type = policy._get_type(context)
     r = PolicyTemplate(name=policy._name, type_name=policy_type._name)
+
+    if policy.description:
+        r.description = policy.description.value
 
     create_property_value_models(r.properties, policy._get_property_values(context))
     

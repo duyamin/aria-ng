@@ -102,8 +102,9 @@ def get_parameter_values(context, presentation, field_name):
             if (values.get(name) is None):
                 if hasattr(parameter, 'value') and (parameter.value is not None):
                     values[name] = coerce_property_value(context, presentation, parameter, parameter.value) # for parameters only 
-                elif hasattr(parameter, 'default') and (parameter.default is not None):
-                    values[name] = coerce_property_value(context, presentation, parameter, parameter.default)
+                else:
+                    default = parameter.default if hasattr(parameter, 'default') else None
+                    values[name] = coerce_property_value(context, presentation, parameter, default)
     
     return values
 

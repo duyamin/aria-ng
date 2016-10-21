@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from aria.modeling import Type, RelationshipType, PolicyType, PolicyTriggerType, ServiceModel, NodeTemplate, RelationshipTemplate, GroupTemplate, PolicyTemplate, GroupPolicy, GroupPolicyTrigger, Interface, Operation, Requirement, Parameter
+from aria.modeling import Type, RelationshipType, PolicyType, PolicyTriggerType, ServiceModel, NodeTemplate, RelationshipTemplate, GroupTemplate, PolicyTemplate, GroupPolicyTemplate, GroupPolicyTriggerTemplate, InterfaceTemplate, OperationTemplate, Requirement, Parameter
 from aria.validation import Issue
 
 POLICY_SCALING = 'cloudify.policies.scaling'
@@ -63,6 +63,9 @@ def create_service_model(context):
 
 def create_node_template_model(context, node_template):
     r = NodeTemplate(name=node_template._name, type_name=node_template.type)
+
+    if node_template.description:
+        r.description = node_template.description.value
     
     create_property_value_models(r.properties, node_template._get_property_values(context))
     create_interface_models(context, r.interfaces, node_template._get_interfaces(context))
@@ -83,7 +86,7 @@ def create_node_template_model(context, node_template):
     return r
 
 def create_interface_model(context, interface, is_definition=False):
-    r = Interface(name=interface._name, type_name=None)
+    r = InterfaceTemplate(name=interface._name, type_name=None)
 
     operations = interface.operations
     if operations:
@@ -93,7 +96,7 @@ def create_interface_model(context, interface, is_definition=False):
     return r if r.operations else None
 
 def create_operation_model(context, operation, is_definition=False):
-    r = Operation(name=operation._name)
+    r = OperationTemplate(name=operation._name)
 
     implementation = operation.implementation
     if implementation is not None:
@@ -155,6 +158,9 @@ def create_relationship_model(context, relationship):
     relationship_type = relationship._get_type(context)
     r = RelationshipTemplate(type_name=relationship_type._name)
 
+    if relationship.description:
+        r.description = relationship.description.value
+
     create_property_value_models(r.properties, relationship._get_property_values(context))
     create_interface_models(context, r.source_interfaces, relationship._get_source_interfaces(context))
     create_interface_models(context, r.target_interfaces, relationship._get_target_interfaces(context))
@@ -183,7 +189,12 @@ def create_group_model(context, group):
     return r
 
 def create_group_model_policy(context, policy):
-    r = GroupPolicy(name=policy._name, type_name=policy.type)
+    r = GroupPolicyTemplate(name=policy._name, type_name=policy.type)
+
+    the_type = policy._get_type(context)
+    if the_type.description:
+        r.description = the_type.description.value
+
     create_property_value_models(r.properties, policy._get_property_values(context))
     
     triggers = policy.triggers
@@ -195,7 +206,7 @@ def create_group_model_policy(context, policy):
 
 def create_group_policy_trigger_model(context, trigger):
     trigger_type = trigger._get_type(context)
-    r = GroupPolicyTrigger(name=trigger._name, implementation=trigger_type.source)
+    r = GroupPolicyTriggerTemplate(name=trigger._name, implementation=trigger_type.source)
     create_property_value_models(r.properties, trigger._get_property_values(context))
     return r
 
@@ -213,7 +224,7 @@ def create_policy_model(context, policy):
     return r
 
 def create_workflow_model(context, workflow):
-    r = Operation(name=workflow._name)
+    r = OperationTemplate(name=workflow._name)
 
     r.implementation = workflow.mapping
 
@@ -281,12 +292,12 @@ def set_scaling_policy_property_models(context, o, presentation=None):
             o.properties[name].type = 'int'
         else:
             o.properties[name] = Parameter('int', default, description)
-        is_valid = coerce(name)
+        is_valid = coerce_value(name)
         if is_valid and is_check_range:
             is_valid = check_range(name)
         return is_valid
     
-    def coerce(name):
+    def coerce_value(name):
         value = o.properties[name].value
         try:
             o.properties[name].value = int(value)
