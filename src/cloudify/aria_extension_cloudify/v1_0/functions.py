@@ -16,7 +16,7 @@
 
 from aria import InvalidValueError, dsl_specification
 from aria.validation import Issue
-from aria.modeling import Function, CannotEvaluateFunction
+from aria.modeling import Function, CannotEvaluateFunctionException
 from aria.utils import as_raw, safe_repr
 
 @dsl_specification('intrinsic-functions-2', 'cloudify-1.0')
@@ -47,7 +47,7 @@ class GetInput(Function):
         return {'get_input': as_raw(self.input_property_name)}
     
     def _evaluate(self, context, container):
-        raise CannotEvaluateFunction()
+        raise CannotEvaluateFunctionException()
 
 @dsl_specification('intrinsic-functions-3', 'cloudify-1.0')
 @dsl_specification('intrinsic-functions-3', 'cloudify-1.1')
@@ -74,7 +74,7 @@ class GetProperty(Function):
         return {'get_property': [self.modelable_entity_name] + self.nested_property_name_or_index}
 
     def _evaluate(self, context, container):
-        raise CannotEvaluateFunction()
+        raise CannotEvaluateFunctionException()
 
 @dsl_specification('intrinsic-functions-4', 'cloudify-1.0')
 @dsl_specification('intrinsic-functions-4', 'cloudify-1.1')
@@ -101,7 +101,7 @@ class GetAttribute(Function):
         return {'get_attribute': [self.modelable_entity_name] + self.nested_property_name_or_index}
 
     def _evaluate(self, context, container):
-        raise CannotEvaluateFunction()
+        raise CannotEvaluateFunctionException()
 
 #
 # Utils

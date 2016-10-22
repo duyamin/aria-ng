@@ -49,14 +49,14 @@ def add_plugins_to_install_for_node_template(context, node_template, plugins_to_
     then we will continue gathering following the path of contained-in relationships.
     """
     
-    _add_plugins_to_install_for_interface(context, plugins_to_install, node_template.interfaces, HOST_AGENT)
-    _add_plugins_to_install_for_interface(context, deployment_plugins_to_install, node_template.interfaces, CENTRAL_DEPLOYMENT_AGENT)
+    _add_plugins_to_install_for_interface(context, plugins_to_install, node_template.interface_templates, HOST_AGENT)
+    _add_plugins_to_install_for_interface(context, deployment_plugins_to_install, node_template.interface_templates, CENTRAL_DEPLOYMENT_AGENT)
 
     # Plugins from relationships' source interfaces
-    for requirement in node_template.requirements:
+    for requirement in node_template.requirement_templates:
         if requirement.relationship_template is not None:
-            _add_plugins_to_install_for_interface(context, plugins_to_install, requirement.relationship_template.source_interfaces, HOST_AGENT)
-            _add_plugins_to_install_for_interface(context, deployment_plugins_to_install, requirement.relationship_template.source_interfaces, CENTRAL_DEPLOYMENT_AGENT)
+            _add_plugins_to_install_for_interface(context, plugins_to_install, requirement.relationship_template.source_interface_templates, HOST_AGENT)
+            _add_plugins_to_install_for_interface(context, deployment_plugins_to_install, requirement.relationship_template.source_interface_templates, CENTRAL_DEPLOYMENT_AGENT)
 
     # Recurse into hosted node templates
     for t in find_hosted_node_templates(context, node_template):
@@ -147,7 +147,7 @@ def _parse_implementation(context, implementation):
 
 def _add_plugins_to_install_for_interface(context, plugins_to_install, interfaces, agent):
     for interface in interfaces.itervalues():
-        for operation in interface.operations.itervalues():
+        for operation in interface.operation_templates.itervalues():
             plugin_name, plugin_executor, _, _ = parse_implementation(context, operation.implementation)
             executor = operation.executor or plugin_executor
             if executor == agent:

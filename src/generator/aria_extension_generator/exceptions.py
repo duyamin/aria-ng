@@ -14,9 +14,9 @@
 # under the License.
 #
 
-from aria.consumption import ConsumerError
+from aria.consumption import ConsumerException
 
-class BadImplementationError(ConsumerError):
+class BadImplementationError(ConsumerException):
     """
     ARIA consumer error: bad implementation.
     """

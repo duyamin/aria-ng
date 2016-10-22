@@ -14,29 +14,29 @@
 # under the License.
 #
 
-from .. import AriaError
+from .. import AriaException
 from ..validation import Issue
 
-class ReaderError(AriaError):
+class ReaderException(AriaException):
     """
-    ARIA reader error.
+    ARIA reader exception.
     """
 
-class ReaderNotFoundError(ReaderError):
+class ReaderNotFoundError(ReaderException):
     """
     ARIA reader error: reader not found for source.
     """
 
-class ReaderSyntaxError(ReaderError):
+class ReaderSyntaxError(ReaderException):
     """
     ARIA read format error.
     """
 
     def __init__(self, message, cause=None, cause_tb=None, location=None, line=None, column=None, locator=None, snippet=None, level=Issue.SYNTAX):
-        super(ReaderError, self).__init__(message, cause, cause_tb)
+        super(ReaderException, self).__init__(message, cause, cause_tb)
         self.issue = Issue(message, location=location, line=line, column=column, locator=locator, snippet=snippet, level=level)
 
-class AlreadyReadError(ReaderError):
+class AlreadyReadException(ReaderException):
     """
-    ARIA reader error: already read.
+    ARIA reader exception: already read.
     """

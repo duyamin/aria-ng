@@ -42,7 +42,7 @@ class ServiceModel(ModelElement):
     * :code:`substitution_template`: :class:`SubstituionTemplate`
     * :code:`inputs`: Dict of :class:`Parameter`
     * :code:`outputs`: Dict of :class:`Parameter`
-    * :code:`operations`: Dict of :class:`Operation`
+    * :code:`operation_templates`: Dict of :class:`Operation`
     """
     
     def __init__(self):
@@ -54,7 +54,7 @@ class ServiceModel(ModelElement):
         self.substitution_template = None
         self.inputs = StrictDict(key_class=basestring, value_class=Parameter)
         self.outputs = StrictDict(key_class=basestring, value_class=Parameter)
-        self.operations = StrictDict(key_class=basestring, value_class=OperationTemplate)
+        self.operation_templates = StrictDict(key_class=basestring, value_class=OperationTemplate)
 
     @property
     def as_raw(self):
@@ -67,7 +67,7 @@ class ServiceModel(ModelElement):
             ('substitution_template', as_raw(self.substitution_template)),
             ('inputs', as_raw_dict(self.inputs)),
             ('outputs', as_raw_dict(self.outputs)),
-            ('operations', as_raw_list(self.operations))))
+            ('operation_templates', as_raw_list(self.operation_templates))))
 
     def instantiate(self, context, container):
         r = ServiceInstance()
@@ -85,7 +85,7 @@ class ServiceModel(ModelElement):
 
         instantiate_dict(context, self, r.groups, self.group_templates)
         instantiate_dict(context, self, r.policies, self.policy_templates)
-        instantiate_dict(context, self, r.operations, self.operations)
+        instantiate_dict(context, self, r.operations, self.operation_templates)
         
         if self.substitution_template is not None:
             r.substitution = self.substitution_template.instantiate(context, container)
@@ -111,7 +111,7 @@ class ServiceModel(ModelElement):
             self.substitution_template.validate(context)
         validate_dict_values(context, self.inputs)
         validate_dict_values(context, self.outputs)
-        validate_dict_values(context, self.operations)
+        validate_dict_values(context, self.operation_templates)
 
     def coerce_values(self, context, container, report_issues):
         if self.metadata is not None:
@@ -123,7 +123,7 @@ class ServiceModel(ModelElement):
             self.substitution_template.coerce_values(context, container, report_issues)
         coerce_dict_values(context, container, self.inputs, report_issues)
         coerce_dict_values(context, container, self.outputs, report_issues)
-        coerce_dict_values(context, container, self.operations, report_issues)
+        coerce_dict_values(context, container, self.operation_templates, report_issues)
 
     def dump(self, context):
         if self.description is not None:
@@ -140,7 +140,7 @@ class ServiceModel(ModelElement):
             self.substitution_template.dump(context)
         dump_parameters(context, self.inputs, 'Inputs')
         dump_parameters(context, self.outputs, 'Outputs')
-        dump_dict_values(context, self.operations, 'Operations')
+        dump_dict_values(context, self.operation_templates, 'Operation templates')
 
 class NodeTemplate(ModelElement):
     """
@@ -921,8 +921,8 @@ class SubstitutionTemplate(ModelElement):
     Properties:
     
     * :code:`node_type_name`: Must be represented in the :class:`ModelingContext`
-    * :code:`capabilities`: Dict of :class:`MappingTemplate`
-    * :code:`requirements`: Dict of :class:`MappingTemplate`
+    * :code:`capability_templates`: Dict of :class:`MappingTemplate`
+    * :code:`requirement_templates`: Dict of :class:`MappingTemplate`
     """
     
     def __init__(self, node_type_name):
@@ -930,39 +930,39 @@ class SubstitutionTemplate(ModelElement):
             raise ValueError('must set node_type_name (string)')
     
         self.node_type_name = node_type_name
-        self.capabilities = StrictDict(key_class=basestring, value_class=MappingTemplate)
-        self.requirements = StrictDict(key_class=basestring, value_class=MappingTemplate)
+        self.capability_templates = StrictDict(key_class=basestring, value_class=MappingTemplate)
+        self.requirement_templates = StrictDict(key_class=basestring, value_class=MappingTemplate)
 
     @property
     def as_raw(self):
         return OrderedDict((
             ('node_type_name', self.node_type_name),
-            ('capabilities', as_raw_list(self.capabilities)),
-            ('requirements', as_raw_list(self.requirements))))
+            ('capability_templates', as_raw_list(self.capability_templates)),
+            ('requirement_templates', as_raw_list(self.requirement_templates))))
 
     def instantiate(self, context, container):
         r = Substitution(self.node_type_name)
-        instantiate_dict(context, container, r.capabilities, self.capabilities)
-        instantiate_dict(context, container, r.requirements, self.requirements)
+        instantiate_dict(context, container, r.capabilities, self.capability_templates)
+        instantiate_dict(context, container, r.requirements, self.requirement_templates)
         return r
 
     def validate(self, context):
         if context.modeling.node_types.get_descendant(self.node_type_name) is None:
             context.validation.report('substitution template has an unknown type: %s' % safe_repr(self.node_type_name), level=Issue.BETWEEN_TYPES)        
 
-        validate_dict_values(context, self.capabilities)
-        validate_dict_values(context, self.requirements)
+        validate_dict_values(context, self.capability_templates)
+        validate_dict_values(context, self.requirement_templates)
 
     def coerce_values(self, context, container, report_issues):
-        coerce_dict_values(context, self, self.capabilities, report_issues)
-        coerce_dict_values(context, self, self.requirements, report_issues)
+        coerce_dict_values(context, self, self.capability_templates, report_issues)
+        coerce_dict_values(context, self, self.requirement_templates, report_issues)
 
     def dump(self, context):
-        puts('Substitution:')
+        puts('Substitution template:')
         with context.style.indent:
             puts('Node type: %s' % context.style.type(self.node_type_name))
-            dump_dict_values(context, self.capabilities, 'Capability mappings')
-            dump_dict_values(context, self.requirements, 'Requirement mappings')
+            dump_dict_values(context, self.capability_templates, 'Capability template mappings')
+            dump_dict_values(context, self.requirement_templates, 'Requirement template mappings')
 
 class InterfaceTemplate(ModelElement):
     """

@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from .exceptions import LoaderError, LoaderNotFoundError, DocumentNotFoundError
+from .exceptions import LoaderException, LoaderNotFoundError, DocumentNotFoundException
 from .context import LoadingContext
 from .loader import Loader
 from .source import LoaderSource, DefaultLoaderSource
@@ -25,9 +25,9 @@ from .request import SESSION, SESSION_CACHE_PATH, RequestLoader, RequestTextLoad
 from .file import FileTextLoader
 
 __all__ = (
-    'LoaderError',
+    'LoaderException',
     'LoaderNotFoundError',
-    'DocumentNotFoundError',
+    'DocumentNotFoundException',
     'LoadingContext',
     'Loader',
     'LoaderSource',

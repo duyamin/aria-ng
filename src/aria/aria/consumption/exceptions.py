@@ -14,9 +14,9 @@
 # under the License.
 #
 
-from .. import AriaError
+from .. import AriaException
 
-class ConsumerError(AriaError):
+class ConsumerException(AriaException):
     """
-    ARIA consumer error.
+    ARIA consumer exception.
     """

@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from .. import AriaError
+from .. import AriaException
 from ..validation import Issue
 from ..utils import print_exception
 
@@ -39,7 +39,7 @@ class Consumer(object):
             self.context.validation.report(issue=e.issue)
         else:
             self.context.validation.report(exception=e)
-        if not isinstance(e, AriaError):
+        if not isinstance(e, AriaException):
             print_exception(e)
 
 class ConsumerChain(Consumer):

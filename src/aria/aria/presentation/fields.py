@@ -16,7 +16,7 @@
 
 from .null import NULL
 from .utils import validate_primitive
-from ..exceptions import InvalidValueError, AriaError
+from ..exceptions import InvalidValueError, AriaException
 from ..validation import Issue
 from ..utils import FrozenList, FrozenDict, print_exception, deepcopy_with_locators, merge, cachedmethod, puts, as_raw, full_type_name, safe_repr
 from functools import wraps
@@ -468,7 +468,7 @@ class Field(object):
                 context.validation.report(issue=e.issue)
             else:
                 context.validation.report(exception=e)
-                if not isinstance(e, AriaError):
+                if not isinstance(e, AriaException):
                     print_exception(e)
         
         if isinstance(value, list):

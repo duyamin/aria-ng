@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from .exceptions import PresenterError, PresenterNotFoundError
+from .exceptions import PresenterException, PresenterNotFoundError
 from .context import PresentationContext
 from .presenter import Presenter
 from .presentation import Value, PresentationBase, Presentation, AsIsPresentation
@@ -25,7 +25,7 @@ from .field_validators import type_validator, list_type_validator, list_length_v
 from .utils import get_locator, parse_types_dict_names, validate_primitive, validate_no_short_form, validate_no_unknown_fields, validate_known_fields, get_parent_presentation, report_issue_for_unknown_type, report_issue_for_parent_is_self, report_issue_for_circular_type_hierarchy
 
 __all__ = (
-    'PresenterError',
+    'PresenterException',
     'PresenterNotFoundError',
     'PresentationContext',
     'Presenter',

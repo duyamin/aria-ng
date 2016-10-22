@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from .collections import deepcopy_with_locators, FrozenList, FrozenDict, StrictList, StrictDict
+from .collections import FrozenList, FrozenDict, StrictList, StrictDict
 import json
 from collections import OrderedDict
 from ruamel import yaml # @UnresolvedImport
@@ -81,7 +81,7 @@ def safe_repr(value):
     """
     Like :code:`repr`, but calls :code:`as_raw` and :code:`as_agnostic` first.
     """
-    
+
     return repr(as_agnostic(as_raw(value)))
 
 def string_list_as_string(strings):
@@ -102,11 +102,11 @@ def as_raw(value):
             # Old-style Python classes don't support properties
             value = value()
     elif isinstance(value, list):
-        value = deepcopy_with_locators(value)
+        value = list(value)
         for i in range(len(value)):
             value[i] = as_raw(value[i])
     elif isinstance(value, dict):
-        value = deepcopy_with_locators(value)
+        value = dict(value)
         for k, v in value.iteritems():
             value[k] = as_raw(v)
     return value

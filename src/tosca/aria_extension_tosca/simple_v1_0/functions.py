@@ -16,7 +16,7 @@
 
 from aria import dsl_specification, InvalidValueError
 from aria.validation import Issue
-from aria.modeling import Function, CannotEvaluateFunction
+from aria.modeling import Function, CannotEvaluateFunctionException
 from aria.utils import FrozenList, as_raw, safe_repr
 from cStringIO import StringIO
 
@@ -194,7 +194,7 @@ class GetAttribute(Function):
         return {'get_attribute': [self.modelable_entity_name] + self.nested_property_name_or_index}
 
     def _evaluate(self, context, container):
-        raise CannotEvaluateFunction()
+        raise CannotEvaluateFunctionException()
 
 #
 # Operation

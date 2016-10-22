@@ -40,17 +40,17 @@ class FrozenList(list):
 
     def __setitem__(self, index, value):
         if self.locked:
-            raise TypeError('read-only list')
+            raise TypeError('frozen list')
         return super(FrozenList, self).__setitem__(index, value)
 
     def __delitem__(self, index):
         if self.locked:
-            raise TypeError('read-only list')
+            raise TypeError('frozen list')
         return super(FrozenList, self).__delitem__(index)
     
     def __iadd__(self, values):
         if self.locked:
-            raise TypeError('read-only list')
+            raise TypeError('frozen list')
         return super(FrozenList, self).__iadd__(values)
     
     def __deepcopy__(self, memo):
@@ -59,17 +59,17 @@ class FrozenList(list):
 
     def append(self, value):
         if self.locked:
-            raise TypeError('read-only list')
+            raise TypeError('frozen list')
         return super(FrozenList, self).append(value)
 
     def extend(self, values):
         if self.locked:
-            raise TypeError('read-only list')
+            raise TypeError('frozen list')
         return super(FrozenList, self).append(values)
 
     def insert(self, index, value):
         if self.locked:
-            raise TypeError('read-only list')
+            raise TypeError('frozen list')
         return super(FrozenList, self).insert(index, value)
 
 EMPTY_READ_ONLY_LIST = FrozenList()
@@ -91,12 +91,12 @@ class FrozenDict(OrderedDict):
 
     def __setitem__(self, key, value):
         if self.locked:
-            raise TypeError('read-only dict')
+            raise TypeError('frozen dict')
         return super(FrozenDict, self).__setitem__(key, value)
 
     def __delitem__(self, key):
         if self.locked:
-            raise TypeError('read-only dict')
+            raise TypeError('frozen dict')
         return super(FrozenDict, self).__delitem__(key)
     
     def __deepcopy__(self, memo):

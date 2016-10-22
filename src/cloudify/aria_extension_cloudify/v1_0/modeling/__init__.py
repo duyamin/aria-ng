@@ -57,7 +57,7 @@ def create_service_model(context):
     workflows = context.presentation.get('service_template', 'workflows')
     if workflows:
         for workflow_name, workflow in workflows.iteritems():
-            r.operations[workflow_name] = create_operation_template_from_workflow(context, workflow)
+            r.operation_templates[workflow_name] = create_operation_template_from_workflow(context, workflow)
 
     return r
 

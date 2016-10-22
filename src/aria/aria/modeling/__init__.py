@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from .exceptions import CannotEvaluateFunction
+from .exceptions import CannotEvaluateFunctionException
 from .context import IdType, ModelingContext
 from .elements import Element, ModelElement, Function, Parameter, Metadata
 from .instance_elements import ServiceInstance, Node, Capability, Relationship, Artifact, Group, Policy, GroupPolicy, GroupPolicyTrigger, Mapping, Substitution, Interface, Operation
@@ -22,7 +22,7 @@ from .model_elements import ServiceModel, NodeTemplate, RequirementTemplate, Cap
 from .types import TypeHierarchy, Type, RelationshipType, PolicyType, PolicyTriggerType
 
 __all__ = (
-    'CannotEvaluateFunction',
+    'CannotEvaluateFunctionException',
     'IdType',
     'ModelingContext',
     'Element',

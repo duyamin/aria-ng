@@ -17,7 +17,7 @@
 from .loader import Loader
 from .file import FileTextLoader
 from .request import RequestTextLoader
-from .exceptions import DocumentNotFoundError
+from .exceptions import DocumentNotFoundException
 from ..utils import StrictList, as_file
 from urlparse import urljoin
 import os
@@ -62,7 +62,7 @@ class UriTextLoader(Loader):
         try:
             self._open(self.location.uri)
             return
-        except DocumentNotFoundError:
+        except DocumentNotFoundException:
             # Try prefixes in order
             for prefix in self._prefixes:
                 if as_file(prefix) is not None:
@@ -72,9 +72,9 @@ class UriTextLoader(Loader):
                 try:
                     self._open(uri)
                     return
-                except DocumentNotFoundError:
+                except DocumentNotFoundException:
                     pass
-        raise DocumentNotFoundError('document not found at URI: "%s"' % self.location)
+        raise DocumentNotFoundException('document not found at URI: "%s"' % self.location)
 
     def close(self):
         if self._loader is not None:

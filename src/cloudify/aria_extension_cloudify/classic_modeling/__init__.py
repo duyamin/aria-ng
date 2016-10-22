@@ -223,7 +223,7 @@ def convert_node_template(context, node_template):
     # Relationships
     relationships = []
     contained_in = 0
-    for requirement in node_template.requirements:
+    for requirement in node_template.requirement_templates:
         if requirement.relationship_template is not None:
             if is_contained_in(context, requirement.relationship_template):
                 contained_in += 1
@@ -248,7 +248,7 @@ def convert_node_template(context, node_template):
                     ('default_instances', node_template.default_instances),
                     ('min_instances', node_template.min_instances),
                     ('max_instances', node_template.max_instances if node_template.max_instances is not None else -1)))),))),))),
-        ('operations', convert_operations(context, node_template.interfaces)),
+        ('operations', convert_operations(context, node_template.interface_templates)),
         ('relationships', relationships),
         ('host_id', host_node_template.name if host_node_template is not None else None),
         ('plugins', context.modeling.plugins),
@@ -272,10 +272,10 @@ def convert_relationship_template(context, requirement):
         ('type_hierarchy', convert_type_hierarchy(context, relationship_type, context.modeling.relationship_types)),
         ('target_id', requirement.target_node_template_name),
         ('properties', convert_properties(context, relationship_template.properties)),
-        ('source_interfaces', convert_interfaces(context, relationship_template.source_interfaces)),
-        ('target_interfaces', convert_interfaces(context, relationship_template.target_interfaces)),
-        ('source_operations', convert_operations(context, relationship_template.source_interfaces)), 
-        ('target_operations', convert_operations(context, relationship_template.target_interfaces))))
+        ('source_interfaces', convert_interfaces(context, relationship_template.source_interface_templates)),
+        ('target_interfaces', convert_interfaces(context, relationship_template.target_interface_templates)),
+        ('source_operations', convert_operations(context, relationship_template.source_interface_templates)), 
+        ('target_operations', convert_operations(context, relationship_template.target_interface_templates))))
 
 def convert_group_template(context, group_template, policy_template=None):
     # Members
@@ -290,7 +290,7 @@ def convert_group_template(context, group_template, policy_template=None):
     r = OrderedDict((
         ('members', members),
         ('policies', OrderedDict(
-            (k, convert_group_policy(context, v)) for k, v in group_template.policies.iteritems()))))
+            (k, convert_group_policy(context, v)) for k, v in group_template.policy_templates.iteritems()))))
 
     # For scaling groups
     if policy_template is not None:
@@ -378,7 +378,7 @@ def convert_interfaces(context, interfaces):
 
     for interface_name, interface in interfaces.iteritems():
         rr = OrderedDict()
-        for operation_name, operation in interface.operations.iteritems():
+        for operation_name, operation in interface.operation_templates.iteritems():
             rr[operation_name] = convert_interface_operation(context, operation)
         r[interface_name] = rr
     
@@ -400,7 +400,7 @@ def convert_operations(context, interfaces):
     # We support both long-form (interface-dot-operation) and short-form (just the operation)
     duplicate_operation_names = set()
     for interface_name, interface in interfaces.iteritems():
-        for operation_name, operation in interface.operations.iteritems():
+        for operation_name, operation in interface.operation_templates.iteritems():
             operation = convert_operation(context, operation)
             r['%s.%s' % (interface_name, operation_name)] = operation # long-form name
             if operation_name not in r:

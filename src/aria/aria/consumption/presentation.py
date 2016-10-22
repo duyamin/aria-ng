@@ -17,7 +17,7 @@
 from .consumer import Consumer
 from ..utils import FixedThreadPoolExecutor, json_dumps, yaml_dumps
 from ..loading import UriLocation
-from ..reading import AlreadyReadError
+from ..reading import AlreadyReadException
 from ..presentation import PresenterNotFoundError
 
 class Read(Consumer):
@@ -82,7 +82,7 @@ class Read(Consumer):
             self.context.presentation.presenter._dump(self.context)
 
     def _handle_exception(self, e):
-        if isinstance(e, AlreadyReadError):
+        if isinstance(e, AlreadyReadException):
             return
         super(Read, self)._handle_exception(e)
     

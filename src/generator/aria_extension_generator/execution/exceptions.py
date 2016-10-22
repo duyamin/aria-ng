@@ -14,9 +14,9 @@
 # under the License.
 #
 
-from aria import AriaError
+from aria import AriaException
 
-class ExecutorError(AriaError):
+class ExecutorError(AriaException):
     """
     ARIA executor error.
     """

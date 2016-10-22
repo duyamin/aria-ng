@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from .exceptions import CannotEvaluateFunction
+from .exceptions import CannotEvaluateFunctionException
 from .. import InvalidValueError
 from ..presentation import Value
 from ..utils import puts
@@ -56,7 +56,7 @@ def coerce_value(context, container, value, report_issues=False):
         try:
             value = value._evaluate(context, container)
             value = coerce_value(context, container, value, report_issues)
-        except CannotEvaluateFunction:
+        except CannotEvaluateFunctionException:
             pass
         except InvalidValueError as e:
             if report_issues:

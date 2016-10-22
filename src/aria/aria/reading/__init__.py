@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from .exceptions import ReaderError, ReaderNotFoundError, ReaderSyntaxError, AlreadyReadError
+from .exceptions import ReaderException, ReaderNotFoundError, ReaderSyntaxError, AlreadyReadException
 from .reader import Reader
 from .source import ReaderSource, DefaultReaderSource
 from .context import ReadingContext
@@ -25,10 +25,10 @@ from .json import JsonReader
 from .jinja import JinjaReader
 
 __all__ = (
-    'ReaderError',
+    'ReaderException',
     'ReaderNotFoundError',
     'ReaderSyntaxError',
-    'AlreadyReadError',
+    'AlreadyReadException',
     'Reader',
     'ReaderSource',
     'DefaultReaderSource',
