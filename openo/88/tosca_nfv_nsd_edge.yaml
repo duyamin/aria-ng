@@ -1,0 +1,180 @@
+tosca_definitions_version: tosca_simple_yaml_1_0
+description: NSD TOSCA file for ns_edge
+
+metadata:
+  id: ns_edge_1_0
+  designer: zte
+  version: 1.0
+  name: ns_edge
+  type: NSAR
+
+imports:
+  #- tosca-simple-profile-1.0/tosca-simple-profile-1.0.yaml
+  - TOSCA_definition_nfv_1_0.yaml
+  - TOSCA_definition_nfv_ext_1_0.yaml
+  - TOSCA_definition_nfv_ext_zte_1_0.yaml
+
+topology_template:
+  description: the topology template of ns_edge.
+  
+  substitution_mappings:
+    node_type: tosca.nodes.nfv.ext.NS.Edge
+  
+  inputs:
+    controlNetworkName:
+      type: string
+      description: Name of control network
+    dataNetworkName:
+      type: string
+      description: Name of data network
+    brasDPUserPortName:
+      type: string
+      description: Interface name of user port for brasDP
+    brasDPInternetPortName:
+      type: string
+      description: Interface name of network port for brasDP
+    brasDPDcPortName:
+      type: string
+      description: Interface name of DC port for brasDP
+    brasDPIpAddress:
+      type: string
+      description: IP address of control cp for brasDP
+    NatIpRange:
+      type: string
+      description: IP address range of NAT.Format is startip-endip,for examle:192.167.0.10-192.168.0.20
+
+  node_templates:
+    brasDP:
+      type: tosca.nodes.nfv.ext.PNF
+      properties:
+        id: brasDP_1_0
+        vendor: zte
+        version: 1.0
+        pnf_type: TTGW
+        request_reclassification: true
+        nsh_aware: true
+
+    firewall:
+      type: tosca.nodes.nfv.ext.VNF.FireWall
+      properties:
+        id: zte_firewall_1_0
+        vendor: zte
+        version: 5.16.11
+        vnf_type: firewall
+        request_reclassification: false
+        nsh_aware: true
+        vnfm_type: ZTE
+      requirements:
+        - virtualLink_control_cp: control_network
+        - virtualLink_data_cp: data_network
+
+    nat:
+      type: tosca.nodes.nfv.ext.VNF.NAT
+      properties:
+        id: zte_nat_1_0
+        vendor: zte
+        version: 5.16.11
+        vnf_type: nat
+        request_reclassification: false
+        nsh_aware: true
+        vnfm_type: ZTE
+      requirements:
+        - virtualLink_control_cp: control_network
+        - virtualLink_data_cp: data_network
+
+    brasDP_control_cp:
+      type: tosca.nodes.nfv.ext.CP
+      properties:
+        ip_address: { get_input: brasDPIpAddress }
+      requirements:
+        - virtualLink: control_network
+        - virtualbinding: brasDP
+        
+    brasDP_data_user_port:
+      type: tosca.nodes.nfv.ext.CP
+      properties:
+        interface_name: { get_input: brasDPUserPortName }
+        direction: bidirectional
+      requirements:
+        - virtualLink: data_network
+        - virtualbinding: brasDP
+        
+    brasDP_data_internet_port:
+      type: tosca.nodes.nfv.ext.CP
+      properties:
+        interface_name: { get_input: brasDPInternetPortName }
+        direction: bidirectional
+      requirements:
+        - virtualLink: data_network
+        - virtualbinding: brasDP
+
+    brasDP_data_dc_port:
+      type: tosca.nodes.nfv.ext.CP
+      properties:
+        interface_name: { get_input: brasDPDcPortName }
+        sfc_encapsulation: gre
+        direction: bidirectional
+      requirements:
+        - virtualLink: data_network
+        - virtualbinding: brasDP
+        
+    control_network:
+      type: tosca.nodes.nfv.VL
+      properties:
+        network_name: { get_input: controlNetworkName }
+        
+    data_network:
+      type: tosca.nodes.nfv.VL
+      properties:
+        network_name: { get_input: dataNetworkName }
+
+    uplink_path:
+      type: tosca.nodes.nfv.ext.FP
+      description: output forwarder path
+      properties:
+        policy:
+          type: ACL
+          criteria:
+            dscp: 50
+        symmetric: true
+      requirements:
+        - forwarder: brasDP_data_user_port
+        - forwarder: brasDP_data_dc_port
+        - forwarder:
+            node: firewall
+            capability: forwarder_data_cp
+        - forwarder:
+            node: nat
+            capability: forwarder_data_cp
+        - forwarder: brasDP_data_dc_port
+        - forwarder: brasDP_data_internet_port
+
+    downlink_path:
+      type: tosca.nodes.nfv.ext.FP
+      description: nat forwarder path
+      properties:
+        policy:
+          type: ACL
+          criteria:
+            dest_ip_range: [ { get_input: NatIpRange } ]
+        symmetric: false
+      requirements:
+        - forwarder: brasDP_data_internet_port
+        - forwarder: brasDP_data_dc_port
+        - forwarder:
+            node: nat
+            capability: forwarder_data_cp
+
+  groups:
+    VNFFG1:
+      type: tosca.groups.nfv.ext.VNFFG
+      description: VNFFG1
+      properties:
+        vendor: zte
+        version: '1.0'
+        number_of_endpoints: 5
+        dependent_virtual_link: [ data_network ]
+        connection_point: [ brasDP_data_user_port, brasDP_data_internet_port, brasDP_data_dc_port ]
+        constituent_vnfs: [ firewall, nat ]
+        constituent_pnfs: [ brasDP ]
+      members: [ uplink_path, downlink_path ]

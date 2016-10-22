@@ -1,0 +1,260 @@
+tosca_definitions_version: tosca_simple_yaml_1_0
+
+description: Definitions file for all type of tosca-nfv specification.
+
+data_types:
+  tosca.datatypes.compute.Container.Architecture.CPUAllocation:
+    derived_from: tosca.datatypes.Root
+    description: Granular CPU allocation requirements for NFV workloads.
+    properties:
+      cpu_affinity:
+        type: string
+        description: Describes whether vCPU need to be pinned to dedicated CPU core or shared dynamically.
+        required: false
+        constraints:
+          - valid_values: [ shared, dedicated ]
+      thread_allocation:
+        type: string
+        description: Describe thread allocation requirement.
+        required: false
+        constraints:
+          - valid_values: [ avoid, separate, isolate, prefer ]
+      socket_count:
+        type: integer
+        description: Number of CPU sockets
+        required: false
+      core_count:
+        type: integer
+        description: Number of cores per socket
+        required: false
+      thread_count:
+        type: integer
+        description: Number of threads per core
+        required: false
+
+  tosca.datatypes.compute.Container.Architecture.NUMA:
+    derived_from: tosca.datatypes.Root
+    description: Granular CPU allocation requirements for NFV workloads.
+    properties:
+      id:
+        type: integer
+        description: CPU socket identifier
+        required: false
+        constraints:
+          - greater_or_equal: 0
+      vcpus:
+        type: list
+        description: List of specific host cpu numbers within a NUMA socket complex.
+        required: false
+        entry_schema:
+          type: integer
+      mem_size:
+        type: scalar-unit.size
+        description: Size of memory allocated from this NUMA memory bank
+        required: false
+        constraints:
+          - greater_or_equal: 0 MB
+
+node_types:
+  tosca.nodes.nfv.VNF:
+    derived_from: tosca.nodes.Root
+    properties:
+      id:
+        type: string
+        description: ID of this VNF
+        required: true
+        constraints:
+          - min_length: 1
+      vendor:
+        type: string
+        description: name of the vendor who generate this VNF
+        required: true
+      version:
+         type: version
+         description: version of the software for this VNF
+         required: true
+    requirements:
+      - virtualLink:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+
+  tosca.nodes.nfv.VDU:
+    derived_from: tosca.nodes.Root
+    requirements:
+      - host:
+          capability: tosca.capabilities.Container
+          node: tosca.nodes.Compute
+          relationship: tosca.relationships.HostedOn
+    capabilities:
+      nfv_compute:
+        type: tosca.capabilities.Compute.Container.Architecture
+      virtualbinding:
+        type: tosca.capabilities.nfv.VirtualBindable
+      monitoring_parameter:
+        type: tosca.capabilities.nfv.Metric
+
+  tosca.nodes.nfv.CP:
+    derived_from: tosca.nodes.network.Port
+    properties:
+      type:
+        type: string
+        description: >
+          This may be, for example, a virtual port, a virtual NIC address, a physical port,
+          a physical NIC address or the endpoint of an IP VPN enabling network connectivity.
+        required: false
+      anti_spoof_protection:
+        type: boolean
+        description: >
+          Indicates of whether anti-spoofing rule need to be enabled for this vNIC. This is applicable only
+          when CP type is virtual NIC (vPort).
+        required: false
+    attributes:
+      address:
+        type: string
+        description: The actual virtual NIC address that is been assigned when instantiating the connection point.
+    requirements:
+      - virtualLink:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+      - virtualbinding:
+          capability: tosca.capabilities.nfv.VirtualBindable
+          node: tosca.nodes.nfv.VDU
+          relationship: tosca.relationships.nfv.VirtualBindsTo
+
+  tosca.nodes.nfv.VL:
+    derived_from: tosca.nodes.network.Network
+    properties:
+      vendor:
+        type: string
+        description: name of the vendor who generate this VL
+        required: false
+    capabilities:
+      virtual_linkable:
+        type: tosca.capabilities.nfv.VirtualLinkable
+
+  tosca.nodes.nfv.VL.ELine:
+    derived_from: tosca.nodes.nfv.VL
+    #capabilities:
+    #  virtual_linkable:
+    #    type: tosca.capabilities.nfv.VirtualLinkable
+    #    occurrences: [ 2, 2 ]
+
+  tosca.nodes.nfv.VL.ELAN:
+    derived_from: tosca.nodes.nfv.VL
+
+  tosca.nodes.nfv.VL.ETree:
+    derived_from: tosca.nodes.nfv.VL
+
+  tosca.nodes.nfv.FP:
+    derived_from: tosca.nodes.Root
+    properties:
+      policy:
+        type: string
+        required: false
+        description: A policy or rule to apply to the NFP
+    requirements:
+      - forwarder:
+          capability: tosca.capabilities.nfv.Forwarder
+          node: tosca.nodes.nfv.CP
+          relationship: tosca.relationships.nfv.ForwardsTo
+
+capability_types:
+  tosca.capabilities.Compute.Container.Architecture:
+    derived_from: tosca.capabilities.Container
+    properties:
+      mem_page_size:
+        type: string
+        description: >
+          Describe page size of the VM. small page size is typically 4KB, large page size is typically 2MB,
+          any page size maps to system default,custom is specific MB value for TLB size.
+        required: false
+        default: any
+        constraints:
+          - valid_values: [ small, large, any, custom ]
+      cpu_allocation:
+        type: tosca.datatypes.compute.Container.Architecture.CPUAllocation
+        description: >
+          Describes CPU allocation requirements like dedicated CPUs (cpu pinning), socket count, thread count, etc.
+        required: false
+      numa_nodes:
+        type: map
+        required: false
+        description: >
+          Asymmetric allocation of vCPU and Memory across the specific NUMA nodes (CPU sockets and memory banks).
+          NOTE: symmetric numa_node_count should not be specified.
+        entry_schema:
+          type: tosca.datatypes.compute.Container.Architecture.NUMA
+      numa_node_count:
+        type: integer
+        description: >
+          Specifies the symmetric count of NUMA nodes to expose to the VM.
+          vCPU and Memory equally split across this number of NUMA.
+          NOTE: the map of numa_nodes should not be specified.
+        required: false
+
+  tosca.capabilities.nfv.VirtualLinkable:
+    derived_from: tosca.capabilities.Root
+
+  tosca.capabilities.nfv.VirtualBindable:
+    derived_from: tosca.capabilities.Root
+
+  tosca.capabilities.nfv.Metric:
+    derived_from: tosca.capabilities.Endpoint
+
+  tosca.capabilities.nfv.Forwarder:
+    derived_from: tosca.capabilities.Root
+
+relationship_types:
+  tosca.relationships.nfv.VirtualBindsTo:
+    derived_from: tosca.relationships.DependsOn
+    valid_target_types: [ tosca.capabilities.nfv.VirtualBindable ]
+
+  tosca.relationships.nfv.VirtualLinksTo:
+    derived_from: tosca.relationships.DependsOn
+    valid_target_types: [ tosca.capabilities.nfv.VirtualLinkable ]
+
+  tosca.relationships.nfv.Monitor:
+    derived_from: tosca.relationships.ConnectsTo
+    valid_target_types: [ tosca.capabilities.nfv.Metric ]
+
+  tosca.relationships.nfv.ForwardsTo:
+    derived_from: tosca.relationships.Root
+    valid_target_types: [ tosca.capabilities.nfv.Forwarder ]
+
+group_types:
+  tosca.groups.nfv.VNFFG:
+    derived_from: tosca.groups.Root
+    properties:
+      vendor:
+        type: string
+        required: true
+        description: name of the vendor who generate this VNFFG
+      version:
+        type: string
+        required: true
+        description: version of this VNFFG
+      number_of_endpoints:
+        type: integer
+        required: true
+        description: count of the external endpoints included in this VNFFG
+      dependent_virtual_link:
+        type: list
+        entry_schema:
+          type: string
+        required: true
+        description: Reference to a VLD used in this Forwarding Graph
+      connection_point:
+        type: list
+        entry_schema:
+          type: string
+        required: true
+        description: Reference to Connection Points forming the VNFFG
+      constituent_vnfs:
+        type: list
+        entry_schema:
+          type: string
+        required: true
+        description: Reference to a list of VNFD used in this VNF Forwarding Graph
+    members: [ tosca.nodes.nfv.FP ]

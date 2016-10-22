@@ -1,0 +1,106 @@
+tosca_definitions_version: tosca_simple_yaml_1_0
+
+description: Definitions file for all extend type of zte for tosca-nfv.
+
+node_types:
+  tosca.nodes.nfv.ext.VNF.Vbras:
+    derived_from: tosca.nodes.nfv.ext.VNF
+    requirements:
+      - virtualLink_aaa_dnet_cp:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+      - virtualLink_pp_dnet_cp:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+      - virtualLink_lb_dnet_cp:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+      - virtualLink_mgr_dnet_cp:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+      - virtualLink_aaa_mnet_cp:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+      - virtualLink_pp_mnet_cp:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+      - virtualLink_lb_mnet_cp:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+      - virtualLink_mgr_mnet_cp:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+  
+  tosca.nodes.nfv.ext.VNF.FireWall:
+    derived_from: tosca.nodes.nfv.ext.VNF
+    requirements:
+      - virtualLink_control_cp:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+      - virtualLink_data_cp:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+    capabilities:
+      forwarder_data_cp: 
+        type: tosca.capabilities.nfv.Forwarder
+  
+  tosca.nodes.nfv.ext.VNF.NAT:
+    derived_from: tosca.nodes.nfv.ext.VNF
+    requirements:
+      - virtualLink_control_cp:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+      - virtualLink_data_cp:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+    capabilities:
+      forwarder_data_cp:
+        type: tosca.capabilities.nfv.Forwarder
+          
+  tosca.nodes.nfv.ext.VNF.SFC:
+    derived_from: tosca.nodes.nfv.ext.VNF
+    requirements:
+      - virtualLink_sfc_control_cp:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+      - virtualLink_sfc_extcontrol_cp:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+      - virtualLink_sff_control_cp:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+      - virtualLink_sff_extdata_cp:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+      - virtualLink_sff_data_cp:
+          capability: tosca.capabilities.nfv.VirtualLinkable
+          node: tosca.nodes.nfv.VL
+          relationship: tosca.relationships.nfv.VirtualLinksTo
+    capabilities:
+      forwarder_sff_extdata_cp:
+        type: tosca.capabilities.nfv.Forwarder
+      forwarder_sff_data_cp:
+        type: tosca.capabilities.nfv.Forwarder
+  
+  tosca.nodes.nfv.ext.NS.Edge:
+    derived_from: tosca.nodes.nfv.ext.NS
+
+  tosca.nodes.nfv.ext.NS.Core:
+    derived_from: tosca.nodes.nfv.ext.NS
+  

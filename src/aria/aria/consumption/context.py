@@ -45,7 +45,7 @@ class ConsumptionContext(object):
         thread_locals = threading.local()
         return getattr(thread_locals, 'aria_consumption_context', None)
     
-    def __init__(self):
+    def __init__(self, set_thread_local=True):
         self.args = []
         self.out = sys.stdout
         self.style = Style()
@@ -55,7 +55,8 @@ class ConsumptionContext(object):
         self.presentation = PresentationContext()
         self.modeling = ModelingContext()
         
-        self.set_thread_local()
+        if set_thread_local:
+            self.set_thread_local()
     
     def set_thread_local(self):
         """

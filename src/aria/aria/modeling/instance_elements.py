@@ -213,11 +213,11 @@ class Node(Element):
     def satisfy_requirements(self, context):
         node_template = context.modeling.model.node_templates.get(self.template_name)
         satisfied = True
-        for i in range(len(node_template.requirements)):
-            requirement = node_template.requirements[i]
+        for i in range(len(node_template.requirement_templates)):
+            requirement_template = node_template.requirement_templates[i]
             
             # Find target template
-            target_node_template, target_node_capability = requirement.find_target(context, node_template)
+            target_node_template, target_node_capability = requirement_template.find_target(context, node_template)
             if target_node_template is not None:
                 # Find target nodes
                 target_nodes = context.modeling.instance.find_nodes(target_node_template.name)
@@ -237,24 +237,24 @@ class Node(Element):
                         target_node = target_nodes[0]
                         
                     if target_node is not None:
-                        if requirement.relationship_template is not None:
-                            relationship = requirement.relationship_template.instantiate(context, self)
+                        if requirement_template.relationship_template is not None:
+                            relationship = requirement_template.relationship_template.instantiate(context, self)
                         else:
                             relationship = Relationship()
-                        relationship.name = requirement.name
+                        relationship.name = requirement_template.name
                         relationship.source_requirement_index = i
                         relationship.target_node_id = target_node.id
                         if target_capability is not None:
                             relationship.target_capability_name = target_capability.name
                         self.relationships.append(relationship)
                     else:
-                        context.validation.report('requirement "%s" of node "%s" targets node template "%s" but its instantiated nodes do not have enough capacity' % (requirement.name, self.id, target_node_template.name), level=Issue.BETWEEN_INSTANCES)
+                        context.validation.report('requirement "%s" of node "%s" targets node template "%s" but its instantiated nodes do not have enough capacity' % (requirement_template.name, self.id, target_node_template.name), level=Issue.BETWEEN_INSTANCES)
                         satisfied = False
                 else:
-                    context.validation.report('requirement "%s" of node "%s" targets node template "%s" but it has no instantiated nodes' % (requirement.name, self.id, target_node_template.name), level=Issue.BETWEEN_INSTANCES)
+                    context.validation.report('requirement "%s" of node "%s" targets node template "%s" but it has no instantiated nodes' % (requirement_template.name, self.id, target_node_template.name), level=Issue.BETWEEN_INSTANCES)
                     satisfied = False
             else:
-                context.validation.report('requirement "%s" of node "%s" has no target node template' % (requirement.name, self.id), level=Issue.BETWEEN_INSTANCES)
+                context.validation.report('requirement "%s" of node "%s" has no target node template' % (requirement_template.name, self.id), level=Issue.BETWEEN_INSTANCES)
                 satisfied = False
         return satisfied
 

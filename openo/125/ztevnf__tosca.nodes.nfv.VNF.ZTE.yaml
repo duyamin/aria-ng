@@ -1,0 +1,41 @@
+imports: 
+- paas__tosca.capabilities.Sessionable.Pub.yaml
+node_types: 
+  tosca.nodes.nfv.VNF.ZTE: 
+    attributes: 
+      vnfType: 
+        type: string
+      vnfdVersion: 
+        type: string
+      vnfProvider: 
+        type: string
+      vnfExtendType: 
+        type: string
+      vnfdId: 
+        type: string
+      description: 
+        type: string
+      vnfdName: 
+        type: string
+      vnfVersion: 
+        type: string
+      productType: 
+        type: string
+      isShared: 
+        type: string
+    capabilities: 
+      Sessionable: 
+        type: tosca.capabilities.Sessionable.Pub
+    derived_from: tosca.nodes.Root
+    properties: 
+      SubscribersPerNfc: 
+        type: string
+      dcId: 
+        type: string
+      SessionsPerNfc: 
+        type: string
+    requirements: 
+    - Sessionable: 
+        capability: tosca.capabilities.Sessionable.Pub
+
+tosca_definitions_version: tosca_simple_yaml_1_0

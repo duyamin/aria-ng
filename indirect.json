@@ -1,0 +1,4 @@
+{
+ "uri": "http://localhost:8000/blueprints/tosca/node-cellar/node-cellar.yaml",
+ "inputs": {"openstack_credential": {"user": "username123"}}
+}

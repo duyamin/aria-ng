@@ -1,0 +1,92 @@
+#!/bin/bash
+set -e
+
+# Fixed
+#./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions.test_cyclic_dependency
+#./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions.test_instance_relationships_same_source_and_target
+#./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions.test_validate_agent_plugin_on_non_host_node
+#./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions.test_ambiguous_plugin_operation_mapping
+#./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions.test_properties_schema_invalid_values_for_types
+#./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions.test_no_version_field
+#./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions.test_no_version_field_in_main_blueprint_file
+#./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions.test_unsupported_version
+#./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions.test_script_mapping_illegal_script_path_override
+#./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions.test_script_mapping_missing_script_plugin
+#./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions.test_max_retries_version_validation
+#./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions.test_retry_interval_version_validation
+#./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions.test_blueprint_description_version_validation
+#./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions.test_required_property_version_validation
+
+# Remaining
+#./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions.test_no_type_definition
+#./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions.test_top_level_relationships_import_same_name_relationship
+#./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions.test_node_set_non_existing_property
+#./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions.test_instance_relationship_more_than_one_contained_in
+
+./test cloudify/test_parser_logic_exceptions.py:TestParserLogicExceptions
+
+
+exit
+
+# Pass!
+#./test cloudify/test_parser_api.py
+#./test cloudify/test_plugins.py
+#./test cloudify/test_plugins_to_install.py
+
+
+
+exit
+
+./test cloudify/test_data_types.py:TestDataTypes.test_complex_nested_merging
+
+
+#./test cloudify/test_plugins.py
+#./test cloudify/test_plugins_to_install.py
+#./test cloudify/test_data_types.py
+
+exit
+
+#./test cloudify/test_scaling_policies_and_groups.py:TestScalingPoliciesAndGroups.test_scaling_policy_and_group_default_properties
+#./test cloudify/test_scaling_policies_and_groups.py:TestScalingPoliciesAndGroups.test_scaling_policy_and_group_empty_properties
+#./test cloudify/test_scaling_policies_and_groups.py:TestScalingPoliciesAndGroups.test_scaling_policy_and_group_max_instances
+#./test cloudify/test_scaling_policies_and_groups.py:TestScalingPoliciesAndGroups.test_scaling_policy_and_group_min_instances
+#./test cloudify/test_scaling_policies_and_groups.py:TestScalingPoliciesAndGroups.test_scaling_policy_and_group_unbounded_literal
+#./test cloudify/test_scaling_policies_and_groups.py:TestScalingPoliciesAndGroups.test_scaling_policy_and_groups_default_instances
+
+# TODO
+./test cloudify/test_scaling_policies_and_groups.py:TestScalingPoliciesAndGroupsValidation
+./test cloudify/test_scaling_policies_and_groups.py:TestNodeTemplateDefaultScalableProperties
+
+
+exit
+
+./test cloudify/test_plugins_to_install.py:NodePluginsToInstallTest.test_node_plugins_to_install_field_plugins_from_contained_nodes
+./test cloudify/test_plugins_to_install.py:NodePluginsToInstallTest.test_node_plugins_to_install_field_from_relationship
+./test cloudify/test_plugins_to_install.py:DeploymentPluginsToInstallTest.test_one_central_overrides_host_plugin
+./test cloudify/test_plugins_to_install.py:DeploymentPluginsToInstallTest.test_two_plugins_on_one_node
+
+exit
+
+###./test cloudify/test_plugin.py:PluginsTest.test_plugin_with_missing_install_missing_source_and_package
+###./test cloudify/test_plugin.py:PluginsTest.test_plugin_with_install_true_missing_source_and_package
+
+exit
+
+# I fixed
+###./test cloudify/test_data_types.py:TestDataTypes.test_unknown_type
+###./test cloudify/test_data_types.py:TestDataTypes.test_unknown_type_in_datatype
+###./test cloudify/test_data_types.py:TestDataTypes.test_additional_fields_validation
+###./test cloudify/test_data_types.py:TestDataTypes.test_nested_validation
+###./test cloudify/test_data_types.py:TestDataTypes.test_nested_type_error
+###./test cloudify/test_data_types.py:TestDataTypes.test_infinite_list
+
+# TODO
+#./test cloudify/test_data_types.py:TestDataTypes.test_definitions_with_default_error
+
+./test cloudify/test_data_types.py:TestDataTypes.test_subtype_override_field_type
+./test cloudify/test_data_types.py:TestDataTypes.test_nested_merging
+./test cloudify/test_data_types.py:TestDataTypes.test_redefine_primitive
+./test cloudify/test_data_types.py:TestDataTypes.test_nested_type_error_in_default
+./test cloudify/test_data_types.py:TestDataTypes.test_complex_nested_merging
+./test cloudify/test_data_types.py:TestDataTypes.test_implicit_default_value
+./test cloudify/test_data_types.py:TestDataTypes.test_imports_merging

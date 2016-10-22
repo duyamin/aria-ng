@@ -1,0 +1,41 @@
+imports: 
+- ztevnf__tosca.nodes.nfv.VNF.ZTE.yaml
+node_types: 
+  tosca.nodes.nfv.VNF.ZTE.bm: 
+    attributes: 
+      vnfType: 
+        type: string
+      vnfdVersion: 
+        type: string
+      vnfProvider: 
+        type: string
+      vnfExtendType: 
+        type: string
+      vnfdId: 
+        type: string
+      description: 
+        type: string
+      vnfdName: 
+        type: string
+      vnfVersion: 
+        type: string
+      productType: 
+        type: string
+      isShared: 
+        type: string
+    derived_from: tosca.nodes.nfv.VNF.ZTE
+    properties: 
+      SubscribersPerNfc: 
+        type: string
+      dcId: 
+        type: string
+      SessionsPerNfc: 
+        type: string
+    capabilities: 
+      bmbmtest12_Pub_ambm: 
+        type: tosca.capabilities.Sessionable.Pub
+    requirements: 
+    - bmbmtest12_Sub_ambm: 
+        capability: tosca.capabilities.Sessionable.Pub
+
+tosca_definitions_version: tosca_simple_yaml_1_0

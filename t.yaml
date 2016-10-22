@@ -1,0 +1,47 @@
+tosca_definitions_version: cloudify_dsl_1_0
+
+
+node_types:
+  test_type:
+    properties:
+      key:
+        default: "default"
+
+node_templates:
+  test_node:
+    type: test_type
+    properties:
+      key: "val"
+
+  test_node2:
+    type: test_type
+    relationships:
+      -   type: relationship
+          target: test_node
+          source_interfaces:
+            test_interface3:
+              install: test_plugin.install
+          target_interfaces:
+            test_interface1:
+              install: test_plugin.install
+relationships:
+  relationship:
+    derived_from: parent_relationship
+    source_interfaces:
+      test_interface2:
+        install:
+          implementation: test_plugin.install
+          inputs: {}
+        terminate:
+          implementation: test_plugin.terminate
+          inputs: {}
+  parent_relationship:
+    target_interfaces:
+      test_interface3:
+        install: {}
+plugins:
+  test_plugin:
+    executor: central_deployment_agent
+    source: dummy
+
+

@@ -40,6 +40,5 @@ class DefaultLoaderSource(LoaderSource):
             return UriTextLoader(context, location, origin_location)
         elif isinstance(location, LiteralLocation):
             return LiteralLoader(location)
-        raise LoaderNotFoundError('location: %s' % location)
             
         return super(DefaultLoaderSource, self).get_loader(context, location, origin_location)
