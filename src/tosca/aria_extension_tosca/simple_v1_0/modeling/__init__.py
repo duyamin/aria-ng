@@ -84,23 +84,40 @@ def create_node_template(context, node_template):
     if node_template.description:
         r.description = node_template.description.value
 
+<<<<<<< HEAD
     create_properties_from_assignments_from_values(r.properties, node_template._get_property_values(context))
     create_interface_templates(context, r.interface_templates, node_template._get_interfaces(context))
+=======
+    create_property_value_models(r.properties, node_template._get_property_values(context))
+    create_interface_models(context, r.interface_templates, node_template._get_interfaces(context))
+>>>>>>> 641b02dfabc7844be521d8c371e20cc032fee094
 
     artifacts = node_template._get_artifacts(context)
     if artifacts:
         for artifact_name, artifact in artifacts.iteritems():
+<<<<<<< HEAD
             r.artifact_templates[artifact_name] = create_artifact_template(context, artifact)
+=======
+            r.artifact_templates[artifact_name] = create_artifact_model(context, artifact)
+>>>>>>> 641b02dfabc7844be521d8c371e20cc032fee094
 
     requirements = node_template._get_requirements(context)
     if requirements:
         for _, requirement in requirements:
+<<<<<<< HEAD
             r.requirement_templates.append(create_requirement_template(context, requirement))
+=======
+            r.requirement_templates.append(create_requirement_model(context, requirement))
+>>>>>>> 641b02dfabc7844be521d8c371e20cc032fee094
 
     capabilities = node_template._get_capabilities(context)
     if capabilities:
         for capability_name, capability in capabilities.iteritems():
+<<<<<<< HEAD
             r.capability_templates[capability_name] = create_capability_template(context, capability)
+=======
+            r.capability_templates[capability_name] = create_capability_model(context, capability)
+>>>>>>> 641b02dfabc7844be521d8c371e20cc032fee094
 
     create_node_filter_constraint_lambdas(context, node_template.node_filter, r.target_node_template_constraints)
     
@@ -122,7 +139,11 @@ def create_interface_template(context, interface):
     operations = interface.operations
     if operations:
         for operation_name, operation in operations.iteritems():
+<<<<<<< HEAD
             r.operation_templates[operation_name] = create_operation_template(context, operation)
+=======
+            r.operation_templates[operation_name] = create_operation_model(context, operation)
+>>>>>>> 641b02dfabc7844be521d8c371e20cc032fee094
     
     return r if r.operation_templates else None
 
@@ -210,8 +231,13 @@ def create_relationship_template(context, relationship):
         if relationship_template.description:
             r.description = relationship_template.description.value
 
+<<<<<<< HEAD
     create_properties_from_assignments(r.properties, relationship.properties)
     create_interface_templates(context, r.source_interface_templates, relationship.interfaces)
+=======
+    create_property_models(r.properties, relationship.properties)
+    create_interface_models(context, r.source_interface_templates, relationship.interfaces)
+>>>>>>> 641b02dfabc7844be521d8c371e20cc032fee094
     
     return r
 
@@ -243,8 +269,13 @@ def create_group_template(context, group):
     if group.description:
         r.description = group.description.value
 
+<<<<<<< HEAD
     create_properties_from_assignments_from_values(r.properties, group._get_property_values(context))
     create_interface_templates(context, r.interface_templates, group._get_interfaces(context))
+=======
+    create_property_value_models(r.properties, group._get_property_values(context))
+    create_interface_models(context, r.interface_templates, group._get_interfaces(context))
+>>>>>>> 641b02dfabc7844be521d8c371e20cc032fee094
     
     members = group.members
     if members:
