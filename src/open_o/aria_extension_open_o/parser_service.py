@@ -17,7 +17,7 @@
 from aria import install_aria_extensions
 from aria.tools.rest import validate_get, validate_post, model_get, model_post, instance_get, instance_post, indirect_validate_post, indirect_instance_post, indirect_model_post
 from aria.tools.utils import CommonArgumentParser
-from aria.utils import RestServer, JsonAsRawEncoder, print_exception
+from aria.utils import RestServer, JsonAsRawEncoder, print_exception, start_daemon, stop_daemon, status_daemon
 from collections import OrderedDict
 import os
 
@@ -44,8 +44,10 @@ ROUTES = OrderedDict((
 class ArgumentParser(CommonArgumentParser):
     def __init__(self):
         super(ArgumentParser, self).__init__(description='Open-O Common TOSCA Parser Service', prog='open-o-common-tosca-parser-service')
+        self.add_argument('command', nargs='?', help='daemon command: start, stop, restart, or status')
         self.add_argument('--port', type=int, default=DEFAULT_PORT, help='HTTP port')
         self.add_argument('--root', help='web root directory')
+        self.add_argument('--rundir', help='pid and log files directory for daemons (defaults to user home)')
 
 def main():
     try:
@@ -60,7 +62,23 @@ def main():
         rest_server.static_root = arguments.root or os.path.join(os.path.dirname(__file__), 'web')
         rest_server.json_encoder = JsonAsRawEncoder(ensure_ascii=False, separators=(',', ':'))
         
-        rest_server.start()
+        if arguments.command:
+            rundir = os.path.abspath(arguments.rundir or os.path.expanduser('~'))
+            pidfile_path = os.path.join(rundir, '.open-o-common-tosca-parser-service.pid')
+            if arguments.command == 'start':
+                log_path = os.path.join(rundir, 'open-o-common-tosca-parser-service.log')
+                context = start_daemon(pidfile_path, log_path)
+                if context is not None:
+                    with context:
+                        rest_server.start(daemon=True)
+            elif arguments.command == 'stop':
+                stop_daemon(pidfile_path)
+            elif arguments.command == 'status':
+                status_daemon(pidfile_path)
+            else:
+                print('Unknown command: %s' % arguments.command)
+        else:
+            rest_server.start()
 
     except Exception as e:
         print_exception(e)

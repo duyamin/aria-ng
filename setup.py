@@ -92,4 +92,5 @@ setup(
         'Jinja2==2.8',
         'requests==2.11.1',
         'CacheControl[filecache]==0.11.6',
-        'shortuuid==0.4.3'])
+        'shortuuid==0.4.3',
+        'python-daemon==2.1.1'])
