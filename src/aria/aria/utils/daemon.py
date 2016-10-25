@@ -16,9 +16,11 @@
 
 from __future__ import absolute_import # so we can import standard 'daemon'
 
+from .console import puts, colored
 from daemon import DaemonContext
 from daemon.pidfile import TimeoutPIDLockFile
 from daemon.runner import is_pidfile_stale
+from time import sleep
 import os, signal
 
 def start_daemon(pidfile_path, log_path, acquire_timeout=5):
@@ -28,29 +30,30 @@ def start_daemon(pidfile_path, log_path, acquire_timeout=5):
     if pidfile.is_locked():
         pid = pidfile.read_pid()
         if pid is not None:
-            print 'Already running at pid: %d' % pid
+            puts(colored.red('Already running at pid: %d' % pid))
         else: 
-            print 'Already running'
+            puts(colored.red('Already running'))
         return None
     logfile = open(log_path, 'w+t')
-    print 'Starting'
+    puts(colored.blue('Starting'))
     return DaemonContext(pidfile=pidfile, stdout=logfile, stderr=logfile)
 
 def stop_daemon(pidfile_path, acquire_timeout=5):
-    pid = get_daemon_pid(pidfile_path, acquire_timeout)
+    pidfile = TimeoutPIDLockFile(pidfile_path, acquire_timeout=acquire_timeout)
+    pid = pidfile.read_pid()
     if pid is not None:
-        print 'Stopping pid: %d' % pid
+        puts(colored.blue('Stopping pid: %d' % pid))
         os.kill(pid, signal.SIGTERM)
+        while pidfile.is_locked():
+            puts(colored.cyan('Waiting...'))
+            sleep(0.1)
+        puts(colored.blue('Stopped'))
     else:
-        print 'Not running'
+        puts(colored.red('Not running'))
 
 def status_daemon(pidfile_path, acquire_timeout=5):
-    pid = get_daemon_pid(pidfile_path, acquire_timeout)
+    pid = TimeoutPIDLockFile(pidfile_path, acquire_timeout=acquire_timeout).read_pid()
     if pid is not None:
-        print 'Running at pid: %d' % pid
+        puts(colored.blue('Running at pid: %d' % pid))
     else:
-        print 'Not running'
-
-def get_daemon_pid(pidfile_path, acquire_timeout=5):
-    pidfile = TimeoutPIDLockFile(pidfile_path, acquire_timeout=acquire_timeout)
-    return pidfile.read_pid()
+        puts(colored.blue('Not running'))

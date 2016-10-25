@@ -26,7 +26,7 @@ from .argparse import ArgumentParser
 from .console import puts, colored, indent
 from .rest_server import RestServer, RestRequestHandler
 from .rest_client import call_rest
-from .daemon import start_daemon, stop_daemon, status_daemon, get_daemon_pid
+from .daemon import start_daemon, stop_daemon, status_daemon
 
 __all__ = (
     'OpenClose',
@@ -73,5 +73,4 @@ __all__ = (
     'call_rest',
     'start_daemon',
     'stop_daemon',
-    'status_daemon',
-    'get_daemon_pid')
+    'status_daemon')

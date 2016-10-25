@@ -17,7 +17,7 @@
 from aria import install_aria_extensions
 from aria.tools.rest import validate_get, validate_post, model_get, model_post, instance_get, instance_post, indirect_validate_post, indirect_instance_post, indirect_model_post
 from aria.tools.utils import CommonArgumentParser
-from aria.utils import RestServer, JsonAsRawEncoder, print_exception, start_daemon, stop_daemon, status_daemon
+from aria.utils import RestServer, JsonAsRawEncoder, print_exception, start_daemon, stop_daemon, status_daemon, puts, colored
 from collections import OrderedDict
 import os
 
@@ -64,19 +64,26 @@ def main():
         
         if arguments.command:
             rundir = os.path.abspath(arguments.rundir or os.path.expanduser('~'))
-            pidfile_path = os.path.join(rundir, '.open-o-common-tosca-parser-service.pid')
-            if arguments.command == 'start':
+            pidfile_path = os.path.join(rundir, 'open-o-common-tosca-parser-service.pid')
+            
+            def start():
                 log_path = os.path.join(rundir, 'open-o-common-tosca-parser-service.log')
                 context = start_daemon(pidfile_path, log_path)
                 if context is not None:
                     with context:
                         rest_server.start(daemon=True)
+            
+            if arguments.command == 'start':
+                start()
             elif arguments.command == 'stop':
                 stop_daemon(pidfile_path)
+            elif arguments.command == 'restart':
+                stop_daemon(pidfile_path)
+                start()
             elif arguments.command == 'status':
                 status_daemon(pidfile_path)
             else:
-                print('Unknown command: %s' % arguments.command)
+                puts(colored.red('Unknown command: %s' % arguments.command))
         else:
             rest_server.start()
 

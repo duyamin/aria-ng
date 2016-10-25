@@ -16,7 +16,7 @@
 
 from .. import install_aria_extensions
 from ..consumption import ConsumerChain, Read, Validate, Model, Inputs, Instance
-from ..utils import RestServer, JsonAsRawEncoder, print_exception, start_daemon, stop_daemon, status_daemon
+from ..utils import RestServer, JsonAsRawEncoder, print_exception, start_daemon, stop_daemon, status_daemon, puts, colored
 from ..loading import LiteralLocation
 from .utils import CommonArgumentParser, create_context_from_namespace
 from collections import OrderedDict
@@ -196,19 +196,26 @@ def main():
         
         if arguments.command:
             rundir = os.path.abspath(arguments.rundir or os.path.expanduser('~'))
-            pidfile_path = os.path.join(rundir, '.aria-rest.pid')
-            if arguments.command == 'start':
+            pidfile_path = os.path.join(rundir, 'aria-rest.pid')
+            
+            def start():
                 log_path = os.path.join(rundir, 'aria-rest.log')
                 context = start_daemon(pidfile_path, log_path)
                 if context is not None:
                     with context:
                         rest_server.start(daemon=True)
+            
+            if arguments.command == 'start':
+                start()
             elif arguments.command == 'stop':
                 stop_daemon(pidfile_path)
+            elif arguments.command == 'restart':
+                stop_daemon(pidfile_path)
+                start()
             elif arguments.command == 'status':
                 status_daemon(pidfile_path)
             else:
-                print('Unknown command: %s' % arguments.command)
+                puts(colored.red('Unknown command: %s' % arguments.command))
         else:
             rest_server.start()
 
