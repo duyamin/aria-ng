@@ -13,9 +13,9 @@
 #    * See the License for the specific language governing permissions and
 #    * limitations under the License.
 
-from dsl_parser.framework import parser
-from dsl_parser.framework.elements import Element
-from dsl_parser.elements import data_types, version
+# from dsl_parser.framework import parser
+# from dsl_parser.framework.elements import Element
+# from dsl_parser.elements import data_types, version
 
 
 def validate(obj, element_cls):
