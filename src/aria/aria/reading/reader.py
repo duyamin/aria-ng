@@ -16,7 +16,7 @@
 
 from .. import UnimplementedFunctionalityError
 from ..utils import OpenClose, full_type_name
-from .exceptions import ReaderError, AlreadyReadError
+from .exceptions import ReaderException, AlreadyReadException
 
 class Reader(object):
     """
@@ -36,12 +36,12 @@ class Reader(object):
                 with self.context._locations:
                     for location in self.context._locations:
                         if location.is_equivalent(loader.location):
-                            raise AlreadyReadError('already read: %s' % loader.location)
+                            raise AlreadyReadException('already read: %s' % loader.location)
                     self.context._locations.append(loader.location)
             
             data = loader.load()
             if data is None:
-                raise ReaderError('loader did not provide data: %s' % loader)
+                raise ReaderException('loader did not provide data: %s' % loader)
             return data
     
     def read(self):

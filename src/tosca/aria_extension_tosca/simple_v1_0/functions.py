@@ -16,7 +16,7 @@
 
 from aria import dsl_specification, InvalidValueError
 from aria.validation import Issue
-from aria.modeling import Function, CannotEvaluateFunction
+from aria.modeling import Function, CannotEvaluateFunctionException
 from aria.utils import FrozenList, as_raw, safe_repr
 from cStringIO import StringIO
 
@@ -142,13 +142,13 @@ class GetProperty(Function):
         req_or_cap_name = self.nested_property_name_or_index[0]
         
         for modelable_entity in modelable_entities:
-            #if (modelable_entity.requirements) and (req_or_cap_name in modelable_entity.requirements):
-            #    # First argument refers to a requirement
-            #    properties = modelable_entity.requirements[req_or_cap_name].properties
-            #    nested_property_name_or_index = self.nested_property_name_or_index[1:]
-            if (modelable_entity.capabilities) and (req_or_cap_name in modelable_entity.capabilities):
+            if hasattr(modelable_entity, 'requirement_templates') and modelable_entity.requirement_templates and (req_or_cap_name in modelable_entity.requirement_templates):
+                # First argument refers to a requirement
+                properties = modelable_entity.requirement_templates[req_or_cap_name].properties
+                nested_property_name_or_index = self.nested_property_name_or_index[1:]
+            elif hasattr(modelable_entity, 'capability_templates') and modelable_entity.capability_templates and (req_or_cap_name in modelable_entity.capability_templates):
                 # First argument refers to a capability
-                properties = modelable_entity.capabilities[req_or_cap_name].properties
+                properties = modelable_entity.capability_templates[req_or_cap_name].properties
                 nested_property_name_or_index = self.nested_property_name_or_index[1:]
             else:
                 properties = modelable_entity.properties
@@ -194,7 +194,7 @@ class GetAttribute(Function):
         return {'get_attribute': [self.modelable_entity_name] + self.nested_property_name_or_index}
 
     def _evaluate(self, context, container):
-        raise CannotEvaluateFunction()
+        raise CannotEvaluateFunctionException()
 
 #
 # Operation

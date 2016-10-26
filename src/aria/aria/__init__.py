@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from .exceptions import AriaError, UnimplementedFunctionalityError, InvalidValueError
+from .exceptions import AriaException, UnimplementedFunctionalityError, InvalidValueError
 from .specification import DSL_SPECIFICATION, DSL_SPECIFICATION_PACKAGES, dsl_specification, iter_spec
 import sys, pkgutil
 
@@ -50,7 +50,7 @@ __all__ = (
     'MODULES',
     'VERSION',
     'install_aria_extensions',
-    'AriaError',
+    'AriaException',
     'UnimplementedFunctionalityError',
     'InvalidValueError',
     'DSL_SPECIFICATION',

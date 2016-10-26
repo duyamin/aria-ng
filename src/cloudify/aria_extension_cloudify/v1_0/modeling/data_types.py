@@ -15,6 +15,7 @@
 #
 
 from ..functions import get_function
+from aria.presentation import validate_primitive
 from aria.validation import Issue
 from aria.utils import import_fullname, deepcopy_with_locators, full_type_name, safe_repr
 
@@ -130,14 +131,14 @@ def coerce_to_primitive(context, presentation, primitive_type, value, aspect=Non
 
     try:
         # Coerce
-        value = primitive_type(value)
+        value = validate_primitive(value, primitive_type, context.validation.allow_primitive_coersion)
     except ValueError as e:
         report_issue_for_bad_format(context, presentation, primitive_type, value, aspect, e)
         value = None
     except TypeError as e:
         report_issue_for_bad_format(context, presentation, primitive_type, value, aspect, e)
         value = None
-    
+                
     return value
 
 def get_container_data_type(presentation):

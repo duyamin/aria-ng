@@ -17,13 +17,13 @@
 from .validation import Issue
 import sys
 
-class AriaError(Exception):
+class AriaException(Exception):
     """
-    Base class for ARIA errors.
+    Base class for ARIA exceptions.
     """
     
     def __init__(self, message=None, cause=None, cause_tb=None):
-        super(AriaError, self).__init__(message)
+        super(AriaException, self).__init__(message)
         self.cause = cause
         if cause_tb is None:
             _, e, tb = sys.exc_info()
@@ -32,12 +32,12 @@ class AriaError(Exception):
                 cause_tb = tb
         self.cause_tb = cause_tb
 
-class UnimplementedFunctionalityError(AriaError):
+class UnimplementedFunctionalityError(AriaException):
     """
     ARIA error: functionality is unimplemented.
     """
 
-class InvalidValueError(AriaError):
+class InvalidValueError(AriaException):
     """
     ARIA error: value is invalid.
     """

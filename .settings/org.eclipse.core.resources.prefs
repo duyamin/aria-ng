@@ -1,6 +1,12 @@
 eclipse.preferences.version=1
 encoding//env/lib/python2.7/site-packages/clint/textui/colored.py=utf-8
 encoding//env/lib/python2.7/site-packages/clint/textui/core.py=utf-8
+encoding//env/lib/python2.7/site-packages/daemon/__init__.py=utf-8
+encoding//env/lib/python2.7/site-packages/daemon/daemon.py=utf-8
+encoding//env/lib/python2.7/site-packages/daemon/pidfile.py=utf-8
+encoding//env/lib/python2.7/site-packages/daemon/runner.py=utf-8
+encoding//env/lib/python2.7/site-packages/lockfile/__init__.py=utf-8
+encoding//env/lib/python2.7/site-packages/lockfile/pidlockfile.py=utf-8
 encoding//env/lib/python2.7/site-packages/requests/models.py=utf-8
 encoding//env/lib/python2.7/site-packages/requests/sessions.py=utf-8
 encoding//env/lib/python2.7/site-packages/requests/utils.py=utf-8

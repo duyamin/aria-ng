@@ -14,9 +14,9 @@
 # under the License.
 #
 
-from .. import AriaError
+from .. import AriaException
 
-class CannotEvaluateFunction(AriaError):
+class CannotEvaluateFunctionException(AriaException):
     """
-    ARIA could not evaluate the function at this time.
+    ARIA modeling exception: cannot evaluate the function at this time.
     """

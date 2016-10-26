@@ -15,7 +15,7 @@
 #
 
 from .loader import Loader
-from .exceptions import LoaderError, DocumentNotFoundError
+from .exceptions import LoaderException, DocumentNotFoundException
 from requests import Session
 from requests.exceptions import ConnectionError
 from cachecontrol import CacheControl
@@ -26,9 +26,9 @@ SESSION_CACHE_PATH = '/tmp'
 
 class RequestLoader(Loader):
     """
-    Base class for ARIA URI loaders.
+    Base class for ARIA request-based loaders.
     
-    Extracts a document from a URI.
+    Extracts a document from a URI by performing a request.
     
     Note that the "file:" schema is not supported: :class:`FileTextLoader` should
     be used instead.
@@ -48,21 +48,21 @@ class RequestLoader(Loader):
         try:
             self._response = SESSION.get(self.uri, headers=self.headers)
         except ConnectionError as e:
-            raise LoaderError('request connection error: "%s"' % self.uri, cause=e)
+            raise LoaderException('request connection error: "%s"' % self.uri, cause=e)
         except Exception as e:
-            raise LoaderError('request error: "%s"' % self.uri, cause=e)
+            raise LoaderException('request error: "%s"' % self.uri, cause=e)
 
         status = self._response.status_code
         if status == 404:
             self._response = None
-            raise DocumentNotFoundError('document not found: "%s"' % self.uri)
+            raise DocumentNotFoundException('document not found: "%s"' % self.uri)
         elif status != 200:
             self._response = None
-            raise LoaderError('request error %d: "%s"' % (status, self.uri))
+            raise LoaderException('request error %d: "%s"' % (status, self.uri))
 
 class RequestTextLoader(RequestLoader):
     """
-    ARIA URI text loader.
+    ARIA request-based text loader.
     """
 
     def load(self):
@@ -72,5 +72,5 @@ class RequestTextLoader(RequestLoader):
                     self._response.encoding = 'utf8'
                 return self._response.text
             except Exception as e:
-                raise LoaderError('request error: %s' % self.uri, cause=e)
+                raise LoaderException('request error: %s' % self.uri, cause=e)
         return None

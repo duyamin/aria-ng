@@ -15,7 +15,7 @@
 #
 
 from .loader import Loader
-from .exceptions import LoaderError, DocumentNotFoundError
+from .exceptions import LoaderException, DocumentNotFoundException
 import codecs
 
 class FileTextLoader(Loader):
@@ -24,12 +24,6 @@ class FileTextLoader(Loader):
     
     Extracts a text document from a file. The default encoding is UTF-8, but other supported
     encoding can be specified instead.
-    
-    Supports a list of search paths that are tried in order if the file cannot be found.
-    They can be specified in the context, as well as globally in :code:`FILE_LOADER_SEARCH_PATHS`. 
-    
-    If :code:`origin_location` is provided, a base path will be extracted from it and prepended
-    to the search paths.
     """
 
     def __init__(self, context, path, encoding='utf-8'):
@@ -43,27 +37,27 @@ class FileTextLoader(Loader):
             self._file = codecs.open(self.path, mode='r', encoding=self.encoding, buffering=1)
         except IOError as e:
             if e.errno == 2:
-                raise DocumentNotFoundError('file not found: "%s"' % self.path, cause=e)
+                raise DocumentNotFoundException('file not found: "%s"' % self.path, cause=e)
             else:
-                raise LoaderError('file I/O error: "%s"' % self.path, cause=e)
+                raise LoaderException('file I/O error: "%s"' % self.path, cause=e)
         except Exception as e:
-            raise LoaderError('file error: "%s"' % self.path, cause=e)
+            raise LoaderException('file error: "%s"' % self.path, cause=e)
 
     def close(self):
         if self._file is not None:
             try:
                 self._file.close()
             except IOError as e:
-                raise LoaderError('file I/O error: "%s"' % self.path, cause=e)
+                raise LoaderException('file I/O error: "%s"' % self.path, cause=e)
             except Exception as e:
-                raise LoaderError('file error: "%s"' % self.path, cause=e)
+                raise LoaderException('file error: "%s"' % self.path, cause=e)
 
     def load(self):
         if self._file is not None:
             try:
                 return self._file.read()
             except IOError as e:
-                raise LoaderError('file I/O error: "%s"' % self.path, cause=e)
+                raise LoaderException('file I/O error: "%s"' % self.path, cause=e)
             except Exception as e:
-                raise LoaderError('file error %s' % self.path, cause=e)
+                raise LoaderException('file error %s' % self.path, cause=e)
         return None

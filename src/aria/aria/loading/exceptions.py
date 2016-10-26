@@ -14,19 +14,19 @@
 # under the License.
 #
 
-from .. import AriaError
+from .. import AriaException
 
-class LoaderError(AriaError):
+class LoaderException(AriaException):
     """
-    ARIA loader error.
+    ARIA loader exception.
     """
 
-class LoaderNotFoundError(LoaderError):
+class LoaderNotFoundError(LoaderException):
     """
     ARIA loader error: loader not found for source.
     """
 
-class DocumentNotFoundError(LoaderError):
+class DocumentNotFoundException(LoaderException):
     """
-    ARIA loader error: document not found.
+    ARIA loader exception: document not found.
     """

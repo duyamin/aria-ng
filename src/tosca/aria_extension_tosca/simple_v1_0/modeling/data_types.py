@@ -18,7 +18,7 @@ from ..functions import get_function
 from ..presentation.types import get_type_by_full_or_shorthand_name
 from aria import dsl_specification
 from aria.validation import Issue
-from aria.presentation import get_locator
+from aria.presentation import get_locator, validate_primitive
 from aria.utils import import_fullname, full_type_name, safe_repr
 from collections import OrderedDict
 import re
@@ -76,7 +76,7 @@ def coerce_data_type_value(context, presentation, data_type, entry_schema, const
                     definition_type = definition._get_type(context)
                     definition_entry_schema = definition.entry_schema
                     definition_constraints = definition._get_constraints(context)
-                    r[name] = coerce_value(context, presentation, definition_type, definition_entry_schema, definition_constraints, v)
+                    r[name] = coerce_value(context, presentation, definition_type, definition_entry_schema, definition_constraints, v, aspect)
                 else:
                     context.validation.report('assignment to undefined property "%s" in type "%s" in "%s"' % (name, data_type._fullname, presentation._fullname), locator=get_locator(v, value, presentation), level=Issue.BETWEEN_TYPES)
 
@@ -86,7 +86,7 @@ def coerce_data_type_value(context, presentation, data_type, entry_schema, const
                     definition_type = definition._get_type(context)
                     definition_entry_schema = definition.entry_schema
                     definition_constraints = definition._get_constraints(context)
-                    r[name] = coerce_value(context, presentation, definition_type, definition_entry_schema, definition_constraints, definition.default)
+                    r[name] = coerce_value(context, presentation, definition_type, definition_entry_schema, definition_constraints, definition.default, 'default')
     
                 if getattr(definition, 'required', False) and (r.get(name) is None):
                     context.validation.report('required property "%s" in type "%s" is not assigned a value in "%s"' % (name, data_type._fullname, presentation._fullname), locator=presentation._get_child_locator('definitions'), level=Issue.BETWEEN_TYPES)
@@ -126,6 +126,10 @@ def get_data_type(context, presentation, field_name, allow_none=False):
             return None
         else:
             return str
+
+    # Make sure not derived from self
+    if type_name == presentation._name:
+        return None
     
     # Avoid circular definitions
     container_data_type = get_container_data_type(presentation)
@@ -364,7 +368,7 @@ def coerce_to_primitive(context, presentation, primitive_type, constraints, valu
 
     try:
         # Coerce
-        value = primitive_type(value)
+        value = validate_primitive(value, primitive_type, context.validation.allow_primitive_coersion)
         
         # Check constraints
         apply_constraints_to_value(context, presentation, constraints, value)

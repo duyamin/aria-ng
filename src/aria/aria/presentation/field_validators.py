@@ -14,9 +14,8 @@
 # under the License.
 #
 
-from .utils import report_issue_for_unknown_type, report_issue_for_parent_is_self, report_issue_for_unknown_parent_type, report_issue_for_circular_type_hierarchy
+from .utils import parse_types_dict_names, report_issue_for_unknown_type, report_issue_for_parent_is_self, report_issue_for_unknown_parent_type, report_issue_for_circular_type_hierarchy
 from ..validation import Issue
-from types import FunctionType
 
 def type_validator(type_name, *types_dict_names):
     """
@@ -30,10 +29,10 @@ def type_validator(type_name, *types_dict_names):
     Can be used with the :func:`field_validator` decorator.
     """
 
-    types_dict_names, convert = _parse_types_dict_names(types_dict_names)
+    types_dict_names, convert = parse_types_dict_names(types_dict_names)
     
     def validator_fn(field, presentation, context):
-        field._validate(presentation, context)
+        field.default_validate(presentation, context)
 
         # Make sure type exists
         value = getattr(presentation, field.name)
@@ -62,10 +61,10 @@ def list_type_validator(type_name, *types_dict_names):
     Can be used with the :func:`field_validator` decorator.
     """
 
-    types_dict_names, convert = _parse_types_dict_names(types_dict_names)
+    types_dict_names, convert = parse_types_dict_names(types_dict_names)
 
     def validator_fn(field, presentation, context):
-        field._validate(presentation, context)
+        field.default_validate(presentation, context)
         
         # Make sure types exist
         values = getattr(presentation, field.name)
@@ -91,7 +90,7 @@ def list_length_validator(length):
     """
 
     def validator_fn(field, presentation, context):
-        field._validate(presentation, context)
+        field.default_validate(presentation, context)
         
         # Make sure list has exactly the length
         values = getattr(presentation, field.name)
@@ -105,6 +104,8 @@ def derived_from_validator(*types_dict_names):
     """
     Makes sure that the field refers to a valid parent type defined in the root presenter.
     
+    Checks that we do not derive from ourselves and that we do not cause a circular hierarchy.
+    
     The arguments are used to locate a nested field under
     :code:`service_template` under the root presenter. The first of these can optionally
     be a function, in which case it will be called to convert type names. This can be used
@@ -113,10 +114,10 @@ def derived_from_validator(*types_dict_names):
     Can be used with the :func:`field_validator` decorator.
     """
 
-    types_dict_names, convert = _parse_types_dict_names(types_dict_names)
+    types_dict_names, convert = parse_types_dict_names(types_dict_names)
 
     def validator_fn(field, presentation, context):
-        field._validate(presentation, context)
+        field.default_validate(presentation, context)
 
         value = getattr(presentation, field.name)
         if value is not None:
@@ -153,18 +154,3 @@ def derived_from_validator(*types_dict_names):
                     hierarchy.append(p._name)
 
     return validator_fn
-
-#
-# Utils
-#
-
-def _parse_types_dict_names(types_dict_names):
-    """
-    If the first element in the array is a function, extracts it out.
-    """
-    
-    convert = None
-    if isinstance(types_dict_names[0], FunctionType):
-        convert = types_dict_names[0]
-        types_dict_names = types_dict_names[1:]
-    return types_dict_names, convert

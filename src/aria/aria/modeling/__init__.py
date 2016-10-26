@@ -14,15 +14,15 @@
 # under the License.
 #
 
-from .exceptions import CannotEvaluateFunction
+from .exceptions import CannotEvaluateFunctionException
 from .context import IdType, ModelingContext
-from .shared_elements import Element, ModelElement, Function, Parameter, Metadata, Interface, Operation, Artifact, GroupPolicy, GroupPolicyTrigger
-from .instance_elements import ServiceInstance, Node, Capability, Relationship, Group, Policy, Mapping, Substitution
-from .model_elements import ServiceModel, NodeTemplate, Requirement, CapabilityTemplate, RelationshipTemplate, GroupTemplate, PolicyTemplate, MappingTemplate, SubstitutionTemplate
+from .elements import Element, ModelElement, Function, Parameter, Metadata
+from .instance_elements import ServiceInstance, Node, Capability, Relationship, Artifact, Group, Policy, GroupPolicy, GroupPolicyTrigger, Mapping, Substitution, Interface, Operation
+from .model_elements import ServiceModel, NodeTemplate, RequirementTemplate, CapabilityTemplate, RelationshipTemplate, ArtifactTemplate, GroupTemplate, PolicyTemplate, GroupPolicyTemplate, GroupPolicyTriggerTemplate, MappingTemplate, SubstitutionTemplate, InterfaceTemplate, OperationTemplate
 from .types import TypeHierarchy, Type, RelationshipType, PolicyType, PolicyTriggerType
 
 __all__ = (
-    'CannotEvaluateFunction',
+    'CannotEvaluateFunctionException',
     'IdType',
     'ModelingContext',
     'Element',
@@ -30,28 +30,33 @@ __all__ = (
     'Function',
     'Parameter',
     'Metadata',
-    'Interface',
-    'Operation',
-    'Artifact',
-    'GroupPolicy',
-    'GroupPolicyTrigger',
     'ServiceInstance',
     'Node',
     'Capability',
     'Relationship',
+    'Artifact',
     'Group',
     'Policy',
+    'GroupPolicy',
+    'GroupPolicyTrigger',
     'Mapping',
     'Substitution',
+    'Interface',
+    'Operation',
     'ServiceModel',
     'NodeTemplate',
-    'Requirement',
+    'RequirementTemplate',
     'CapabilityTemplate',
     'RelationshipTemplate',
+    'ArtifactTemplate',
     'GroupTemplate',
     'PolicyTemplate',
+    'GroupPolicyTemplate',
+    'GroupPolicyTriggerTemplate',
     'MappingTemplate',
     'SubstitutionTemplate',
+    'InterfaceTemplate',
+    'OperationTemplate',
     'TypeHierarchy',
     'Type',
     'RelationshipType',

@@ -16,11 +16,11 @@
 
 from __future__ import absolute_import # so we can import standard 'types'
 
-from .shared_elements import Element, ModelElement, Parameter, Interface, Operation, Artifact, GroupPolicy
-from .instance_elements import ServiceInstance, Node, Capability, Relationship, Group, Policy, Mapping, Substitution
-from .utils import validate_dict_values, validate_list_values, coerce_dict_values, coerce_list_values, instantiate_dict, dump_list_values, dump_dict_values, dump_properties, dump_interfaces
+from .elements import ModelElement, Parameter
+from .instance_elements import ServiceInstance, Node, Capability, Relationship, Artifact, Group, Policy, GroupPolicy, GroupPolicyTrigger, Mapping, Substitution, Interface, Operation
+from .utils import validate_dict_values, validate_list_values, coerce_dict_values, coerce_list_values, instantiate_dict, dump_list_values, dump_dict_values, dump_parameters, dump_interfaces
 from ..validation import Issue
-from ..utils import StrictList, StrictDict, puts, safe_repr, as_raw
+from ..utils import StrictList, StrictDict, puts, safe_repr, as_raw, as_raw_list, as_raw_dict, as_agnostic, deepcopy_with_locators
 from collections import OrderedDict
 from types import FunctionType
 
@@ -42,7 +42,7 @@ class ServiceModel(ModelElement):
     * :code:`substitution_template`: :class:`SubstituionTemplate`
     * :code:`inputs`: Dict of :class:`Parameter`
     * :code:`outputs`: Dict of :class:`Parameter`
-    * :code:`operations`: Dict of :class:`Operation`
+    * :code:`operation_templates`: Dict of :class:`Operation`
     """
     
     def __init__(self):
@@ -54,26 +54,26 @@ class ServiceModel(ModelElement):
         self.substitution_template = None
         self.inputs = StrictDict(key_class=basestring, value_class=Parameter)
         self.outputs = StrictDict(key_class=basestring, value_class=Parameter)
-        self.operations = StrictDict(key_class=basestring, value_class=Operation)
+        self.operation_templates = StrictDict(key_class=basestring, value_class=OperationTemplate)
 
     @property
     def as_raw(self):
         return OrderedDict((
             ('description', self.description),
-            ('metadata', as_raw(self.metadata) if self.metadata is not None else None),
-            ('node_templates', [as_raw(v) for v in self.node_templates.itervalues()]),
-            ('group_templates', [as_raw(v) for v in self.group_templates.itervalues()]),
-            ('policy_templates', [as_raw(v) for v in self.policy_templates.itervalues()]),
-            ('substitution_template', as_raw(self.substitution_template) if self.substitution_template is not None else None),
-            ('inputs', {k: as_raw(v) for k, v in self.inputs.iteritems()}),
-            ('outputs', {k: as_raw(v) for k, v in self.outputs.iteritems()}),
-            ('operations', [as_raw(v) for v in self.operations.itervalues()])))
+            ('metadata', as_raw(self.metadata)),
+            ('node_templates', as_raw_list(self.node_templates)),
+            ('group_templates', as_raw_list(self.group_templates)),
+            ('policy_templates', as_raw_list(self.policy_templates)),
+            ('substitution_template', as_raw(self.substitution_template)),
+            ('inputs', as_raw_dict(self.inputs)),
+            ('outputs', as_raw_dict(self.outputs)),
+            ('operation_templates', as_raw_list(self.operation_templates))))
 
     def instantiate(self, context, container):
         r = ServiceInstance()
         context.modeling.instance = r
         
-        r.description = self.description
+        r.description = deepcopy_with_locators(self.description)
         
         if self.metadata is not None:
             r.metadata = self.metadata.instantiate(context, container)
@@ -85,7 +85,7 @@ class ServiceModel(ModelElement):
 
         instantiate_dict(context, self, r.groups, self.group_templates)
         instantiate_dict(context, self, r.policies, self.policy_templates)
-        instantiate_dict(context, self, r.operations, self.operations)
+        instantiate_dict(context, self, r.operations, self.operation_templates)
         
         if self.substitution_template is not None:
             r.substitution = self.substitution_template.instantiate(context, container)
@@ -111,7 +111,7 @@ class ServiceModel(ModelElement):
             self.substitution_template.validate(context)
         validate_dict_values(context, self.inputs)
         validate_dict_values(context, self.outputs)
-        validate_dict_values(context, self.operations)
+        validate_dict_values(context, self.operation_templates)
 
     def coerce_values(self, context, container, report_issues):
         if self.metadata is not None:
@@ -123,11 +123,11 @@ class ServiceModel(ModelElement):
             self.substitution_template.coerce_values(context, container, report_issues)
         coerce_dict_values(context, container, self.inputs, report_issues)
         coerce_dict_values(context, container, self.outputs, report_issues)
-        coerce_dict_values(context, container, self.operations, report_issues)
+        coerce_dict_values(context, container, self.operation_templates, report_issues)
 
     def dump(self, context):
         if self.description is not None:
-            puts('Description: %s' % context.style.meta(self.description))
+            puts(context.style.meta(self.description))
         if self.metadata is not None:
             self.metadata.dump(context)
         for node_template in self.node_templates.itervalues():
@@ -138,9 +138,9 @@ class ServiceModel(ModelElement):
             policy_template.dump(context)
         if self.substitution_template is not None:
             self.substitution_template.dump(context)
-        dump_properties(context, self.inputs, 'Inputs')
-        dump_properties(context, self.outputs, 'Outputs')
-        dump_dict_values(context, self.operations, 'Operations')
+        dump_parameters(context, self.inputs, 'Inputs')
+        dump_parameters(context, self.outputs, 'Outputs')
+        dump_dict_values(context, self.operation_templates, 'Operation templates')
 
 class NodeTemplate(ModelElement):
     """
@@ -149,15 +149,16 @@ class NodeTemplate(ModelElement):
     Properties:
     
     * :code:`name`: Name (will be used as a prefix for node IDs)
+    * :code:`description`: Description
     * :code:`type_name`: Must be represented in the :class:`ModelingContext`
     * :code:`default_instances`: Default number nodes that will appear in the deployment plan
     * :code:`min_instances`: Minimum number nodes that will appear in the deployment plan
     * :code:`max_instances`: Maximum number nodes that will appear in the deployment plan
     * :code:`properties`: Dict of :class:`Parameter`
-    * :code:`interfaces`: Dict of :class:`Interface`
-    * :code:`artifacts`: Dict of :class:`Artifact`
-    * :code:`capabilities`: Dict of :class:`CapabilityTemplate`
-    * :code:`requirements`: List of :class:`Requirement`
+    * :code:`interface_templates`: Dict of :class:`InterfaceTemplate`
+    * :code:`artifact_templates`: Dict of :class:`ArtifactTemplate`
+    * :code:`capability_templates`: Dict of :class:`CapabilityTemplate`
+    * :code:`requirement_templates`: List of :class:`RequirementTemplate`
     * :code:`target_node_template_constraints`: List of :class:`FunctionType`
     """
     
@@ -168,15 +169,16 @@ class NodeTemplate(ModelElement):
             raise ValueError('must set type_name (string)')
         
         self.name = name
+        self.description = None
         self.type_name = type_name
         self.default_instances = 1
         self.min_instances = 0
         self.max_instances = None
         self.properties = StrictDict(key_class=basestring, value_class=Parameter)
-        self.interfaces = StrictDict(key_class=basestring, value_class=Interface)
-        self.artifacts = StrictDict(key_class=basestring, value_class=Artifact)
-        self.capabilities = StrictDict(key_class=basestring, value_class=CapabilityTemplate)
-        self.requirements = StrictList(value_class=Requirement)
+        self.interface_templates = StrictDict(key_class=basestring, value_class=InterfaceTemplate)
+        self.artifact_templates = StrictDict(key_class=basestring, value_class=ArtifactTemplate)
+        self.capability_templates = StrictDict(key_class=basestring, value_class=CapabilityTemplate)
+        self.requirement_templates = StrictList(value_class=RequirementTemplate)
         self.target_node_template_constraints = StrictList(value_class=FunctionType)
     
     def is_target_node_valid(self, target_node_template):
@@ -190,22 +192,23 @@ class NodeTemplate(ModelElement):
     def as_raw(self):
         return OrderedDict((
             ('name', self.name),
+            ('description', self.description),
             ('type_name', self.type_name),
             ('default_instances', self.default_instances),
             ('min_instances', self.min_instances),
             ('max_instances', self.max_instances),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
-            ('interfaces', [as_raw(v) for v in self.interfaces.itervalues()]),
-            ('artifacts', [as_raw(v) for v in self.artifacts.itervalues()]),
-            ('capabilities', [as_raw(v) for v in self.capabilities.itervalues()]),
-            ('requirements', [as_raw(v) for v in self.requirements])))
+            ('properties', as_raw_dict(self.properties)),
+            ('interface_templates', as_raw_list(self.interface_templates)),
+            ('artifact_templates', as_raw_list(self.artifact_templates)),
+            ('capability_templates', as_raw_list(self.capability_templates)),
+            ('requirement_templates', as_raw_list(self.requirement_templates))))
     
     def instantiate(self, context, container):
         r = Node(context, self.type_name, self.name)
         instantiate_dict(context, r, r.properties, self.properties)
-        instantiate_dict(context, r, r.interfaces, self.interfaces)
-        instantiate_dict(context, r, r.artifacts, self.artifacts)
-        instantiate_dict(context, r, r.capabilities, self.capabilities)
+        instantiate_dict(context, r, r.interfaces, self.interface_templates)
+        instantiate_dict(context, r, r.artifacts, self.artifact_templates)
+        instantiate_dict(context, r, r.capabilities, self.capability_templates)
         return r
     
     def validate(self, context):
@@ -213,30 +216,32 @@ class NodeTemplate(ModelElement):
             context.validation.report('node template "%s" has an unknown type: %s' % (self.name, safe_repr(self.type_name)), level=Issue.BETWEEN_TYPES)  
 
         validate_dict_values(context, self.properties)
-        validate_dict_values(context, self.interfaces)
-        validate_dict_values(context, self.artifacts)
-        validate_dict_values(context, self.capabilities)
-        validate_list_values(context, self.requirements)
+        validate_dict_values(context, self.interface_templates)
+        validate_dict_values(context, self.artifact_templates)
+        validate_dict_values(context, self.capability_templates)
+        validate_list_values(context, self.requirement_templates)
     
     def coerce_values(self, context, container, report_issues):
         coerce_dict_values(context, self, self.properties, report_issues)
-        coerce_dict_values(context, self, self.interfaces, report_issues)
-        coerce_dict_values(context, self, self.artifacts, report_issues)
-        coerce_dict_values(context, self, self.capabilities, report_issues)
-        coerce_list_values(context, self, self.requirements, report_issues)
+        coerce_dict_values(context, self, self.interface_templates, report_issues)
+        coerce_dict_values(context, self, self.artifact_templates, report_issues)
+        coerce_dict_values(context, self, self.capability_templates, report_issues)
+        coerce_list_values(context, self, self.requirement_templates, report_issues)
     
     def dump(self, context):
         puts('Node template: %s' % context.style.node(self.name))
+        if self.description:
+            puts(context.style.meta(self.description))
         with context.style.indent:
             puts('Type: %s' % context.style.type(self.type_name))
             puts('Instances: %d (%d%s)' % (self.default_instances, self.min_instances, (' to %d' % self.max_instances) if self.max_instances is not None else ' or more'))
-            dump_properties(context, self.properties)
-            dump_interfaces(context, self.interfaces)
-            dump_dict_values(context, self.artifacts, 'Artifacts')
-            dump_dict_values(context, self.capabilities, 'Capabilities')
-            dump_list_values(context, self.requirements, 'Requirements')
+            dump_parameters(context, self.properties)
+            dump_interfaces(context, self.interface_templates)
+            dump_dict_values(context, self.artifact_templates, 'Artifact tempaltes')
+            dump_dict_values(context, self.capability_templates, 'Capability templates')
+            dump_list_values(context, self.requirement_templates, 'Requirement templates')
 
-class Requirement(Element):
+class RequirementTemplate(ModelElement):
     """
     A requirement for a :class:`NodeTemplate`. During instantiation will be matched with a capability of another
     node.
@@ -255,19 +260,19 @@ class Requirement(Element):
     """
     
     def __init__(self, name=None, target_node_type_name=None, target_node_template_name=None, target_capability_type_name=None, target_capability_name=None):
-        if name and not isinstance(name, basestring):
-            raise ValueError('name must be a string)')
-        if target_node_type_name and not isinstance(target_node_type_name, basestring):
-            raise ValueError('target_node_type_name must be string')
-        if target_node_template_name and not isinstance(target_node_template_name, basestring):
-            raise ValueError('target_node_template_name must be string')
-        if target_capability_type_name and not isinstance(target_capability_type_name, basestring):
-            raise ValueError('target_capability_type_name must be string')
-        if target_capability_name and not isinstance(target_capability_name, basestring):
-            raise ValueError('target_capability_name must be string')
-        if (target_node_type_name and target_node_template_name) or ((not target_node_type_name) and (not target_node_template_name)):
+        if (name is not None) and (not isinstance(name, basestring)):
+            raise ValueError('name must be a string or None')
+        if (target_node_type_name is not None) and (not isinstance(target_node_type_name, basestring)):
+            raise ValueError('target_node_type_name must be a string or None')
+        if (target_node_template_name is not None) and (not isinstance(target_node_template_name, basestring)):
+            raise ValueError('target_node_template_name must be a string or None')
+        if (target_capability_type_name is not None) and (not isinstance(target_capability_type_name, basestring)):
+            raise ValueError('target_capability_type_name must be a string or None')
+        if (target_capability_name is not None) and (not isinstance(target_capability_name, basestring)):
+            raise ValueError('target_capability_name must be a string or None')
+        if ((target_node_type_name is not None) and (target_node_template_name is not None)) or ((target_node_type_name is None) and (target_node_template_name is None)):
             raise ValueError('must set either target_node_type_name or target_node_template_name')
-        if target_capability_type_name and target_capability_name:
+        if (target_capability_type_name is not None) and (target_capability_name is not None):
             raise ValueError('can set either target_capability_type_name or target_capability_name')
         
         self.name = name
@@ -314,9 +319,9 @@ class Requirement(Element):
         return None, None
 
     def find_target_capability(self, context, source_node_template, target_node_template):
-        for capability in target_node_template.capabilities.itervalues():
-            if capability.satisfies_requirement(context, source_node_template, self, target_node_template):
-                return capability
+        for capability_template in target_node_template.capability_templates.itervalues():
+            if capability_template.satisfies_requirement(context, source_node_template, self, target_node_template):
+                return capability_template
         return None
 
     @property
@@ -327,7 +332,7 @@ class Requirement(Element):
             ('target_node_template_name', self.target_node_template_name),
             ('target_capability_type_name', self.target_capability_type_name),
             ('target_capability_name', self.target_capability_name),
-            ('relationship_template', as_raw(self.relationship_template) if self.relationship_template is not None else None)))
+            ('relationship_template', as_raw(self.relationship_template))))
 
     def validate(self, context):
         if (self.target_node_type_name) and (context.modeling.node_types.get_descendant(self.target_node_type_name) is None):
@@ -362,7 +367,9 @@ class Requirement(Element):
                     for c in self.target_node_template_constraints:
                         puts(context.style.literal(c))
             if self.relationship_template:
-                self.relationship_template.dump(context)
+                puts('Relationship:')
+                with context.style.indent:
+                    self.relationship_template.dump(context)
 
 class CapabilityTemplate(ModelElement):
     """
@@ -372,6 +379,7 @@ class CapabilityTemplate(ModelElement):
     Properties:
     
     * :code:`name`: Name
+    * :code:`description`: Description
     * :code:`type_name`: Must be represented in the :class:`ModelingContext`
     * :code:`min_occurrences`: Minimum number of requirement matches required
     * :code:`max_occurrences`: Maximum number of requirement matches allowed
@@ -381,11 +389,12 @@ class CapabilityTemplate(ModelElement):
     
     def __init__(self, name, type_name):
         if not isinstance(name, basestring):
-            raise ValueError('name must be string')
+            raise ValueError('name must be a string or None')
         if not isinstance(type_name, basestring):
-            raise ValueError('type_name must be string')
+            raise ValueError('type_name must be a string or None')
         
         self.name = name
+        self.description = None
         self.type_name = type_name
         self.min_occurrences = None # optional
         self.max_occurrences = None # optional
@@ -415,11 +424,12 @@ class CapabilityTemplate(ModelElement):
     def as_raw(self):
         return OrderedDict((
             ('name', self.name),
+            ('description', self.description),
             ('type_name', self.type_name),
             ('min_occurrences', self.min_occurrences),
             ('max_occurrences', self.max_occurrences),
             ('valid_source_node_type_names', self.valid_source_node_type_names),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()})))
+            ('properties', as_raw_dict(self.properties))))
 
     def instantiate(self, context, container):
         r = Capability(self.name, self.type_name)
@@ -439,55 +449,60 @@ class CapabilityTemplate(ModelElement):
 
     def dump(self, context):
         puts(context.style.node(self.name))
+        if self.description:
+            puts(context.style.meta(self.description))
         with context.style.indent:
             puts('Type: %s' % context.style.type(self.type_name))
             puts('Occurrences: %d%s' % (self.min_occurrences or 0, (' to %d' % self.max_occurrences) if self.max_occurrences is not None else ' or more'))
             if self.valid_source_node_type_names:
                 puts('Valid source node types: %s' % ', '.join((str(context.style.type(v)) for v in self.valid_source_node_type_names)))
-            dump_properties(context, self.properties)
+            dump_parameters(context, self.properties)
 
 class RelationshipTemplate(ModelElement):
     """
-    Optional addition to a :class:`NodeTemplate` :class:`Requirement` that can be applied when the
+    Optional addition to a :class:`Requirement` in :class:`NodeTemplate` that can be applied when the
     requirement is matched with a capability.
 
     Properties:
     
     * :code:`type_name`: Must be represented in the :class:`ModelingContext`
     * :code:`template_name`: Must be represented in the :class:`ServiceModel`
+    * :code:`description`: Description
     * :code:`properties`: Dict of :class:`Parameter`
-    * :code:`source_interfaces`: Dict of :class:`Interface`
-    * :code:`target_interfaces`: Dict of :class:`Interface`
+    * :code:`source_interface_templates`: Dict of :class:`InterfaceTemplate`
+    * :code:`target_interface_templates`: Dict of :class:`InterfaceTemplate`
     """
     
     def __init__(self, type_name=None, template_name=None):
-        if type_name and not isinstance(type_name, basestring):
-            raise ValueError('type_name must be string')
-        if template_name and not isinstance(template_name, basestring):
-            raise ValueError('template_name must be string')
-        if (type_name and template_name) or ((not type_name) and (not template_name)):
+        if (type_name is not None) and (not isinstance(type_name, basestring)):
+            raise ValueError('type_name must be a string or None')
+        if (template_name is not None) and (not isinstance(template_name, basestring)):
+            raise ValueError('template_name must be a string or None')
+        if ((type_name is not None) and (template_name is not None)) or ((type_name is None) and (template_name is None)):
             raise ValueError('must set either type_name or template_name')
         
         self.type_name = type_name
         self.template_name = template_name
+        self.description = None
         self.properties = StrictDict(key_class=basestring, value_class=Parameter)
-        self.source_interfaces = StrictDict(key_class=basestring, value_class=Interface)
-        self.target_interfaces = StrictDict(key_class=basestring, value_class=Interface)
+        self.source_interface_templates = StrictDict(key_class=basestring, value_class=InterfaceTemplate)
+        self.target_interface_templates = StrictDict(key_class=basestring, value_class=InterfaceTemplate)
 
     @property
     def as_raw(self):
         return OrderedDict((
             ('type_name', self.type_name),
             ('template_name', self.template_name),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
-            ('source_interfaces', [as_raw(v) for v in self.source_interfaces.itervalues()]),            
-            ('target_interfaces', [as_raw(v) for v in self.target_interfaces.itervalues()])))            
+            ('description', self.description),
+            ('properties', as_raw_dict(self.properties)),
+            ('source_interface_templates', as_raw_list(self.source_interface_templates)),            
+            ('target_interface_templates', as_raw_list(self.target_interface_templates))))
 
     def instantiate(self, context, container):
         r = Relationship(self.type_name, self.template_name)
         instantiate_dict(context, container, r.properties, self.properties)
-        instantiate_dict(context, container, r.source_interfaces, self.source_interfaces)
-        instantiate_dict(context, container, r.target_interfaces, self.target_interfaces)
+        instantiate_dict(context, container, r.source_interfaces, self.source_interface_templates)
+        instantiate_dict(context, container, r.target_interfaces, self.target_interface_templates)
         return r
 
     def validate(self, context):
@@ -495,23 +510,103 @@ class RelationshipTemplate(ModelElement):
             context.validation.report('relationship template "%s" has an unknown type: %s' % (self.name, safe_repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
-        validate_dict_values(context, self.source_interfaces)
-        validate_dict_values(context, self.target_interfaces)
+        validate_dict_values(context, self.source_interface_templates)
+        validate_dict_values(context, self.target_interface_templates)
 
     def coerce_values(self, context, container, report_issues):
         coerce_dict_values(context, self, self.properties, report_issues)
-        coerce_dict_values(context, self, self.source_interfaces, report_issues)
-        coerce_dict_values(context, self, self.target_interfaces, report_issues)
+        coerce_dict_values(context, self, self.source_interface_templates, report_issues)
+        coerce_dict_values(context, self, self.target_interface_templates, report_issues)
 
     def dump(self, context):
         if self.type_name is not None:
             puts('Relationship type: %s' % context.style.type(self.type_name))
         else:
             puts('Relationship template: %s' % context.style.node(self.template_name))
+        if self.description:
+            puts(context.style.meta(self.description))
         with context.style.indent:
-            dump_properties(context, self.properties)
-            dump_interfaces(context, self.source_interfaces, 'Source interfaces')
-            dump_interfaces(context, self.target_interfaces, 'Target interfaces')
+            dump_parameters(context, self.properties)
+            dump_interfaces(context, self.source_interface_templates, 'Source interface templates')
+            dump_interfaces(context, self.target_interface_templates, 'Target interface templates')
+
+class ArtifactTemplate(ModelElement):
+    """
+    A file associated with a :class:`NodeTemplate`.
+
+    Properties:
+    
+    * :code:`name`: Name
+    * :code:`description`: Description
+    * :code:`type_name`: Must be represented in the :class:`ModelingContext`
+    * :code:`source_path`: Source path (CSAR or repository)
+    * :code:`target_path`: Path at destination machine
+    * :code:`repository_url`: Repository URL
+    * :code:`repository_credential`: Dict of string
+    * :code:`properties`: Dict of :class:`Parameter`
+    """
+    
+    def __init__(self, name, type_name, source_path):
+        if not isinstance(name, basestring):
+            raise ValueError('must set name (string)')
+        if not isinstance(type_name, basestring):
+            raise ValueError('must set type_name (string)')
+        if not isinstance(source_path, basestring):
+            raise ValueError('must set source_path (string)')
+        
+        self.name = name
+        self.description = None
+        self.type_name = type_name
+        self.source_path = source_path
+        self.target_path = None
+        self.repository_url = None
+        self.repository_credential = StrictDict(key_class=basestring, value_class=basestring)
+        self.properties = StrictDict(key_class=basestring, value_class=Parameter)
+
+    @property
+    def as_raw(self):
+        return OrderedDict((
+            ('name', self.name),
+            ('description', self.description),
+            ('type_name', self.type_name),
+            ('source_path', self.source_path),
+            ('target_path', self.target_path),
+            ('repository_url', self.repository_url),
+            ('repository_credential', as_agnostic(self.repository_credential)),
+            ('properties', as_raw_dict(self.properties.iteritems()))))
+
+    def instantiate(self, context, container):
+        r = Artifact(self.name, self.type_name, self.source_path)
+        r.description = deepcopy_with_locators(self.description)
+        r.target_path = self.target_path
+        r.repository_url = self.repository_url
+        r.repository_credential = self.repository_credential
+        instantiate_dict(context, container, r.properties, self.properties)
+        return r
+
+    def validate(self, context):
+        if context.modeling.artifact_types.get_descendant(self.type_name) is None:
+            context.validation.report('artifact "%s" has an unknown type: %s' % (self.name, safe_repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
+
+        validate_dict_values(context, self.properties)
+
+    def coerce_values(self, context, container, report_issues):
+        coerce_dict_values(context, container, self.properties, report_issues)
+
+    def dump(self, context):
+        puts(context.style.node(self.name))
+        if self.description:
+            puts(context.style.meta(self.description))
+        with context.style.indent:
+            puts('Artifact type: %s' % context.style.type(self.type_name))
+            puts('Source path: %s' % context.style.literal(self.source_path))
+            if self.target_path is not None:
+                puts('Target path: %s' % context.style.literal(self.target_path))
+            if self.repository_url is not None:
+                puts('Repository URL: %s' % context.style.literal(self.repository_url))
+            if self.repository_credential:
+                puts('Repository credential: %s' % context.style.literal(self.repository_credential))
+            dump_parameters(context, self.properties)
 
 class GroupTemplate(ModelElement):
     """
@@ -523,10 +618,11 @@ class GroupTemplate(ModelElement):
     Properties:
     
     * :code:`name`: Name (will be used as a prefix for group IDs)
+    * :code:`description`: Description
     * :code:`type_name`: Must be represented in the :class:`ModelingContext`
     * :code:`properties`: Dict of :class:`Parameter`
-    * :code:`interfaces`: Dict of :class:`Interface`
-    * :code:`policies`: Dict of :class:`GroupPolicy`
+    * :code:`interface_templates`: Dict of :class:`InterfaceTemplate`
+    * :code:`policy_templates`: Dict of :class:`GroupPolicyTemplate`
     * :code:`member_node_template_names`: Must be represented in the :class:`ServiceModel`
     * :code:`member_group_template_names`: Must be represented in the :class:`ServiceModel`
     """
@@ -534,14 +630,15 @@ class GroupTemplate(ModelElement):
     def __init__(self, name, type_name=None):
         if not isinstance(name, basestring):
             raise ValueError('must set name (string)')
-        if type_name and not isinstance(type_name, basestring):
-            raise ValueError('type_name must be string')
+        if (type_name is not None) and (not isinstance(type_name, basestring)):
+            raise ValueError('type_name must be a string or None')
         
         self.name = name
+        self.description = None
         self.type_name = type_name
         self.properties = StrictDict(key_class=basestring, value_class=Parameter)
-        self.interfaces = StrictDict(key_class=basestring, value_class=Interface)
-        self.policies = StrictDict(key_class=basestring, value_class=GroupPolicy)
+        self.interface_templates = StrictDict(key_class=basestring, value_class=InterfaceTemplate)
+        self.policy_templates = StrictDict(key_class=basestring, value_class=GroupPolicyTemplate)
         self.member_node_template_names = StrictList(value_class=basestring)
         self.member_group_template_names = StrictList(value_class=basestring)
 
@@ -549,18 +646,19 @@ class GroupTemplate(ModelElement):
     def as_raw(self):
         return OrderedDict((
             ('name', self.name),
+            ('description', self.description),
             ('type_name', self.type_name),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
-            ('interfaces', [as_raw(v) for v in self.interfaces.itervalues()]),
-            ('policies', [as_raw(v) for v in self.policies.itervalues()]),
+            ('properties', as_raw_dict(self.properties)),
+            ('interface_templates', as_raw_list(self.interface_templates)),
+            ('policy_templates', as_raw_list(self.policy_templates)),
             ('member_node_template_names', self.member_node_template_names),
             ('member_group_template_names', self.member_group_template_names)))
 
     def instantiate(self, context, container):
         r = Group(context, self.type_name, self.name)
         instantiate_dict(context, self, r.properties, self.properties)
-        instantiate_dict(context, self, r.interfaces, self.interfaces)
-        instantiate_dict(context, self, r.policies, self.policies)
+        instantiate_dict(context, self, r.interfaces, self.interface_templates)
+        instantiate_dict(context, self, r.policies, self.policy_templates)
         for member_node_template_name in self.member_node_template_names:
             r.member_node_ids += context.modeling.instance.get_node_ids(member_node_template_name)
         for member_group_template_name in self.member_group_template_names:
@@ -572,22 +670,24 @@ class GroupTemplate(ModelElement):
             context.validation.report('group template "%s" has an unknown type: %s' % (self.name, safe_repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
 
         validate_dict_values(context, self.properties)
-        validate_dict_values(context, self.interfaces)
-        validate_dict_values(context, self.policies)
+        validate_dict_values(context, self.interface_templates)
+        validate_dict_values(context, self.policy_templates)
 
     def coerce_values(self, context, container, report_issues):
         coerce_dict_values(context, self, self.properties, report_issues)
-        coerce_dict_values(context, self, self.interfaces, report_issues)
-        coerce_dict_values(context, self, self.policies, report_issues)
+        coerce_dict_values(context, self, self.interface_templates, report_issues)
+        coerce_dict_values(context, self, self.policy_templates, report_issues)
 
     def dump(self, context):
         puts('Group template: %s' % context.style.node(self.name))
+        if self.description:
+            puts(context.style.meta(self.description))
         with context.style.indent:
             if self.type_name:
                 puts('Type: %s' % context.style.type(self.type_name))
-            dump_properties(context, self.properties)
-            dump_interfaces(context, self.interfaces)
-            dump_dict_values(context, self.policies, 'Policies')
+            dump_parameters(context, self.properties)
+            dump_interfaces(context, self.interface_templates)
+            dump_dict_values(context, self.policy_templates, 'Policy templates')
             if self.member_node_template_names:
                 puts('Member node templates: %s' % ', '.join((str(context.style.node(v)) for v in self.member_node_template_names)))
 
@@ -598,6 +698,7 @@ class PolicyTemplate(ModelElement):
     Properties:
     
     * :code:`name`: Name
+    * :code:`description`: Description
     * :code:`type_name`: Must be represented in the :class:`ModelingContext`
     * :code:`properties`: Dict of :class:`Parameter`
     * :code:`target_node_template_names`: Must be represented in the :class:`ServiceModel`
@@ -611,6 +712,7 @@ class PolicyTemplate(ModelElement):
             raise ValueError('must set type_name (string)')
         
         self.name = name
+        self.description = None
         self.type_name = type_name
         self.properties = StrictDict(key_class=basestring, value_class=Parameter)
         self.target_node_template_names = StrictList(value_class=basestring)
@@ -620,8 +722,9 @@ class PolicyTemplate(ModelElement):
     def as_raw(self):
         return OrderedDict((
             ('name', self.name),
+            ('description', self.description),
             ('type_name', self.type_name),
-            ('properties', {k: as_raw(v) for k, v in self.properties.iteritems()}),
+            ('properties', as_raw_dict(self.properties)),
             ('target_node_template_names', self.target_node_template_names),
             ('target_group_template_names', self.target_group_template_names)))
 
@@ -645,13 +748,127 @@ class PolicyTemplate(ModelElement):
 
     def dump(self, context):
         puts('Policy template: %s' % context.style.node(self.name))
+        if self.description:
+            puts(context.style.meta(self.description))
         with context.style.indent:
             puts('Type: %s' % context.style.type(self.type_name))
-            dump_properties(context, self.properties)
+            dump_parameters(context, self.properties)
             if self.target_node_template_names:
                 puts('Target node templates: %s' % ', '.join((str(context.style.node(v)) for v in self.target_node_template_names)))
             if self.target_group_template_names:
                 puts('Target group templates: %s' % ', '.join((str(context.style.node(v)) for v in self.target_group_template_names)))
+
+class GroupPolicyTemplate(ModelElement):
+    """
+    Policies applied to groups.
+
+    Properties:
+    
+    * :code:`name`: Name
+    * :code:`description`: Description
+    * :code:`type_name`: Must be represented in the :class:`ModelingContext`
+    * :code:`properties`: Dict of :class:`Parameter`
+    * :code:`triggers`: Dict of :class:`GroupPolicyTrigger`
+    """
+    
+    def __init__(self, name, type_name):
+        if not isinstance(name, basestring):
+            raise ValueError('must set name (string)')
+        if not isinstance(type_name, basestring):
+            raise ValueError('must set type_name (string)')
+
+        self.name = name
+        self.description = None
+        self.type_name = type_name
+        self.properties = StrictDict(key_class=basestring, value_class=Parameter)
+        self.triggers = StrictDict(key_class=basestring, value_class=GroupPolicyTriggerTemplate)
+
+    @property
+    def as_raw(self):
+        return OrderedDict((
+            ('name', self.name),
+            ('description', self.description),
+            ('type_name', self.type_name),
+            ('properties', as_raw_dict(self.properties)),
+            ('triggers', as_raw_list(self.triggers))))
+
+    def instantiate(self, context, container):
+        r = GroupPolicy(self.name, self.type_name)
+        r.description = deepcopy_with_locators(self.description)
+        instantiate_dict(context, container, r.properties, self.properties)
+        instantiate_dict(context, container, r.triggers, self.triggers)
+        return r
+
+    def validate(self, context):
+        if context.modeling.policy_types.get_descendant(self.type_name) is None:
+            context.validation.report('group policy "%s" has an unknown type: %s' % (self.name, safe_repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
+
+        validate_dict_values(context, self.properties)
+        validate_dict_values(context, self.triggers)
+
+    def coerce_values(self, context, container, report_issues):
+        coerce_dict_values(context, container, self.properties, report_issues)
+        coerce_dict_values(context, container, self.triggers, report_issues)
+
+    def dump(self, context):
+        puts(context.style.node(self.name))
+        if self.description:
+            puts(context.style.meta(self.description))
+        with context.style.indent:
+            puts('Group policy type: %s' % context.style.type(self.type_name))
+            dump_parameters(context, self.properties)
+            dump_dict_values(context, self.triggers, 'Triggers')
+
+class GroupPolicyTriggerTemplate(ModelElement):
+    """
+    Triggers for :class:`GroupPolicyTemplate`.
+
+    Properties:
+    
+    * :code:`name`: Name
+    * :code:`description`: Description
+    * :code:`implementation`: Implementation string (interpreted by the orchestrator)
+    * :code:`properties`: Dict of :class:`Parameter`
+    """
+    
+    def __init__(self, name, implementation):
+        if not isinstance(name, basestring):
+            raise ValueError('must set name (string)')
+        if not isinstance(implementation, basestring):
+            raise ValueError('must set implementation (string)')
+    
+        self.name = name
+        self.description = None
+        self.implementation = implementation
+        self.properties = StrictDict(key_class=basestring, value_class=Parameter)
+
+    @property
+    def as_raw(self):
+        return OrderedDict((
+            ('name', self.name),
+            ('description', self.description),
+            ('implementation', self.implementation),
+            ('properties', as_raw_dict(self.properties))))
+
+    def instantiate(self, context, container):
+        r = GroupPolicyTrigger(self.name, self.implementation)
+        r.description = deepcopy_with_locators(self.description)
+        instantiate_dict(context, container, r.properties, self.properties)
+        return r
+
+    def validate(self, context):
+        validate_dict_values(context, self.properties)
+
+    def coerce_values(self, context, container, report_issues):
+        coerce_dict_values(context, container, self.properties, report_issues)
+
+    def dump(self, context):
+        puts(context.style.node(self.name))
+        if self.description:
+            puts(context.style.meta(self.description))
+        with context.style.indent:
+            puts('Implementation: %s' % context.style.literal(self.implementation))
+            dump_parameters(context, self.properties)
 
 class MappingTemplate(ModelElement):
     """
@@ -704,8 +921,8 @@ class SubstitutionTemplate(ModelElement):
     Properties:
     
     * :code:`node_type_name`: Must be represented in the :class:`ModelingContext`
-    * :code:`capabilities`: Dict of :class:`MappingTemplate`
-    * :code:`requirements`: Dict of :class:`MappingTemplate`
+    * :code:`capability_templates`: Dict of :class:`MappingTemplate`
+    * :code:`requirement_templates`: Dict of :class:`MappingTemplate`
     """
     
     def __init__(self, node_type_name):
@@ -713,36 +930,171 @@ class SubstitutionTemplate(ModelElement):
             raise ValueError('must set node_type_name (string)')
     
         self.node_type_name = node_type_name
-        self.capabilities = StrictDict(key_class=basestring, value_class=MappingTemplate)
-        self.requirements = StrictDict(key_class=basestring, value_class=MappingTemplate)
+        self.capability_templates = StrictDict(key_class=basestring, value_class=MappingTemplate)
+        self.requirement_templates = StrictDict(key_class=basestring, value_class=MappingTemplate)
 
     @property
     def as_raw(self):
         return OrderedDict((
             ('node_type_name', self.node_type_name),
-            ('capabilities', [as_raw(v) for v in self.capabilities.itervalues()]),
-            ('requirements', [as_raw(v) for v in self.requirements.itervalues()])))
+            ('capability_templates', as_raw_list(self.capability_templates)),
+            ('requirement_templates', as_raw_list(self.requirement_templates))))
 
     def instantiate(self, context, container):
         r = Substitution(self.node_type_name)
-        instantiate_dict(context, container, r.capabilities, self.capabilities)
-        instantiate_dict(context, container, r.requirements, self.requirements)
+        instantiate_dict(context, container, r.capabilities, self.capability_templates)
+        instantiate_dict(context, container, r.requirements, self.requirement_templates)
         return r
 
     def validate(self, context):
         if context.modeling.node_types.get_descendant(self.node_type_name) is None:
             context.validation.report('substitution template has an unknown type: %s' % safe_repr(self.node_type_name), level=Issue.BETWEEN_TYPES)        
 
-        validate_dict_values(context, self.capabilities)
-        validate_dict_values(context, self.requirements)
+        validate_dict_values(context, self.capability_templates)
+        validate_dict_values(context, self.requirement_templates)
 
     def coerce_values(self, context, container, report_issues):
-        coerce_dict_values(context, self, self.capabilities, report_issues)
-        coerce_dict_values(context, self, self.requirements, report_issues)
+        coerce_dict_values(context, self, self.capability_templates, report_issues)
+        coerce_dict_values(context, self, self.requirement_templates, report_issues)
 
     def dump(self, context):
-        puts('Substitution:')
+        puts('Substitution template:')
         with context.style.indent:
             puts('Node type: %s' % context.style.type(self.node_type_name))
-            dump_dict_values(context, self.capabilities, 'Capability mappings')
-            dump_dict_values(context, self.requirements, 'Requirement mappings')
+            dump_dict_values(context, self.capability_templates, 'Capability template mappings')
+            dump_dict_values(context, self.requirement_templates, 'Requirement template mappings')
+
+class InterfaceTemplate(ModelElement):
+    """
+    A typed set of :class:`OperationTemplate`.
+    
+    Properties:
+    
+    * :code:`name`: Name
+    * :code:`description`: Description
+    * :code:`type_name`: Must be represented in the :class:`ModelingContext`
+    * :code:`inputs`: Dict of :class:`Parameter`
+    * :code:`operation_templates`: Dict of :class:`OperationTemplate`
+    """
+    
+    def __init__(self, name, type_name):
+        if not isinstance(name, basestring):
+            raise ValueError('must set name (string)')
+        
+        self.name = name
+        self.description = None
+        self.type_name = type_name
+        self.inputs = StrictDict(key_class=basestring, value_class=Parameter)
+        self.operation_templates = StrictDict(key_class=basestring, value_class=OperationTemplate)
+
+    @property
+    def as_raw(self):
+        return OrderedDict((
+            ('name', self.name),
+            ('description', self.description),
+            ('type_name', self.type_name),
+            ('inputs', as_raw_dict(self.properties)),
+            ('operation_templates', as_raw_list(self.operation_templates))))
+
+    def instantiate(self, context, container):
+        r = Interface(self.name, self.type_name)
+        r.description = deepcopy_with_locators(self.description)
+        instantiate_dict(context, container, r.inputs, self.inputs)
+        instantiate_dict(context, container, r.operations, self.operation_templates)
+        return r
+
+    def validate(self, context):
+        if self.type_name:
+            if context.modeling.interface_types.get_descendant(self.type_name) is None:
+                context.validation.report('interface "%s" has an unknown type: %s' % (self.name, safe_repr(self.type_name)), level=Issue.BETWEEN_TYPES)        
+
+        validate_dict_values(context, self.inputs)
+        validate_dict_values(context, self.operation_templates)
+
+    def coerce_values(self, context, container, report_issues):
+        coerce_dict_values(context, container, self.inputs, report_issues)
+        coerce_dict_values(context, container, self.operation_templates, report_issues)
+    
+    def dump(self, context):
+        puts(context.style.node(self.name))
+        if self.description:
+            puts(context.style.meta(self.description))
+        with context.style.indent:
+            puts('Interface type: %s' % context.style.type(self.type_name))
+            dump_parameters(context, self.inputs, 'Inputs')
+            dump_dict_values(context, self.operation_templates, 'Operation templates')
+
+class OperationTemplate(ModelElement):
+    """
+    An operation in a :class:`InterfaceTemplace`.
+    
+    Properties:
+    
+    * :code:`name`: Name
+    * :code:`description`: Description
+    * :code:`implementation`: Implementation string (interpreted by the orchestrator)
+    * :code:`dependencies`: List of strings (interpreted by the orchestrator)
+    * :code:`executor`: Executor string (interpreted by the orchestrator)
+    * :code:`max_retries`: Maximum number of retries allowed in case of failure
+    * :code:`retry_interval`: Interval between retries
+    * :code:`inputs`: Dict of :class:`Parameter`
+    """
+    
+    def __init__(self, name):
+        if not isinstance(name, basestring):
+            raise ValueError('must set name (string)')
+        
+        self.name = name
+        self.description = None
+        self.implementation = None
+        self.dependencies = StrictList(value_class=basestring)
+        self.executor = None # Cloudify
+        self.max_retries = None # Cloudify
+        self.retry_interval = None # Cloudify
+        self.inputs = StrictDict(key_class=basestring, value_class=Parameter)
+
+    @property
+    def as_raw(self):
+        return OrderedDict((
+            ('name', self.name),
+            ('description', self.description),
+            ('implementation', self.implementation),
+            ('dependencies', self.dependencies),
+            ('executor', self.executor),
+            ('max_retries', self.max_retries),
+            ('retry_interval', self.retry_interval),
+            ('inputs', as_raw_dict(self.inputs))))
+
+    def instantiate(self, context, container):
+        r = Operation(self.name)
+        r.description = deepcopy_with_locators(self.description)
+        r.implementation = self.implementation
+        r.dependencies = self.dependencies
+        r.executor = self.executor
+        r.max_retries = self.max_retries
+        r.retry_interval = self.retry_interval
+        instantiate_dict(context, container, r.inputs, self.inputs)
+        return r
+
+    def validate(self, context):
+        validate_dict_values(context, self.inputs)
+
+    def coerce_values(self, context, container, report_issues):
+        coerce_dict_values(context, container, self.inputs, report_issues)
+
+    def dump(self, context):
+        puts(context.style.node(self.name))
+        if self.description:
+            puts(context.style.meta(self.description))
+        with context.style.indent:
+            if self.implementation is not None:
+                puts('Implementation: %s' % context.style.literal(self.implementation))
+            if self.dependencies:
+                puts('Dependencies: %s' % ', '.join((str(context.style.literal(v)) for v in self.dependencies)))
+            if self.executor is not None:
+                puts('Executor: %s' % context.style.literal(self.executor))
+            if self.max_retries is not None:
+                puts('Max retries: %s' % context.style.literal(self.max_retries))
+            if self.retry_interval is not None:
+                puts('Retry interval: %s' % context.style.literal(self.retry_interval))
+            dump_parameters(context, self.inputs, 'Inputs')

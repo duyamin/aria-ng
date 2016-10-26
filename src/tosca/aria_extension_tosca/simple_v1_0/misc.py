@@ -29,6 +29,9 @@ class Description(AsIsPresentation):
     See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_ELEMENT_DESCRIPTION>`__
     """
 
+    def __init__(self, name=None, raw=None, container=None, cls=None):
+        super(Description, self).__init__(name, raw, container, cls=unicode)
+
     def _dump(self, context):
         value = as_raw(self.value)
         puts(context.style.meta(value))

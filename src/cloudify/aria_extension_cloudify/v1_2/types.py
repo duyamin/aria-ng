@@ -14,12 +14,86 @@
 # under the License.
 #
 
+from .definitions import PropertyDefinition, InterfaceDefinition
 from .modeling.data_types import coerce_data_type_value, validate_data_type_name
-from ..v1_0 import PropertyDefinition
+from ..v1_0 import PolicyType as PolicyType1_1, GroupPolicyTriggerType as GroupPolicyTriggerType1_1
 from ..v1_0.modeling.properties import get_inherited_property_definitions
+from ..v1_1 import NodeType as NodeType1_1, RelationshipType as RelationshipType1_1
 from aria import dsl_specification
-from aria.presentation import Presentation, has_fields, primitive_field, object_dict_field, field_validator, derived_from_validator
+from aria.presentation import Presentation, has_fields, primitive_field, object_dict_field, field_validator, derived_from_validator, get_parent_presentation
 from aria.utils import FrozenDict, cachedmethod
+
+@has_fields
+@dsl_specification('node-types', 'cloudify-1.2')
+@dsl_specification('node-types', 'cloudify-1.3')
+class NodeType(NodeType1_1):
+    @object_dict_field(InterfaceDefinition)
+    def interfaces(self):
+        """
+        A dictionary of node interfaces.
+        
+        :rtype: dict of str, :class:`InterfaceDefinition`
+        """
+
+    @object_dict_field(PropertyDefinition)
+    def properties(self):
+        """
+        A dictionary of node interfaces.
+        
+        :rtype: dict of str, :class:`PropertyDefinition`
+        """
+
+@has_fields
+@dsl_specification('relationships-2', 'cloudify-1.2')
+@dsl_specification('relationships-2', 'cloudify-1.3')
+class RelationshipType(RelationshipType1_1):
+    @object_dict_field(InterfaceDefinition)
+    def source_interfaces(self):
+        """
+        A dict of interfaces.
+        
+        :rtype: dict of str, :class:`InterfaceDefinition`
+        """
+
+    @object_dict_field(InterfaceDefinition)
+    def target_interfaces(self):
+        """
+        A dict of interfaces.
+        
+        :rtype: dict of str, :class:`InterfaceDefinition`
+        """
+
+    @object_dict_field(PropertyDefinition)
+    def properties(self):
+        """
+        ARIA NOTE: This field is not mentioned in the spec, but is implied.
+        
+        :rtype: dict of str, :class:`PropertyDefinition`
+        """
+
+@has_fields
+@dsl_specification('policy-types', 'cloudify-1.2')
+@dsl_specification('policy-types', 'cloudify-1.3')
+class PolicyType(PolicyType1_1):
+    @object_dict_field(PropertyDefinition)
+    def properties(self):
+        """
+        Optional properties schema for the policy type.
+        
+        :rtype: dict of str, :class:`PropertyDefinition`
+        """
+
+@has_fields
+@dsl_specification('policy-triggers', 'cloudify-1.2')
+@dsl_specification('policy-triggers', 'cloudify-1.3')
+class GroupPolicyTriggerType(GroupPolicyTriggerType1_1):
+    @object_dict_field(PropertyDefinition)
+    def parameters(self):
+        """
+        Optional parameters schema for the policy trigger.
+        
+        :rtype: dict of str, :class:`PropertyDefinition`
+        """
 
 @has_fields
 @dsl_specification('data-types', 'cloudify-1.2')
@@ -58,7 +132,7 @@ class DataType(Presentation):
 
     @cachedmethod
     def _get_parent(self, context):
-        return context.presentation.get_from_dict('service_template', 'data_types', self.derived_from)
+        return get_parent_presentation(context, self, 'data_types')
 
     @cachedmethod
     def _get_properties(self, context):

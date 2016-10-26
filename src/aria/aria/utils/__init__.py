@@ -16,7 +16,7 @@
 
 from .openclose import OpenClose
 from .caching import cachedmethod, HasCachedMethods
-from .formatting import JsonAsRawEncoder, YamlAsRawDumper, full_type_name, safe_str, safe_repr, as_raw, as_agnostic, json_dumps, yaml_dumps, yaml_loads
+from .formatting import JsonAsRawEncoder, YamlAsRawDumper, full_type_name, safe_str, safe_repr, string_list_as_string, as_raw, as_raw_list, as_raw_dict, as_agnostic, json_dumps, yaml_dumps, yaml_loads
 from .collections import FrozenList, EMPTY_READ_ONLY_LIST, FrozenDict, EMPTY_READ_ONLY_DICT, StrictList, StrictDict, merge, prune, deepcopy_with_locators, copy_locators, is_removable
 from .exceptions import print_exception, print_traceback
 from .imports import import_fullname, import_modules
@@ -26,6 +26,7 @@ from .argparse import ArgumentParser
 from .console import puts, colored, indent
 from .rest_server import RestServer, RestRequestHandler
 from .rest_client import call_rest
+from .daemon import start_daemon, stop_daemon, status_daemon
 
 __all__ = (
     'OpenClose',
@@ -36,7 +37,10 @@ __all__ = (
     'full_type_name',
     'safe_str',
     'safe_repr',
+    'string_list_as_string',
     'as_raw',
+    'as_raw_list',
+    'as_raw_dict',
     'as_agnostic',
     'json_dumps',
     'yaml_dumps',
@@ -66,4 +70,7 @@ __all__ = (
     'indent',
     'RestServer',
     'RestRequestHandler',
-    'call_rest')
+    'call_rest',
+    'start_daemon',
+    'stop_daemon',
+    'status_daemon')

@@ -15,6 +15,7 @@
 #
 
 from .templates import ServiceTemplate
+from .assignments import InterfaceAssignment
 from .functions import GetInput, GetProperty, GetAttribute
 from .modeling import create_service_model
 from aria.validation import Issue
@@ -32,6 +33,7 @@ class CloudifyPresenter1_0(Presenter):
 
     DSL_VERSIONS = ('cloudify_dsl_1_0',)
     ALLOWED_IMPORTED_DSL_VERSIONS = ('cloudify_dsl_1_0',)
+    INTERFACE_ASSIGNMENT_CLASS = InterfaceAssignment
     
     @property
     @cachedmethod

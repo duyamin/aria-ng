@@ -1,17 +1,18 @@
-########
-# Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#        http://www.apache.org/licenses/LICENSE-2.0
-#
+# Copyright (c) 2016 GigaSpaces Technologies Ltd. All rights reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-#    * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#    * See the License for the specific language governing permissions and
-#    * limitations under the License.
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
 
 from framework.abstract_test_parser import AbstractTestParser
 
@@ -20,7 +21,7 @@ class TestParserFormatExceptions(AbstractTestParser):
 
     def test_empty_dsl(self):
         self.assert_parser_issue_messages(dsl_string='',
-                                          issue_messages=['sdfsdf'])
+                                          issue_messages=['no content'])
 
     def test_illegal_yaml_dsl(self):
         yaml = """
@@ -42,7 +43,7 @@ plugins:
         source: dummy
             """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["sss"])
+            dsl_string=yaml, issue_messages=["no node templates"])
 
     def test_node_templates_list_instead_of_dict(self):
         yaml = """
@@ -172,7 +173,9 @@ node_types:
             """
         self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["assignment to undefined property \"key\" in \"test_node\""])
+            issue_messages=[
+                "field \"implementation\" in \"aria_extension_cloudify.v1_0.definitions.OperationDefinition\" is not a valid \"str\": 1",
+                "assignment to undefined property \"key\" in \"test_node\""])
 
     def test_node_extra_properties(self):
         # testing for additional properties directly under node
@@ -223,8 +226,8 @@ imports:
         """
         self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["file not found: \"fake-file.yaml\"",
-                            "file not found: \"fake-file2.yaml\""])
+            issue_messages=[
+                "field \"imports\" in \"aria_extension_cloudify.v1_0.templates.ServiceTemplate\" has a duplicate \"str\": 'fake-file.yaml'"])
 
     def test_type_multiple_derivation(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + """
@@ -248,8 +251,7 @@ node_types:
     """
         self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["unknown parent type \"['test_type_parent', "
-                            "'test_type_parent2']\" in \"test_type\""])
+            issue_messages=["field \"derived_from\" in \"aria_extension_cloudify.v1_0.types.NodeType\" is not a valid \"str\": ['test_type_parent', 'test_type_parent2']"])
 
     def test_plugin_without_executor_field(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -414,7 +416,7 @@ relationships:
             """
         self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["f"])
+            issue_messages=["field \"deploy\" in \"aria_extension_cloudify.v1_0.misc.Instances\" is not a valid \"int\": '2'"])
 
     def test_interface_operation_mapping_no_mapping_prop(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + self.BASIC_PLUGIN + """
@@ -436,7 +438,8 @@ workflows:
     workflow1: 123
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"mapping\" in \"aria_extension_cloudify.v1_0.definitions.WorkflowDefinition\" is not a valid \"str\": 123"])
 
     def test_workflow_mapping_no_mapping_field(self):
         yaml = self.BLUEPRINT_WITH_INTERFACES_AND_PLUGINS + """
@@ -700,7 +703,8 @@ policy_types:
                 description: property_desc1
 """
         self.assert_parser_issue_messages(
-            dsl_string=yaml, issue_messages=["f"])
+            dsl_string=yaml,
+            issue_messages=["field \"source\" in \"aria_extension_cloudify.v1_0.types.PolicyType\" is not a valid \"str\": 1"])
 
     def test_policy_type_extra_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -798,7 +802,7 @@ policy_triggers:
 """
         self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["f"])
+            issue_messages=["field \"source\" in \"aria_extension_cloudify.v1_0.types.GroupPolicyTriggerType\" is not a valid \"str\": 1"])
 
     def test_policy_trigger_extra_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -1018,7 +1022,7 @@ groups:
 """
         self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["f"])
+            issue_messages=["group \"group\" has no members"])
 
     def test_unknown_property_schema_type(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + """
@@ -1048,4 +1052,4 @@ description:
   """
         self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["f"])
+            issue_messages=["\"description\" is not a valid \"str\": {'nested_key': 'value'}"])

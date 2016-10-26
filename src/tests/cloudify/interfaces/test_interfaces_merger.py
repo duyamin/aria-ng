@@ -1,140 +1,149 @@
-########
-# Copyright (c) 2014 GigaSpaces Technologies Ltd. All rights reserved
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#        http://www.apache.org/licenses/LICENSE-2.0
-#
+# Copyright (c) 2016 GigaSpaces Technologies Ltd. All rights reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-#    * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#    * See the License for the specific language governing permissions and
-#    * limitations under the License.
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
 
-import testtools
-
-from dsl_parser.interfaces.interfaces_merger import InterfaceMerger
-from dsl_parser.interfaces.interfaces_merger import InterfacesMerger
-from dsl_parser.interfaces.operation_merger import OperationMerger
+from cloudify.framework.abstract_test_parser import AbstractTestParser
+from cloudify.suite import TempDirectoryTestCase
 
 
-class InterfaceMergerTest(testtools.TestCase):
+class InterfaceMergerTest(AbstractTestParser, TempDirectoryTestCase):
 
-    def _assert_interface(self,
-                          overriding_interface,
-                          overridden_interface,
-                          expected_merged_interface_keys):
+    def test_merge_and_override_operations(self):
 
-        class MockOperationMerger(OperationMerger):
+        imported_yaml = """
+node_types:
+    type_a:
+        interfaces:
+            interface_a:
+                op_a:
+                    implementation: test_plugin.install.aa
+                    inputs: {}
+                op_b:
+                    implementation: test_plugin.install.ab
+                    inputs: {}
+                op_c:
+                    implementation: test_plugin.install.ac
+                    inputs: {}
+        """
 
-            def __init__(self,
-                         overriding_operation,
-                         overridden_operation):
-                pass
+        yaml = self.create_yaml_with_imports([imported_yaml]) + self.BASIC_PLUGIN + """
+node_types:
+    type_b:
+        derived_from: type_a
+        interfaces:
+            interface_a:
+                op_a:
+                    implementation: test_plugin.install.ba
+                    inputs: {}
+                op_d:
+                    implementation: test_plugin.install.bd
+                    inputs: {}
+node_templates:
+    template_c:
+        type: type_b
+        interfaces:
+            interface_a:
+                op_b:
+                    implementation: test_plugin.install.cb
+                    inputs: {}
+                op_e:
+                    implementation: test_plugin.install.ce
+                    inputs: {}
+        """
 
-            def merge(self):
-                return None
+        result = self.parse(yaml)
+        operations = set()
+        for op in result['nodes'][0]['operations']:
+            if op.startswith('op_'):
+                operations.add(op)
 
-        merger = InterfaceMerger(
-            overriding_interface=overriding_interface,
-            overridden_interface=overridden_interface,
-            operation_merger=MockOperationMerger
-        )
-        actual_merged_interface_keys = set(merger.merge().keys())
-        self.assertEqual(expected_merged_interface_keys,
-                         actual_merged_interface_keys)
-
-    def test_merge_operations(self):
-
-        overriding_interface = {
-            'stop': None
-        }
-        overridden_interface = {
-            'start': None
-        }
-
-        expected_merged_interface_keys = set(['stop', 'start'])
-
-        self._assert_interface(
-            overriding_interface=overriding_interface,
-            overridden_interface=overridden_interface,
-            expected_merged_interface_keys=expected_merged_interface_keys
-        )
-
-    def test_override_operation(self):
-
-        overriding_interface = {
-            'stop': None
-        }
-        overridden_interface = {
-            'stop': None
-        }
-
-        expected_merged_interface_keys = set(['stop'])
-
-        self._assert_interface(
-            overriding_interface=overriding_interface,
-            overridden_interface=overridden_interface,
-            expected_merged_interface_keys=expected_merged_interface_keys
-        )
+        result_operations = result['nodes'][0]['operations']
+        self.assertEqual(5, len(operations))
+        self.assertEqual('install.ba', result_operations['op_a']['operation'])
+        self.assertEqual('install.cb', result_operations['op_b']['operation'])
+        self.assertEqual('install.ac', result_operations['op_c']['operation'])
+        self.assertEqual('install.bd', result_operations['op_d']['operation'])
+        self.assertEqual('install.ce', result_operations['op_e']['operation'])
 
 
-class InterfacesMergerTest(testtools.TestCase):
-
-    def _assert_interfaces(self,
-                           overriding_interfaces,
-                           overridden_interfaces,
-                           expected_merged_interfaces_keys):
-
-        class MockOperationMerger(OperationMerger):
-
-            def __init__(self,
-                         overriding_operation,
-                         overridden_operation):
-                pass
-
-            def merge(self):
-                return None
-
-        merger = InterfacesMerger(
-            overriding_interfaces=overriding_interfaces,
-            overridden_interfaces=overridden_interfaces,
-            operation_merger=MockOperationMerger
-        )
-        actual_merged_interfaces_keys = set(merger.merge().keys())
-        self.assertEqual(expected_merged_interfaces_keys,
-                         actual_merged_interfaces_keys)
+class InterfacesMergerTest(AbstractTestParser, TempDirectoryTestCase):
 
     def test_merge_interfaces(self):
 
-        overriding_interfaces = {
-            'interface1': {}
-        }
-        overridden_interfaces = {
-            'interface2': {}
-        }
+        imported_yaml = """
+node_types:
+    type_a:
+        interfaces:
+            interface_a:
+                op_aa:
+                    implementation: test_plugin.install.aa
+                    inputs: {}
+            interface_b:
+                op_ab:
+                    implementation: test_plugin.install.ab
+                    inputs: {}
+            interface_c:
+                op_ac:
+                    implementation: test_plugin.install.ac
+                    inputs: {}
+        """
 
-        expected_merged_interfaces_keys = set(['interface1', 'interface2'])
-        self._assert_interfaces(
-            overriding_interfaces=overriding_interfaces,
-            overridden_interfaces=overridden_interfaces,
-            expected_merged_interfaces_keys=expected_merged_interfaces_keys
-        )
+        yaml = self.create_yaml_with_imports([imported_yaml]) + self.BASIC_PLUGIN + """
+node_types:
+    type_b:
+        derived_from: type_a
+        interfaces:
+            interface_a:
+                op_ba:
+                    implementation: test_plugin.install.ba
+                    inputs: {}
+            interface_d:
+                op_bd:
+                    implementation: test_plugin.install.bd
+                    inputs: {}
+node_templates:
+    template_c:
+        type: type_b
+        interfaces:
+            interface_b:
+                op_cb:
+                    implementation: test_plugin.install.cb
+                    inputs: {}
+            interface_e:
+                op_ce:
+                    implementation: test_plugin.install.ce
+                    inputs: {}
+        """
 
-    def test_override_interface(self):
+        result = self.parse(yaml)
+        operations = set()
+        for op in result['nodes'][0]['operations']:
+            if op.startswith('interface_'):
+                operations.add(op[:op.index('.')])
 
-        overriding_interfaces = {
-            'interface1': {}
-        }
-        overridden_interfaces = {
-            'interface1': {}
-        }
+        result_operations = result['nodes'][0]['operations']
+        self.assertEqual(5, len(operations))
+        self.assertIsNotNone(result_operations['interface_a.op_aa'])
+        self.assertIsNotNone(result_operations['interface_a.op_ba'])
+        self.assertIsNotNone(result_operations['interface_b.op_ab'])
+        self.assertIsNotNone(result_operations['interface_b.op_cb'])
+        self.assertEqual('install.aa', result_operations['interface_a.op_aa']['operation'])
+        self.assertEqual('install.ba', result_operations['interface_a.op_ba']['operation'])
+        self.assertEqual('install.ab', result_operations['interface_b.op_ab']['operation'])
+        self.assertEqual('install.cb', result_operations['interface_b.op_cb']['operation'])
+        self.assertEqual('install.ac', result_operations['interface_c.op_ac']['operation'])
+        self.assertEqual('install.bd', result_operations['interface_d.op_bd']['operation'])
+        self.assertEqual('install.ce', result_operations['interface_e.op_ce']['operation'])
 
-        expected_merged_interfaces_keys = set(['interface1'])
-        self._assert_interfaces(
-            overriding_interfaces=overriding_interfaces,
-            overridden_interfaces=overridden_interfaces,
-            expected_merged_interfaces_keys=expected_merged_interfaces_keys
-        )

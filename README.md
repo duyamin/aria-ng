@@ -40,14 +40,30 @@ documentation.
 Quick Start
 -----------
 
-You need Python v2.7. Python v3 is not currently supported. Use a [virtualenv](https://virtualenv.pypa.io/en/stable/):
+You need Python v2.7. Python v3 is not currently supported.
 
-	pip install virtualenv
+It recommend to use [pip](https://pip.pypa.io/) and a [virtualenv](https://virtualenv.pypa.io/en/stable/).
+To install the requirements in Debian-based systems:
+
+	sudo apt install python-setuptools
+	sudo -H easy_install pip
+	sudo -H pip install virtualenv
+
+To install the latest development snapshot of ARIA with examples:
+
+	git clone https://github.com/aria-tosca/aria-ng
+	cd aria-ng
 	virtualenv env
 	. env/bin/activate
 	pip install .
 
-Now create a service instance from a TOSCA blueprint:
+If you just want to install the latest development snapshot of ARIA, you can also get away with this: 
+
+	virtualenv env
+	. env/bin/activate
+	pip install git+https://github.com/aria-tosca/aria-ng
+
+To test it, let's create a service instance from a TOSCA blueprint:
 
 	aria blueprints/tosca/node-cellar/node-cellar.yaml
 	
@@ -66,7 +82,7 @@ You can provide inputs as JSON, overriding default values provided in the bluepr
 Instead of providing them explicitly, you can also provide them in a file or URL, in either
 JSON or YAML. If you do so, the value must end in ".json" or ".yaml":
 
-	aria blueprints/tosca/node-cellar/node-cellar.yaml --inputs=blueprints/tosca/inputs.yaml
+	aria blueprints/tosca/node-cellar/node-cellar.yaml --inputs=blueprints/tosca/node-cellar/inputs.yaml
 
 
 API Architecture
@@ -129,8 +145,8 @@ chain:
    classes wrapping the blueprint.
 * `model`: emits a colorized textual representation of the complete service model derived
    from the validated blueprint. This includes all the node templates, with their
-   requirements satisfied at the level of relating to other node templates. Use `--types`
-   to see just the type hierarchy.
+   requirements satisfied at the level of relating to other node templates.
+* `types`: emits a colorized textual representation of the type hierarchies.
 * `instance`: **this is the default command**; emits a colorized textual representation of
    a service instance instantiated from the service model. Here the node templates
    are each used to create one or more nodes, with the appropriate relationships between
@@ -157,21 +173,21 @@ wire:
 
 With the server started, you can hit a few endpoints:
 
-    curl http://localhost:8204/openoapi/tosca/v1/instance/blueprints/tosca/node-cellar/node-cellar.yaml
+    curl http://localhost:8080/instance/blueprints/tosca/node-cellar/node-cellar.yaml
     
-    curl http://localhost:8204/openoapi/tosca/v1/validate/blueprints/tosca/node-cellar/node-cellar.yaml
+    curl http://localhost:8080/validate/blueprints/tosca/node-cellar/node-cellar.yaml
 
 You will get a JSON response with a service instance or validation issues.
 
 You can send inputs:
 
-	curl http://localhost:8204/openoapi/tosca/v1/instance/blueprints/tosca/node-cellar/node-cellar.yaml?inputs=%7B%22openstack_credential%22%3A%7B%22user%22%3A%22username%22%7D%7D
+	curl http://localhost:8080/instance/blueprints/tosca/node-cellar/node-cellar.yaml?inputs=%7B%22openstack_credential%22%3A%7B%22user%22%3A%22username%22%7D%7D
 
-	curl http://localhost:8204/openoapi/tosca/v1/instance/blueprints/tosca/node-cellar/node-cellar.yaml?inputs=blueprints/tosca/inputs.yaml
+	curl http://localhost:8080/instance/blueprints/tosca/node-cellar/node-cellar.yaml?inputs=blueprints/tosca/node-cellar/inputs.yaml
 
 You can also POST a blueprint over the wire:
 
-    curl --data-binary @blueprints/tosca/node-cellar/node-cellar.yaml http://localhost:8204/openoapi/tosca/v1/instance
+    curl --data-binary @blueprints/tosca/node-cellar/node-cellar.yaml http://localhost:8080/instance
 
 If you POST and also want to import from specific prefixes (in the filesystem or URIs), you
 can specify them when you start the server:
@@ -195,7 +211,7 @@ the service instance without converting it into Python code.
 Development
 -----------
 
-You do not want to install with `pip`, but instead work directly with the source files:
+Instead of installing with `pip`, it would be easier to work directly with the source files:
 
 	pip install virtualenv
 	virtualenv env
@@ -205,23 +221,21 @@ You do not want to install with `pip`, but instead work directly with the source
 You can then run the scripts in the main directory:
 
 	./aria blueprints/tosca/node-cellar/node-cellar.yaml
-    ./aria-rest
+	./aria-rest
 
 To run tests:
 
-	make
+	make test
 
 To build the documentation:
 
 	make docs
 
-Here's a quick example of using the API to parse a given string:
+Here's a quick example of using the API to parse YAML text:
 
 	from aria import install_aria_extensions
 	from aria.consumption import ConsumptionContext, ConsumerChain, Read, Validate, Model, Instance
 	from aria.loading import LiteralLocation
-	
-	install_aria_extensions()
 	
 	def parse_text(payload, file_search_paths=[]):
 	    context = ConsumptionContext()
@@ -231,6 +245,8 @@ Here's a quick example of using the API to parse a given string:
 	    if not context.validation.dump_issues():
 	        return context.modeling.instance
 	    return None
+	
+	install_aria_extensions()
 
 	print parse_text("""
 	tosca_definitions_version: tosca_simple_yaml_1_0

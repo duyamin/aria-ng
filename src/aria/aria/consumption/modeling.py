@@ -58,9 +58,7 @@ class Model(ConsumerChain):
         super(Model, self).__init__(context, (Derive, CoerceModelValues, ValidateModel))
 
     def dump(self):
-        if self.context.has_arg_switch('types'):
-            self.context.modeling.dump_types(self.context)
-        elif self.context.has_arg_switch('yaml'):
+        if self.context.has_arg_switch('yaml'):
             indent = self.context.get_arg_value_int('indent', 2)
             raw = self.context.modeling.model_as_raw
             self.context.write(yaml_dumps(raw, indent=indent))
@@ -70,6 +68,23 @@ class Model(ConsumerChain):
             self.context.write(json_dumps(raw, indent=indent))
         else:
             self.context.modeling.model.dump(self.context)
+
+class Types(Consumer):
+    """
+    Used to just dump the types.
+    """
+    
+    def dump(self):
+        if self.context.has_arg_switch('yaml'):
+            indent = self.context.get_arg_value_int('indent', 2)
+            raw = self.context.modeling.types_as_raw
+            self.context.write(yaml_dumps(raw, indent=indent))
+        elif self.context.has_arg_switch('json'):
+            indent = self.context.get_arg_value_int('indent', 2)
+            raw = self.context.modeling.types_as_raw
+            self.context.write(json_dumps(raw, indent=indent))
+        else:
+            self.context.modeling.dump_types(self.context)
 
 class Instantiate(Consumer):
     """

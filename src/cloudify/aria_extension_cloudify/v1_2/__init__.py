@@ -16,7 +16,8 @@
 
 from .presenter import CloudifyPresenter1_2
 from .templates import ServiceTemplate
-from .types import DataType
+from .types import NodeType, RelationshipType, PolicyType, GroupPolicyTriggerType, DataType
+from .definitions import PropertyDefinition, OperationDefinition, InterfaceDefinition, WorkflowDefinition
 from .misc import Plugin, PluginResource, UploadResources
 
 MODULES = (
@@ -26,7 +27,15 @@ __all__ = (
     'MODULES',
     'CloudifyPresenter1_2',
     'ServiceTemplate',
+    'NodeType',
+    'RelationshipType',
+    'PolicyType',
+    'GroupPolicyTriggerType',
     'DataType',
+    'PropertyDefinition',
+    'OperationDefinition',
+    'InterfaceDefinition',
+    'WorkflowDefinition',
     'Plugin',
     'PluginResource',
     'UploadResources')

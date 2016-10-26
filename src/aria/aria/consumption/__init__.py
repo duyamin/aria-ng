@@ -14,17 +14,17 @@
 # under the License.
 #
 
-from .exceptions import ConsumerError
+from .exceptions import ConsumerException
 from .context import ConsumptionContext
 from .style import Style
 from .consumer import Consumer, ConsumerChain
 from .presentation import Read
 from .validation import Validate
-from .modeling import Model, Instance
+from .modeling import Model, Types, Instance
 from .inputs import Inputs
 
 __all__ = (
-    'ConsumerError',
+    'ConsumerException',
     'ConsumptionContext',
     'Style',
     'Consumer',
@@ -32,5 +32,6 @@ __all__ = (
     'Read',
     'Validate',
     'Model',
+    'Types',
     'Instance',
     'Inputs')

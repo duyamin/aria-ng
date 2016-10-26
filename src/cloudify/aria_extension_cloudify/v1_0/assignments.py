@@ -121,28 +121,9 @@ class OperationAssignment(Presentation):
         :rtype: str
         """
 
-    @primitive_field(int)
-    def max_retries(self):
-        """
-        Maximum number of retries for a task. -1 means infinite retries (Default: :code:`task_retries` in manager blueprint Cloudify Manager Type for remote workflows and :code:`task_retries` workflow configuration for local workflows).
-        
-        :rtype: int
-        """
-
-    @primitive_field(int)
-    def retry_interval(self):
-        """
-        Minimum wait time (in seconds) in between task retries (Default: :code:`task_retry_interval` in manager blueprint Cloudify Manager Type for remote workflows and :code:`task_retry_interval` workflow configuration for local workflows).
-        
-        :rtype: int
-        """
-
 @allow_unknown_fields
 @has_fields
 @dsl_specification('interfaces-2', 'cloudify-1.0')
-@dsl_specification('interfaces-2', 'cloudify-1.1')
-@dsl_specification('interfaces-2', 'cloudify-1.2')
-@dsl_specification('interfaces-2', 'cloudify-1.3')
 class InterfaceAssignment(Presentation):
     """
     Interfaces provide a way to map logical tasks to executable operations.

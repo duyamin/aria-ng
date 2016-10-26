@@ -17,8 +17,9 @@
 from .loader import Loader
 from .file import FileTextLoader
 from .request import RequestTextLoader
-from .exceptions import DocumentNotFoundError
+from .exceptions import DocumentNotFoundException
 from ..utils import StrictList, as_file
+from urlparse import urljoin
 import os
 
 URI_LOADER_PREFIXES = StrictList(value_class=basestring)
@@ -26,19 +27,25 @@ URI_LOADER_PREFIXES = StrictList(value_class=basestring)
 class UriTextLoader(Loader):
     """
     Base class for ARIA URI loaders.
+
+    See :class:`aria.loading.UriLocation`.
     
     Supports a list of search prefixes that are tried in order if the URI cannot be found.
+    They will be:
+    
+    * If :code:`origin_location` is provided its prefix will come first.
+    * Then the prefixes in the :class:`LoadingContext` will be added.
+    * Finally, the global prefixes specified in :code:`URI_LOADER_PREFIXES` will be added.
     """
     
-    def __init__(self, context, location, origin_location):
+    def __init__(self, context, location, origin_location=None):
         self.context = context
         self.location = location
-        self.origin_location = origin_location
         self._prefixes = StrictList(value_class=basestring)
         self._loader = None
 
         def add_prefix(prefix):
-            if prefix not in self._prefixes:
+            if prefix and (prefix not in self._prefixes):
                 self._prefixes.append(prefix)
 
         def add_prefixes(prefixes):
@@ -46,9 +53,7 @@ class UriTextLoader(Loader):
                 add_prefix(prefix)
 
         if origin_location is not None:
-            origin_prefix = origin_location.prefix
-            if origin_prefix:
-                add_prefix(origin_prefix)
+            add_prefix(origin_location.prefix)
         
         add_prefixes(context.prefixes)
         add_prefixes(URI_LOADER_PREFIXES)
@@ -57,22 +62,26 @@ class UriTextLoader(Loader):
         try:
             self._open(self.location.uri)
             return
-        except DocumentNotFoundError:
+        except DocumentNotFoundException:
+            # Try prefixes in order
             for prefix in self._prefixes:
-                uri = os.path.join(prefix, self.location.uri)
+                if as_file(prefix) is not None:
+                    uri = os.path.join(prefix, self.location.uri)
+                else:
+                    uri = urljoin(prefix, self.location.uri)
                 try:
                     self._open(uri)
                     return
-                except DocumentNotFoundError:
+                except DocumentNotFoundException:
                     pass
-        raise DocumentNotFoundError('document not found at URI: "%s"' % self.location)
+        raise DocumentNotFoundException('document not found at URI: "%s"' % self.location)
 
     def close(self):
-        if self.loader is not None:
-            self.loader.close()
+        if self._loader is not None:
+            self._loader.close()
 
     def load(self):
-        return self.loader.load() if self.loader is not None else None
+        return self._loader.load() if self._loader is not None else None
 
     def _open(self, uri):
         the_file = as_file(uri)
@@ -81,6 +90,6 @@ class UriTextLoader(Loader):
             loader = FileTextLoader(self.context, uri)
         else:
             loader = RequestTextLoader(self.context, uri)
-        loader.open()
-        self.loader = loader
+        loader.open() # might raise an exception
+        self._loader = loader
         self.location.uri = uri

@@ -17,7 +17,7 @@
 from .consumer import Consumer
 from ..utils import FixedThreadPoolExecutor, json_dumps, yaml_dumps
 from ..loading import UriLocation
-from ..reading import AlreadyReadError
+from ..reading import AlreadyReadException
 from ..presentation import PresenterNotFoundError
 
 class Read(Consumer):
@@ -82,11 +82,14 @@ class Read(Consumer):
             self.context.presentation.presenter._dump(self.context)
 
     def _handle_exception(self, e):
-        if isinstance(e, AlreadyReadError):
+        if isinstance(e, AlreadyReadException):
             return
         super(Read, self)._handle_exception(e)
     
     def _present(self, location, origin_location, presenter_class, executor):
+        # Link the context to this thread
+        self.context.set_thread_local()
+        
         raw = self._read(location, origin_location)
 
         if self.context.presentation.presenter_class is not None:
@@ -99,7 +102,7 @@ class Read(Consumer):
                 # We'll use the presenter class we were given (from the presenter that imported us)
                 pass
             if presenter_class is None:
-                raise PresenterNotFoundError()
+                raise PresenterNotFoundError('presenter not found')
         
         presentation = presenter_class(raw=raw)
 

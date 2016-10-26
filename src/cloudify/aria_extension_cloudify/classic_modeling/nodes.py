@@ -34,7 +34,7 @@ def find_host_node_template(context, node_template):
     if is_host(context, node_template):
         return node_template
     
-    for requirement in node_template.requirements:
+    for requirement in node_template.requirement_templates:
         if is_contained_in(context, requirement.relationship_template):
             return find_host_node_template(context, context.modeling.model.node_templates.get(requirement.target_node_template_name))
 

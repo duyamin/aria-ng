@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #
 # Copyright (c) 2016 GigaSpaces Technologies Ltd. All rights reserved.
 # 
@@ -14,9 +16,12 @@
 # under the License.
 #
 
-from aria.consumption import ConsumerError
+set -e
 
-class BadImplementationError(ConsumerError):
-    """
-    ARIA consumer error: bad implementation.
-    """
+HERE=$(dirname "$(readlink -f "$0")")
+ARIA_SRC="$HERE/src/aria"
+TOSCA_SRC="$HERE/src/tosca"
+OPEN_O_SRC="$HERE/src/open_o"
+
+PYTHONPATH="$ARIA_SRC:$TOSCA_SRC:$OPEN_O_SRC:$PYTHONPATH" \
+python -m aria_extension_open_o.parser_service "$@"

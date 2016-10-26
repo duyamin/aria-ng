@@ -33,7 +33,7 @@ def data_type_validator(field, presentation, context):
     Extra behavior beyond validation: generated function returns true if field is a complex data type.
     """
 
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
 
     value = getattr(presentation, field.name)
     if value is not None:
@@ -58,7 +58,7 @@ def data_value_validator(field, presentation, context):
     Used with the :func:`field_validator` decorator for the :code:`default` field in :class:`PropertyDefinition`.
     """
 
-    field._validate(presentation, context)
+    field.default_validate(presentation, context)
 
     value = getattr(presentation, field.name)
     if value is not None:

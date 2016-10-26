@@ -40,8 +40,6 @@ class OperationDefinition(OperationDefinition1_0):
 @allow_unknown_fields
 @has_fields
 @dsl_specification('interfaces-1', 'cloudify-1.1')
-@dsl_specification('interfaces-1', 'cloudify-1.2')
-@dsl_specification('interfaces-1', 'cloudify-1.3')
 class InterfaceDefinition(InterfaceDefinition1_0):
     @object_dict_unknown_fields(OperationDefinition)
     def operations(self):

@@ -1,18 +1,18 @@
-########
-# Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#        http://www.apache.org/licenses/LICENSE-2.0
-#
+# Copyright (c) 2016 GigaSpaces Technologies Ltd. All rights reserved.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+# 
+#      http://www.apache.org/licenses/LICENSE-2.0
+# 
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-#    * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#    * See the License for the specific language governing permissions and
-#    * limitations under the License.
-
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
 
 from dsl_parser import constants
 from dsl_parser.exceptions import DSLParsingLogicException
@@ -30,8 +30,9 @@ class TestParserLogicExceptions(AbstractTestParser):
     def test_no_type_definition(self):
         self.assert_parser_issue_messages(
             dsl_string=self.BASIC_NODE_TEMPLATES_SECTION,
-            issue_messages=["\"type\" refers to an "
-                            "unknown node type in \"test_node\": u'test_type'"])
+            issue_messages=[
+                "\"type\" refers to an unknown node type in \"test_node\": 'test_type'",
+                "assignment to undefined property \"key\" in \"test_node\""])
 
     def test_explicit_interface_with_missing_plugin(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + self.BASIC_PLUGIN + """
@@ -88,7 +89,11 @@ node_types:
     """
         self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["maximum recursion depth exceeded in cmp"])
+            issue_messages=[
+                "assignment to undefined property \"key\" in \"test_node\"",
+                "\"test_type_parent\" of \"test_type\" creates a circular type hierarchy",
+                "\"test_type_grandparent\" of \"test_type_parent\" creates a circular type hierarchy",
+                "\"test_type\" of \"test_type_grandparent\" creates a circular type hierarchy"])
 
     def test_plugin_with_wrongful_executor_field(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + """
@@ -236,7 +241,7 @@ relationships:
             """
         self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["f"])
+            issue_messages=["node template \"test_node2\" has a \"test_relationship\" relationship to itself"])
 
     def test_instance_relationship_with_undefined_plugin(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -274,7 +279,7 @@ plugins:
         """
         self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["f"])
+            issue_messages=["node template \"test_node1\" has plugins to install but is not a host: \"test_plugin\""])
 
     def test_ambiguous_plugin_operation_mapping(self):
         yaml = """
@@ -296,7 +301,7 @@ plugins:
         """
         self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["f"])
+            issue_messages=["ambiguous plugin name in implementation: 'one.two.three.four'"])
 
     def test_node_set_non_existing_property(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + self.BASIC_PLUGIN + """
@@ -305,7 +310,7 @@ node_types:
 """
         ex = self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["f"])
+            issue_messages=["assignment to undefined property \"key\" in \"test_node\""])
         self.assertEquals('key', ex.property)
 
     def test_node_doesnt_implement_schema_mandatory_property(self):
@@ -375,7 +380,7 @@ relationships:
 """
         ex = self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["f"])
+            issue_messages=["node template \"test_node2\" has more than one contained-in relationship"])
         self.assertEqual(set(['cloudify.relationships.contained_in',
                               'derived_from_contained_in']),
                          set(ex.relationship_types))
@@ -532,7 +537,7 @@ groups:
                             "a value in \"trigger1\""])
 
     def test_properties_schema_invalid_values_for_types(self):
-        def test_type_with_value(prop_type, prop_val):
+        def test_type_with_value(prop_type, prop_val, quote=False):
             yaml = """
 node_templates:
     test_node:
@@ -545,28 +550,38 @@ node_types:
             string1:
                 type: {1}
         """.format(prop_val, prop_type)
+        
+            py_type = prop_type
+            if py_type == 'boolean':
+                py_type = 'bool'
+            elif py_type == 'integer':
+                py_type = 'int'
+
+            repr_val = prop_val.replace('"', "'")
+            if quote:
+                repr_val = "'%s'" % repr_val
 
             self.assert_parser_issue_messages(
                 dsl_string=yaml,
-                issue_messages=["f"])
+                issue_messages=['field "string1" is not a valid "%s": %s' % (py_type, repr_val)])
 
-        test_type_with_value('boolean', 'not-a-boolean')
+        test_type_with_value('boolean', 'not-a-boolean', True)
         test_type_with_value('boolean', '"True"')
         test_type_with_value('boolean', '5')
         test_type_with_value('boolean', '5.0')
         test_type_with_value('boolean', '1')
-        test_type_with_value('integer', 'not-an-integer')
+        test_type_with_value('integer', 'not-an-integer', True)
         test_type_with_value('integer', 'True')
         test_type_with_value('integer', '"True"')
         test_type_with_value('integer', '5.0')
         test_type_with_value('integer', '"5"')
-        test_type_with_value('integer', 'NaN')
-        test_type_with_value('float', 'not-a-float')
+        test_type_with_value('integer', 'NaN', True)
+        test_type_with_value('float', 'not-a-float', True)
         test_type_with_value('float', 'True')
         test_type_with_value('float', '"True"')
         test_type_with_value('float', '"5.0"')
-        test_type_with_value('float', 'NaN')
-        test_type_with_value('float', 'inf')
+        test_type_with_value('float', 'NaN', True)
+        test_type_with_value('float', 'inf', True)
 
     def test_no_version_field(self):
         yaml = self.MINIMAL_BLUEPRINT
@@ -574,7 +589,7 @@ node_types:
         self.assert_parser_issue_messages(
             dsl_string=yaml,
             additional_parsing_arguments=additional_parsing_arguments,
-            issue_messages=["f"])
+            issue_messages=["presenter not found"])
 
     def test_no_version_field_in_main_blueprint_file(self):
         imported_yaml = self.BASIC_VERSION_SECTION_DSL_1_0
@@ -587,7 +602,7 @@ imports:
         self.assert_parser_issue_messages(
             dsl_string=yaml,
             additional_parsing_arguments=additional_parsing_arguments,
-            issue_messages=["f"])
+            issue_messages=["presenter not found"])
 
     def test_mismatching_version_in_import(self):
         imported_yaml = """
@@ -613,7 +628,7 @@ tosca_definitions_version: unsupported_version
         self.assert_parser_issue_messages(
             dsl_string=yaml,
             additional_parsing_arguments=additional_parsing_arguments,
-            issue_messages=["f"])
+            issue_messages=["presenter not found"])
 
     def test_script_mapping_illegal_script_path_override(self):
         yaml = self.BASIC_VERSION_SECTION_DSL_1_0 + """
@@ -642,7 +657,7 @@ node_templates:
                                              filename='blueprint.yaml')
         self.assert_parser_issue_messages(
             yaml_path,
-            issue_messages=["f"],
+            issue_messages=["\"script_path\" input for \"script\" plugin does not refer to a file: 'invalid'"],
             parse_from_path=True)
 
     def test_script_mapping_missing_script_plugin(self):
@@ -664,7 +679,7 @@ node_templates:
                                              filename='blueprint.yaml')
         self.assert_parser_issue_messages(
             yaml_path,
-            issue_messages=["unknown plugin: None"],
+            issue_messages=["can't find plugin: 'script'"],
             parse_from_path=True)
 
     def test_plugin_with_install_args_wrong_dsl_version(self):
@@ -744,7 +759,7 @@ node_templates:
         self.parse(yaml_template.format(self.BASIC_VERSION_SECTION_DSL_1_1))
         self.assert_parser_issue_messages(
             dsl_string=yaml_template.format(self.BASIC_VERSION_SECTION_DSL_1_0),
-            issue_messages=["f"])
+            issue_messages=["field \"max_retries\" is not supported in \"my_operation\""])
 
     def test_retry_interval_version_validation(self):
         yaml_template = '{0}' + self.MINIMAL_BLUEPRINT + """
@@ -756,7 +771,7 @@ node_templates:
         self.parse(yaml_template.format(self.BASIC_VERSION_SECTION_DSL_1_1))
         self.assert_parser_issue_messages(
             dsl_string=yaml_template.format(self.BASIC_VERSION_SECTION_DSL_1_0),
-            issue_messages=["f"])
+            issue_messages=["field \"retry_interval\" is not supported in \"my_operation\""])
 
     def test_dsl_definitions_version_validation(self):
         yaml_template = """{0}
@@ -790,10 +805,10 @@ description: sample description
         self.parse(yaml.format(self.BASIC_VERSION_SECTION_DSL_1_2))
         self.assert_parser_issue_messages(
             dsl_string=yaml.format(self.BASIC_VERSION_SECTION_DSL_1_1),
-            issue_messages=["f"])
+            issue_messages=["field \"description\" is not supported in \"aria_extension_cloudify.v1_1.templates.ServiceTemplate\""])
         self.assert_parser_issue_messages(
             dsl_string=yaml.format(self.BASIC_VERSION_SECTION_DSL_1_0),
-            issue_messages=["f"])
+            issue_messages=["field \"description\" is not supported in \"aria_extension_cloudify.v1_0.templates.ServiceTemplate\""])
 
     def test_required_property_version_validation(self):
         yaml = """
@@ -810,11 +825,11 @@ node_templates:
         self.assert_parser_issue_messages(
             dsl_string=yaml,
             parsing_method=self.parse_1_1,
-            issue_messages=["f"])
+            issue_messages=["field \"required\" is not supported in \"property\""])
         self.assert_parser_issue_messages(
             dsl_string=yaml,
             parsing_method=self.parse_1_0,
-            issue_messages=["f"])
+            issue_messages=["field \"required\" is not supported in \"property\""])
 
     def test_missing_required_property(self):
         yaml = """

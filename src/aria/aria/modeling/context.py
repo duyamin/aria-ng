@@ -16,8 +16,9 @@
 
 from .utils import generate_id_string
 from .types import TypeHierarchy
-from ..utils import StrictDict, prune, puts
+from ..utils import StrictDict, prune, puts, as_raw
 import itertools
+from collections import OrderedDict
 
 class IdType(object):
     LOCAL_SERIAL = 0
@@ -90,6 +91,18 @@ class ModelingContext(object):
     def set_input(self, name, value):
         self.inputs[name] = value
         # TODO: coerce to validate type
+    
+    @property
+    def types_as_raw(self):
+        return OrderedDict((
+            ('node_types', as_raw(self.node_types)),
+            ('group_types', as_raw(self.group_types)),
+            ('capability_types', as_raw(self.capability_types)),
+            ('relationship_types', as_raw(self.relationship_types)),
+            ('policy_types', as_raw(self.policy_types)),
+            ('policy_trigger_types', as_raw(self.policy_trigger_types)),
+            ('artifact_types', as_raw(self.artifact_types)),
+            ('interface_types', as_raw(self.interface_types))))
 
     @property
     def model_as_raw(self):

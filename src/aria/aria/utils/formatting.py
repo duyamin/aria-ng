@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from .collections import deepcopy_with_locators, FrozenList, FrozenDict, StrictList, StrictDict
+from .collections import FrozenList, FrozenDict, StrictList, StrictDict
 import json
 from collections import OrderedDict
 from ruamel import yaml # @UnresolvedImport
@@ -81,8 +81,15 @@ def safe_repr(value):
     """
     Like :code:`repr`, but calls :code:`as_raw` and :code:`as_agnostic` first.
     """
-    
+
     return repr(as_agnostic(as_raw(value)))
+
+def string_list_as_string(strings):
+    """
+    Nice representation of a list of strings.
+    """
+    
+    return ', '.join('"%s"' % safe_str(v) for v in strings)
 
 def as_raw(value):
     """
@@ -95,15 +102,37 @@ def as_raw(value):
             # Old-style Python classes don't support properties
             value = value()
     elif isinstance(value, list):
-        value = deepcopy_with_locators(value)
+        value = list(value)
         for i in range(len(value)):
             value[i] = as_raw(value[i])
     elif isinstance(value, dict):
-        value = deepcopy_with_locators(value)
+        value = dict(value)
         for k, v in value.iteritems():
             value[k] = as_raw(v)
     return value
 
+def as_raw_list(value):
+    """
+    Assuming value is a list, converts its values using :code:`as_raw`.
+    """
+    
+    if value is None:
+        return []
+    if isinstance(value, dict):
+        value = value.itervalues()
+    return [as_raw(v) for v in value]
+
+def as_raw_dict(value):
+    """
+    Assuming value is a dict, converts its values using :code:`as_raw`.
+    The keys are left as is.
+    """
+    
+    if value is None:
+        return OrderedDict()
+    return OrderedDict((
+        (k, as_raw(v)) for k, v in value.iteritems()))
+ 
 def as_agnostic(value):
     """
     Converts subclasses of list and dict to standard lists and dicts, and Unicode strings

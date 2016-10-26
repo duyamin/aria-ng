@@ -28,7 +28,7 @@ Packages
    :maxdepth: 2
 
    aria
-   tosca_extension
+   tosca
 
 
 Indices and Tables

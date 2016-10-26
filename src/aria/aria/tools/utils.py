@@ -21,11 +21,11 @@ from ..utils import ArgumentParser, import_fullname, cachedmethod
 
 class BaseArgumentParser(ArgumentParser):
     def __init__(self, description, **kwargs):
-        super(BaseArgumentParser, self).__init__(description='ARIA version %s %s' % (VERSION, description), **kwargs)
+        super(BaseArgumentParser, self).__init__(description='%s for ARIA version %s' % (description, VERSION), **kwargs)
     
 class CommonArgumentParser(BaseArgumentParser):
     def __init__(self, description, **kwargs):
-        super(CommonArgumentParser, self).__init__(description='ARIA version %s %s' % (VERSION, description), **kwargs)
+        super(CommonArgumentParser, self).__init__(description, **kwargs)
         
         self.add_argument('--loader-source', default='aria.loading.DefaultLoaderSource', help='loader source class for the parser')
         self.add_argument('--reader-source', default='aria.reading.DefaultReaderSource', help='reader source class for the parser')

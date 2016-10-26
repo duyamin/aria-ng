@@ -14,7 +14,7 @@
 # under the License.
 #
 
-from .exceptions import CannotEvaluateFunction
+from .exceptions import CannotEvaluateFunctionException
 from .. import InvalidValueError
 from ..presentation import Value
 from ..utils import puts
@@ -56,7 +56,7 @@ def coerce_value(context, container, value, report_issues=False):
         try:
             value = value._evaluate(context, container)
             value = coerce_value(context, container, value, report_issues)
-        except CannotEvaluateFunction:
+        except CannotEvaluateFunctionException:
             pass
         except InvalidValueError as e:
             if report_issues:
@@ -106,16 +106,18 @@ def dump_dict_values(context, the_dict, name):
         return
     dump_list_values(context, the_dict.itervalues(), name)
 
-def dump_properties(context, properties, name='Properties'):
-    if not properties:
+def dump_parameters(context, parameters, name='Properties'):
+    if not parameters:
         return
     puts('%s:' % name)
     with context.style.indent:
-        for property_name, prop in properties.iteritems():
-            if prop.type_name is not None:
-                puts('%s = %s (%s)' % (context.style.property(property_name), context.style.literal(prop.value), context.style.type(prop.type_name)))
+        for parameter_name, parameter in parameters.iteritems():
+            if parameter.type_name is not None:
+                puts('%s = %s (%s)' % (context.style.property(parameter_name), context.style.literal(parameter.value), context.style.type(parameter.type_name)))
             else:
-                puts('%s = %s' % (context.style.property(property_name), context.style.literal(prop.value)))
+                puts('%s = %s' % (context.style.property(parameter_name), context.style.literal(parameter.value)))
+            if parameter.description:
+                puts(context.style.meta(parameter.description))
 
 def dump_interfaces(context, interfaces, name='Interfaces'):
     if not interfaces:

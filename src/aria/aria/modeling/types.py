@@ -14,14 +14,20 @@
 # under the License.
 #
 
-from ..utils import StrictList, StrictDict, puts
+from ..utils import StrictList, StrictDict, puts, as_raw
+from collections import OrderedDict
 
 class Type(object):
+    """
+    Represents a type and its children.
+    """
+    
     def __init__(self, name):
         if not isinstance(name, basestring):
             raise ValueError('must set name (string)')
         
         self.name = name
+        self.description = None
         self.children = StrictList(value_class=Type)
         
     def get_parent(self, name):
@@ -54,6 +60,12 @@ class Type(object):
             yield child
             for d in child.iter_descendants():
                 yield d
+                
+    @property
+    def as_raw(self):
+        return OrderedDict((
+            ('name', self.name),
+            ('description', self.description)))
 
     def dump(self, context):
         if self.name:
@@ -61,6 +73,13 @@ class Type(object):
         with context.style.indent:
             for child in self.children:
                 child.dump(context)
+
+    def _append_raw_children(self, types):
+        for child in self.children:
+            r = as_raw(child)
+            r['parent'] = self.name
+            types.append(r)
+            child._append_raw_children(types)
 
 class RelationshipType(Type):
     def __init__(self, name):
@@ -85,6 +104,16 @@ class PolicyTriggerType(Type):
         self.properties = StrictDict(key_class=basestring)
 
 class TypeHierarchy(Type):
+    """
+    Represents a single-parent derivation :class:`Type` hierarchy.
+    """
+
     def __init__(self):
         self.name = None
         self.children = StrictList(value_class=Type)
+
+    @property
+    def as_raw(self):
+        types = []
+        self._append_raw_children(types)
+        return types

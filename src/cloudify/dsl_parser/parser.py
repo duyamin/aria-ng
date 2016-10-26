@@ -50,6 +50,17 @@ def _parse(location, prefixes, validate_version):
     
     consumer = ConsumerChain(context, (Read, Validate, Model, Instance, ClassicDeploymentPlan))
     consumer.consume()
-    context.validation.dump_issues()
     
+    if not context.validation.has_issues:
+        # Check for no content
+        raw = context.presentation.presenter._raw if context.presentation.presenter else None
+        if (not raw) or ((len(raw) == 1) and ('tosca_definitions_version' in raw)):
+            context.validation.report('no content')
+        else:
+            # Check for no node templates
+            if (context.modeling.model) and (not context.modeling.model.node_templates):
+                context.validation.report('no node templates')
+        
+    context.validation.dump_issues()
+
     return context

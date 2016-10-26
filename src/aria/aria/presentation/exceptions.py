@@ -14,14 +14,14 @@
 # under the License.
 #
 
-from .. import AriaError
+from .. import AriaException
 
-class PresenterError(AriaError):
+class PresenterException(AriaException):
     """
-    ARIA presenter error.
+    ARIA presenter exception.
     """
 
-class PresenterNotFoundError(PresenterError):
+class PresenterNotFoundError(PresenterException):
     """
     ARIA presenter error: presenter not found for raw.
     """

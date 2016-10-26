@@ -26,7 +26,7 @@ class PresenterSource(object):
     """
 
     def get_presenter(self, raw):
-        raise PresenterNotFoundError()
+        raise PresenterNotFoundError('presenter not found')
 
 class DefaultPresenterSource(PresenterSource):
     """

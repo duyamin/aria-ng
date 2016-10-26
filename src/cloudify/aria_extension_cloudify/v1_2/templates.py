@@ -14,14 +14,24 @@
 # under the License.
 #
 
-from ..v1_1 import ServiceTemplate as ServiceTemplate1_1
-from .types import DataType
+from .definitions import PropertyDefinition, WorkflowDefinition
+from .types import NodeType, RelationshipType, PolicyType, GroupPolicyTriggerType, DataType
 from .misc import Plugin, UploadResources
+from ..v1_0 import Description
+from ..v1_1 import ServiceTemplate as ServiceTemplate1_1
 from aria import dsl_specification
 from aria.presentation import has_fields, primitive_field, object_field, object_dict_field
 
 @has_fields
 class ServiceTemplate(ServiceTemplate1_1):
+    @object_field(Description)
+    def description(self):
+        """
+        ARIA NOTE: Not mentioned in the spec.
+        
+        :rtype: :class:`Description`
+        """
+
     @primitive_field()
     @dsl_specification('dsl-definitions', 'cloudify-1.2')
     @dsl_specification('dsl-definitions', 'cloudify-1.3')
@@ -30,6 +40,44 @@ class ServiceTemplate(ServiceTemplate1_1):
         The `dsl_definitions` section can be used to define arbitrary data structures that can then be reused in different parts of the blueprint using `YAML anchors and aliases <https://gist.github.com/ddlsmurf/1590434>`__.
         
         See the `Cloudify DSL v1.3 specification <http://docs.getcloudify.org/3.4.0/blueprints/spec-dsl-definitions/>`__
+        """
+
+    @object_dict_field(PropertyDefinition)
+    @dsl_specification('inputs', 'cloudify-1.2')
+    @dsl_specification('inputs', 'cloudify-1.3')
+    def inputs(self):
+        """
+        :code:`inputs` are parameters injected into the blueprint upon deployment creation. These parameters can be referenced by using the :code:`get_input` intrinsic function.
+
+        Inputs are useful when there's a need to inject parameters to the blueprint which were unknown when the blueprint was created and can be used for distinction between different deployments of the same blueprint.
+        
+        See the `Cloudify DSL v1.3 specification <http://docs.getcloudify.org/3.4.0/blueprints/spec-inputs/>`__
+        
+        :rtype: dict of str, :class:`PropertyDefinition`
+        """
+
+    @object_dict_field(NodeType)
+    def node_types(self):
+        """
+        :rtype: dict of str, :class:`NodeType`
+        """
+
+    @object_dict_field(RelationshipType)
+    def relationships(self):
+        """
+        :rtype: dict of str, :class:`RelationshipType`
+        """
+
+    @object_dict_field(PolicyType)
+    def policy_types(self):
+        """
+        :rtype: dict of str, :class:`GroupPolicyType`
+        """
+
+    @object_dict_field(GroupPolicyTriggerType)
+    def policy_triggers(self):
+        """
+        :rtype: dict of str, :class:`GroupPolicyTriggerType`
         """
 
     @object_dict_field(DataType)
@@ -42,6 +90,12 @@ class ServiceTemplate(ServiceTemplate1_1):
     def plugins(self):
         """
         :rtype: dict of str, :class:`Plugin`
+        """
+
+    @object_dict_field(WorkflowDefinition)
+    def workflows(self):
+        """
+        :rtype: dict of str, :class:`WorkflowDefinition`
         """
 
     @object_field(UploadResources)

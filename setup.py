@@ -60,24 +60,30 @@ setup(
         'aria.utils',
         'aria.validation',
         'aria_extension_tosca',
-        'aria_extension_tosca.v1_0',
-        'aria_extension_tosca.v1_0.modeling',
-        'aria_extension_tosca.v1_0.presentation'],
+        'aria_extension_tosca.simple_v1_0',
+        'aria_extension_tosca.simple_v1_0.modeling',
+        'aria_extension_tosca.simple_v1_0.presentation',
+        'aria_extension_tosca.simple_nfv_v1_0',
+        'aria_extension_open_o'],
 
     package_dir={
         'aria': 'src/aria/aria',
-        'aria_extension_tosca': 'src/tosca/aria_extension_tosca'},
+        'aria_extension_tosca': 'src/tosca/aria_extension_tosca',
+        'aria_extension_open_o': 'src/open_o/aria_extension_open_o'},
       
     package_data={
         'aria.tools': [
             'web/**'],
         'aria_extension_tosca': [
             'profiles/tosca-simple-1.0/**',
-            'profiles/tosca-simple-nfv-1.0/**']},
+            'profiles/tosca-simple-nfv-1.0/**'],
+        'aria_extension_open_o': [
+            'web/**']},
     
     scripts=[
         'src/aria/scripts/aria',
-        'src/aria/scripts/aria-rest'],
+        'src/aria/scripts/aria-rest',
+        'src/open_o/scripts/open-o-common-tosca-parser-service'],
       
     # Please make sure this is in sync with src/aria/requirements.txt
     install_requires=[
@@ -86,4 +92,5 @@ setup(
         'Jinja2==2.8',
         'requests==2.11.1',
         'CacheControl[filecache]==0.11.6',
-        'shortuuid==0.4.3'])
+        'shortuuid==0.4.3',
+        'python-daemon==2.1.1'])

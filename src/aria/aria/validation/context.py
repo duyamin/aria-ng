@@ -15,18 +15,20 @@
 #
 
 from .issue import Issue
-from ..utils import LockedList, FrozenList, print_exception, puts, colored, indent
+from ..utils import LockedList, FrozenList, print_exception, puts, colored, indent, as_raw
 
 class ValidationContext(object):
     """
     Properties:
     
     * :code:`allow_unknown_fields`: When False (the default) will report an issue if an unknown field is used
+    * :code:`allow_primitive_coersion`: When False (the default) will not attempt to coerce primitive field types
     * :code:`max_level`: Maximum validation level to report (default is all)
     """
 
     def __init__(self):
         self.allow_unknown_fields = False
+        self.allow_primitive_coersion = False
         self.max_level = Issue.ALL
 
         self._issues = LockedList()
@@ -52,6 +54,10 @@ class ValidationContext(object):
         issues = [i for i in self._issues if i.level <= self.max_level] 
         issues.sort(key=lambda i: (i.level, i.location, i.line, i.column, i.message))
         return FrozenList(issues)
+
+    @property
+    def issues_as_raw(self):
+        return [as_raw(i) for i in self.issues]
 
     def dump_issues(self):
         issues = self.issues
