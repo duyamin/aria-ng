@@ -109,14 +109,9 @@ class RestRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def __init__(self, rest_server, *args, **kwargs):
         self.rest_server = rest_server
         self.handled = False
+        self.matched_re = None
+        self.matched_route = None
         BaseHTTPServer.BaseHTTPRequestHandler.__init__(self, *args, **kwargs) # Old-style Python classes don't support super
-    
-    @property
-    def route(self):
-        for path, route in self.rest_server.routes.iteritems():
-            if re.match(path, self.path):
-                return route
-        return None
     
     @property
     def content_length(self):
@@ -130,6 +125,12 @@ class RestRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def json_payload(self):
         return self.rest_server.json_decoder.decode(self.payload)
     
+    def match_route(self):
+        for path_re, route in self.rest_server.routes.iteritems():
+            if re.match(path_re, self.path):
+                return path_re, route
+        return None, None
+    
     def send_plain_text_response(self, status, content):
         self.send_response(status)
         self.send_header('Content-type', 'text/plain')
@@ -139,35 +140,35 @@ class RestRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     
     def send_content_type(self, route=None):
         if route is None:
-            route = self.route
+            _, route = self.match_route()
         media_type = route.get('media_type')
         if media_type is not None:
             self.send_header('Content-type', media_type)
         return media_type
     
     def handle_method(self, method):
-        route = self.route
+        self.matched_re, self.matched_route = self.match_route()
         
-        if route is None:
+        if self.matched_route is None:
             self.send_plain_text_response(404, 'Not found\n')
             return
         
         if method == 'HEAD':
             self.send_response(200)
-            self.send_content_type(route)
+            self.send_content_type(self.matched_route)
             self.end_headers()
             return
         
-        if 'file' in route:
+        if 'file' in self.matched_route:
             if method != 'GET':
                 self.send_plain_text_response(405, '%s is not supported\n' % method)
                 return
                 
             try:
-                f = open(os.path.join(self.rest_server.static_root, route['file']))
+                f = open(os.path.join(self.rest_server.static_root, self.matched_route['file']))
                 try:
                     self.send_response(200)
-                    self.send_content_type(route)
+                    self.send_content_type(self.matched_route)
                     self.end_headers()
                     shutil.copyfileobj(f, self.wfile)
                 finally:
@@ -176,12 +177,12 @@ class RestRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.send_plain_text_response(404, 'Not found\n')
             return
         
-        if method not in route:
+        if method not in self.matched_route:
             self.send_plain_text_response(405, '%s is not supported\n' % method)
             return
             
         try:
-            content = route[method](self)
+            content = self.matched_route[method](self)
         except Exception as e:
             self.send_plain_text_response(500, 'Internal error: %s\n' % e)
             return
@@ -194,7 +195,7 @@ class RestRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return
             
         self.send_response(200)
-        media_type = self.send_content_type(route)
+        media_type = self.send_content_type(self.matched_route)
         self.end_headers()
 
         if method == 'DELETE':

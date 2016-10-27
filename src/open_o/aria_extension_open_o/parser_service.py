@@ -15,7 +15,7 @@
 #
 
 from aria import install_aria_extensions
-from aria.tools.rest import validate_get, validate_post, model_get, model_post, instance_get, instance_post, indirect_validate_post, indirect_instance_post, indirect_model_post
+from aria.tools.rest import Configuration as BaseConfiguration, validate_get, validate_post, model_get, model_post, instance_get, instance_post, indirect_validate_post, indirect_instance_post, indirect_model_post
 from aria.tools.utils import CommonArgumentParser
 from aria.utils import RestServer, JsonAsRawEncoder, print_exception, start_daemon, stop_daemon, status_daemon, puts, colored
 from collections import OrderedDict
@@ -49,6 +49,15 @@ class ArgumentParser(CommonArgumentParser):
         self.add_argument('--root', help='web root directory')
         self.add_argument('--rundir', help='pid and log files directory for daemons (defaults to user home)')
 
+class Configuration(BaseConfiguration):
+    def __init__(self, arguments):
+        super(Configuration, self).__init__(arguments)
+    
+    def create_context(self, uri):
+        context = super(Configuration, self).create_context(uri)
+        context.validation.allow_primitive_coersion = True # For TOSCA-155
+        return context
+
 def main():
     try:
         install_aria_extensions()
@@ -56,7 +65,7 @@ def main():
         arguments, _ = ArgumentParser().parse_known_args()
 
         rest_server = RestServer()
-        rest_server.configuration = arguments
+        rest_server.configuration = Configuration(arguments)
         rest_server.port = arguments.port
         rest_server.routes = ROUTES
         rest_server.static_root = arguments.root or os.path.join(os.path.dirname(__file__), 'web')
