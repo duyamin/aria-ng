@@ -112,9 +112,13 @@ class GetInput(Function):
     @property
     def as_raw(self):
         return {'get_input': as_raw(self.input_property_name)}
-    
+
     def _evaluate(self, context, container):
-        the_input = context.modeling.model.inputs.get(self.input_property_name)
+        if not context.modeling.instance:
+            raise CannotEvaluateFunctionException()
+        the_input = context.modeling.instance.inputs.get(
+            self.input_property_name,
+            context.modeling.model.inputs.get(self.input_property_name))
         return the_input.value if the_input is not None else None
 
 @dsl_specification('4.4.2', 'tosca-simple-1.0')
