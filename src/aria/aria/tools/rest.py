@@ -38,10 +38,18 @@ arguments = None
 # Utils
 #
 
+class Configuration(object):
+    def __init__(self, arguments):
+        self.arguments = arguments
+    
+    def create_context(self, uri):
+        return create_context_from_namespace(self.arguments, uri=uri)
+
 def parse_path(handler):
     parsed = urlparse(urllib.unquote(handler.path))
+    uri = parsed.path[len(handler.matched_re):]
     query = parse_qs(parsed.query, keep_blank_values=True)
-    return parsed.path, query
+    return uri, query
 
 def parse_indirect_payload(handler):
     try:
@@ -66,17 +74,17 @@ def parse_indirect_payload(handler):
     return uri, inputs 
 
 def validate(handler, uri):
-    context = create_context_from_namespace(handler.rest_server.configuration, uri=uri)
+    context = handler.rest_server.configuration.create_context(uri)
     ConsumerChain(context, (Read, Validate)).consume()
     return context
 
 def model(handler, uri):
-    context = create_context_from_namespace(handler.rest_server.configuration, uri=uri)
+    context = handler.rest_server.configuration.create_context(uri)
     ConsumerChain(context, (Read, Validate, Model)).consume()
     return context
 
 def instance(handler, uri, inputs):
-    context = create_context_from_namespace(handler.rest_server.configuration, uri=uri)
+    context = handler.rest_server.configuration.create_context(uri)
     if inputs:
         if isinstance(inputs, dict):
             for name, value in inputs.iteritems():
@@ -96,8 +104,7 @@ def issues(context):
 # Validate
 
 def validate_get(handler):
-    path, _ = parse_path(handler)
-    uri = path[len(VALIDATE_PATH) + 2:]
+    uri, _ = parse_path(handler)
     context = validate(handler, uri)
     return issues(context) if context.validation.has_issues else {}
 
@@ -116,8 +123,7 @@ def indirect_validate_post(handler):
 # Model
 
 def model_get(handler):
-    path, _ = parse_path(handler)
-    uri = path[len(MODEL_PATH) + 2:]
+    uri, _ = parse_path(handler)
     context = model(handler, uri)
     return issues(context) if context.validation.has_issues else {'types': context.modeling.types_as_raw, 'model': context.modeling.model_as_raw}
 
@@ -136,8 +142,7 @@ def indirect_model_post(handler):
 # Instance
 
 def instance_get(handler):
-    path, query = parse_path(handler)
-    uri = path[len(INSTANCE_PATH) + 2:]
+    uri, query = parse_path(handler)
     inputs = query.get('inputs')
     if inputs:
         inputs = inputs[0]
@@ -188,7 +193,7 @@ def main():
         arguments, _ = ArgumentParser().parse_known_args()
 
         rest_server = RestServer()
-        rest_server.configuration = arguments
+        rest_server.configuration = Configuration(arguments)
         rest_server.port = arguments.port
         rest_server.routes = ROUTES
         rest_server.static_root = arguments.root or os.path.join(os.path.dirname(__file__), 'web')

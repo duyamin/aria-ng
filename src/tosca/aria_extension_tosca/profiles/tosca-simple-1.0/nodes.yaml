@@ -281,7 +281,6 @@ node_types:
   # Container
   #
 
-
   tosca.nodes.Container.Runtime:
     _extensions:
       shorthand_name: Container.Runtime
