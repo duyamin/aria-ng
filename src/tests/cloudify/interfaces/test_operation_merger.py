@@ -180,18 +180,18 @@ class NodeTemplateNodeTypeOperationMergerTest(AbstractTestParser):
         yaml = create_operation_in_node_type() + create_operation_in_node_template()
         self._assert_operations(yaml, NO_OP)
 
-    def test_no_op_overrides_operation_mapping_with_max_retries(self):
+    def test_no_op_overrides_operation_mapping_no_inputs(self):
 
         yaml = self.BASIC_PLUGIN + create_operation_in_node_type(
             implementation='test_plugin.tasks.create',
-            max_retries=8
         ) + create_operation_in_node_template()
         self._assert_operations(yaml, NO_OP)
 
     def test_no_op_overrides_operation_mapping(self):
 
         yaml = self.BASIC_PLUGIN + create_operation_in_node_type(
-            implementation='test_plugin.tasks.create'
+            implementation='test_plugin.tasks.create',
+            inputs={}
         ) + create_operation_in_node_template()
         self._assert_operations(yaml, NO_OP)
 
