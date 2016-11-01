@@ -270,14 +270,14 @@ node_types:
 
         yaml = self.BASIC_PLUGIN + create_operation_in_node_type(
             implementation='test_plugin.tasks.create',
-            executor='host_agent'
+            executor='central_deployment_agent'
         ) + create_operation_in_node_template(
             implementation='test_plugin.tasks.create-overridden',
             operation_mapping=False
         )
         self._assert_operations(yaml, raw_operation_mapping(
             implementation='test_plugin.tasks.create-overridden',
-            executor='host_agent'))
+            executor='central_deployment_agent'))
 
     def test_operation_overrides_operation(self):
         yaml = self.BASIC_PLUGIN + create_operation_in_node_type(
@@ -588,7 +588,7 @@ node_types:
             executor='central_deployment_agent'))
 
     def test_operation_mapping_no_implementation_overrides_none(self):
-        yaml = create_operation_in_node_type() + \
+        yaml = TYPE_WITH_NONE_OP + \
                create_operation_in_node_template(
                    executor='central_deployment_agent'
                )
