@@ -175,17 +175,106 @@ class NodeTemplateNodeTypeOperationMergerTest(AbstractTestParser):
                 else:
                     self.assertEqual(expected_operation[prop], actual_operation[prop])
 
+    def create_dsl_blueprint(self,
+                             node_type1_operation,
+                             node_template1_operation,
+                             node_type2_operation=None,
+                             node_template2_operation=None,
+                             add_plugin=True):
+
+        plugin = self.BASIC_PLUGIN if add_plugin else ''
+
+        dsl_blueprint = """
+
+tosca_definitions_version: cloudify_dsl_1_3
+node_types:
+    type1:
+        interfaces:
+            interface1:
+                op1: {node_type1_operation}
+    type2:
+        interfaces:
+            interface1:
+                op1: {node_type2_operation}
+node_templates:
+    node1:
+        type: type1
+        interfaces:
+            interface1:
+                op1: {node_template1_operation}
+    node2:
+        type: type2
+        interfaces:
+            interface1:
+                op1: {node_template2_operation}
+{plugin}
+""".format(node_type1_operation=self.create_dsl_operation(node_type1_operation),
+           node_type2_operation=self.create_dsl_operation(node_type2_operation),
+           node_template1_operation=self.create_dsl_operation(node_template1_operation),
+           node_template2_operation=self.create_dsl_operation(node_template2_operation),
+           plugin=plugin)
+
+        return dsl_blueprint
+
+    @staticmethod
+    def create_dsl_operation(operation):
+
+        if not operation:
+            return '{}'
+
+        dsl_operation = ''
+        for line in operation.splitlines():
+            dsl_operation += '\n{indentation}{operation_attribute}'.format(
+                indentation=20*' ',
+                operation_attribute=line)
+        return dsl_operation
+
+    @staticmethod
+    def create_parsed_operation(operation):
+        return {
+            'operation': operation.get('operation') or None,
+            'plugin': operation.get('plugin') or None,
+            'inputs': operation.get('inputs') or {},
+            'executor': operation.get('executor') or None,
+            'max_retries': None,
+            'retry_interval': None,
+            'has_intrinsic_functions': False
+        }
+
+    def assert_operation_merger(self,
+                                dsl_blueprint,
+                                expected_template_merger,
+                                expected_type_merger=None):
+        parsed_blueprint = self.parse(dsl_blueprint)
+
+        actual_template_merger = parsed_blueprint['nodes'][0]['operations']['op1']
+        self.assertEqual(expected_template_merger, actual_template_merger)
+
+        if expected_type_merger:
+            actual_type_merger = parsed_blueprint['nodes'][1]['operations']['op1']
+            self.assertEqual(expected_type_merger, actual_type_merger)
+
     def test_no_op_overrides_no_op(self):
 
-        yaml = create_operation_in_node_type() + create_operation_in_node_template()
-        self._assert_operations(yaml, NO_OP)
+        dsl_blueprint = self.create_dsl_blueprint(
+            node_type1_operation='',
+            node_template1_operation='',
+            node_type2_operation='',
+            add_plugin=False)
+        expected_template_merger = self.create_parsed_operation({})
+        expected_type_merger = self.create_parsed_operation({})
+
+        self.assert_operation_merger(dsl_blueprint, expected_template_merger, expected_type_merger)
 
     def test_no_op_overrides_operation_mapping_no_inputs(self):
-
-        yaml = self.BASIC_PLUGIN + create_operation_in_node_type(
-            implementation='test_plugin.tasks.create',
-        ) + create_operation_in_node_template()
-        self._assert_operations(yaml, NO_OP)
+        dsl_blueprint = self.create_dsl_blueprint(
+            node_type1_operation='implementation: test_plugin.tasks.create\n'
+                                 'inputs: {}',
+            node_template1_operation='',
+            node_type2_operation='')
+        expected_template_merger = self.create_parsed_operation({})
+        expected_type_merger = self.create_parsed_operation({})
+        self.assert_operation_merger(dsl_blueprint, expected_template_merger, expected_type_merger)
 
     def test_no_op_overrides_operation_mapping(self):
 
