@@ -130,7 +130,7 @@ class AttributeDefinition(ExtensiblePresentation):
         """
 
     @field_validator(data_value_validator)
-    @primitive_field(str)
+    @primitive_field()
     def default(self):
         """
         An optional key that may provide a value to be used as a default if not provided by another means.
