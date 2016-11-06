@@ -17,6 +17,7 @@
 import testtools
 
 from cloudify.framework.abstract_test_parser import AbstractTestParser
+from aria.presentation.null import NULL, null_to_none
 
 # from . import validate
 
@@ -62,9 +63,9 @@ def _create_operation_mapping(implementation=None,
         operation += '          implementation: {0}\n'.format(implementation)
     if executor:
         operation += '          executor: {0}\n'.format(executor)
-    if max_retries:
+    if max_retries is not None:
         operation += '          max_retries: {0}\n'.format(max_retries)
-    if retry_interval:
+    if retry_interval is not None:
         operation += '          retry_interval: {0}\n'.format(retry_interval)
     if inputs:
         operation += '          inputs:\n'
@@ -164,6 +165,8 @@ class NodeTemplateNodeTypeOperationMergerTest(AbstractTestParser):
             self.assertIsNone(actual_operation)
         else:
             for prop in expected_operation.keys():
+                if actual_operation[prop] == NULL:
+                    actual_operation[prop] = null_to_none(actual_operation[prop])
                 if prop == 'operation' and actual_operation[prop]:
                     self.assertEqual(expected_operation[prop],
                                      actual_operation['plugin'] + '.' + actual_operation[prop])
@@ -655,6 +658,25 @@ node_types:
         self._assert_operations(yaml, raw_operation_mapping(
             implementation='test_plugin.tasks.create',
             inputs={'key': 'value'},
+            executor='central_deployment_agent'))
+
+    def test_operation_mapping_no_implementation_empty_inputs_overrides_operation_mapping(self):  # NOQA
+        yaml = self.BASIC_PLUGIN + \
+               create_operation_in_node_type(
+                   implementation='test_plugin.tasks.create',
+                   inputs={
+                       'key': {
+                           'default': 'value'
+                       }
+                   }
+               ) + \
+               create_operation_in_node_template(
+                   inputs={}
+               )
+
+        self._assert_operations(yaml, raw_operation_mapping(
+            implementation='test_plugin.tasks.create',
+            inputs={},
             executor='central_deployment_agent'))
 
     def test_operation_mapping_no_implementation_overrides_operation_mapping_no_inputs(self):  # NOQA
