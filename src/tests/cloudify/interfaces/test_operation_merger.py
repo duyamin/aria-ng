@@ -54,11 +54,6 @@ def _create_operation_mapping(implementation=None,
                               max_retries=None,
                               retry_interval=None):
 
-    if not implementation:
-        return (
-            'create: {}\n'
-        )
-
     operation = (
         'create:\n'
     )
@@ -810,6 +805,7 @@ node_types:
             yaml, raw_operation_mapping(
                 implementation='test_plugin.tasks.create',
                 inputs={'some': 'input'},
+                executor='central_deployment_agent',
                 max_retries=1,
                 retry_interval=2),
             dsl_version=AbstractTestParser.BASIC_VERSION_SECTION_DSL_1_3)
