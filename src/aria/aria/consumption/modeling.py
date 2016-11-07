@@ -1,37 +1,40 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
 #
-# Copyright (c) 2016 GigaSpaces Technologies Ltd. All rights reserved.
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License. You may obtain
-# a copy of the License at
-# 
-#      http://www.apache.org/licenses/LICENSE-2.0
-# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations
-# under the License.
-#
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-from .consumer import Consumer, ConsumerChain
 from ..utils import json_dumps, yaml_dumps
+from .consumer import Consumer, ConsumerChain
+
 
 class Derive(Consumer):
     """
     Derives the service model.
     """
-    
+
     def consume(self):
         if self.context.presentation.presenter is None:
             self.context.validation.report('Derive consumer: missing presenter')
             return
-        
+
         if not hasattr(self.context.presentation.presenter, '_get_service_model'):
-            self.context.validation.report('Derive consumer: presenter does not support "_get_service_model"')
+            self.context.validation.report('Derive consumer: presenter does not support '
+                                           '"_get_service_model"')
             return
 
-        self.context.modeling.model = self.context.presentation.presenter._get_service_model(self.context)
+        self.context.modeling.model = \
+            self.context.presentation.presenter._get_service_model(self.context)
+
 
 class CoerceModelValues(Consumer):
     """
@@ -40,6 +43,7 @@ class CoerceModelValues(Consumer):
 
     def consume(self):
         self.context.modeling.model.coerce_values(self.context, None, True)
+
 
 class ValidateModel(Consumer):
     """
@@ -73,7 +77,7 @@ class Types(Consumer):
     """
     Used to just dump the types.
     """
-    
+
     def dump(self):
         if self.context.has_arg_switch('yaml'):
             indent = self.context.get_arg_value_int('indent', 2)
@@ -90,7 +94,7 @@ class Instantiate(Consumer):
     """
     Instantiates the service model.
     """
-    
+
     def consume(self):
         if self.context.modeling.model is None:
             self.context.validation.report('Instantiate consumer: missing service model')
@@ -121,7 +125,7 @@ class SatisfyRequirements(Consumer):
 
     def consume(self):
         self.context.modeling.instance.satisfy_requirements(self.context)
-        
+
 class ValidateCapabilities(Consumer):
     """
     Validates capabilities in the service instance.
@@ -134,9 +138,12 @@ class Instance(ConsumerChain):
     """
     Generates the service instance by instantiating the service model.
     """
-    
+
     def __init__(self, context):
-        super(Instance, self).__init__(context, (Instantiate, CoerceInstanceValues, ValidateInstance, CoerceInstanceValues, SatisfyRequirements, CoerceInstanceValues, ValidateCapabilities, CoerceInstanceValues))
+        super(Instance, self).__init__(context, (Instantiate, CoerceInstanceValues,
+                                                 ValidateInstance, CoerceInstanceValues,
+                                                 SatisfyRequirements, CoerceInstanceValues,
+                                                 ValidateCapabilities, CoerceInstanceValues))
 
     def dump(self):
         if self.context.has_arg_switch('graph'):
