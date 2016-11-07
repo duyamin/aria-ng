@@ -352,7 +352,8 @@ def create_constraint_clause_lambda(context, node_filter, constraint_clause, pro
     def get_value(node_type):
         if capability_name is not None:
             capability = node_type.capability_templates.get(capability_name)
-            return capability.properties.get(property_name) if capability is not None else None
+            prop = capability.properties.get(property_name) if capability is not None else None
+            return prop.value if prop is not None else None
         value = node_type.properties.get(property_name)
         return value.value if value is not None else None
 
