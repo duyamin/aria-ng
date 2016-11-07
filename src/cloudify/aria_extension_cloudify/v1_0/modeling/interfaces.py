@@ -156,10 +156,10 @@ def merge_interface(context, presentation, interface_assignment, our_interface_a
                 interface_assignment._raw[operation_name]['executor'] = deepcopy_with_locators(our_executor)
             if hasattr(our_operation_template, 'max_retries'): # Introduced in DSL v1.1
                 our_max_retries = our_operation_template.max_retries
-                if our_max_retries is not None:
+                if our_max_retries is not None or our_implementation is not None:
                     interface_assignment._raw[operation_name]['max_retries'] = deepcopy_with_locators(our_max_retries)
                 our_retry_interval = our_operation_template.retry_interval
-                if our_retry_interval is not None:
+                if our_retry_interval is not None or our_implementation is not None:
                     interface_assignment._raw[operation_name]['retry_interval'] = deepcopy_with_locators(our_retry_interval)
 
             # Assign/merge operation inputs
