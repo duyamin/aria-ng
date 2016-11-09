@@ -1,25 +1,26 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
 #
-# Copyright (c) 2016 GigaSpaces Technologies Ltd. All rights reserved.
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License. You may obtain
-# a copy of the License at
-# 
-#      http://www.apache.org/licenses/LICENSE-2.0
-# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations
-# under the License.
-#
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-from __future__ import absolute_import # so we can import standard 'threading'
+from __future__ import absolute_import  # so we can import standard 'threading'
+
+import itertools
+import multiprocessing
+from threading import (Thread, Lock)
+from Queue import (Queue, Full, Empty)
 
 from .exceptions import print_exception
-from threading import Thread, Lock
-from Queue import Queue, Full, Empty
-import itertools, multiprocessing
 
 class ExecutorException(Exception):
     pass
@@ -28,27 +29,27 @@ class DaemonThread(Thread):
     def __init__(self, *args, **kwargs):
         super(DaemonThread, self).__init__(*args, **kwargs)
         self.daemon = True
-    
+
     def run(self):
         """
         We're overriding `Thread.run` in order to avoid annoying (but harmless) error
         messages during shutdown. The problem is that CPython nullifies the
         global state _before_ shutting down daemon threads, so that exceptions
         might happen, and then `Thread.__bootstrap_inner` prints them out.
-        
+
         Our solution is to swallow these exceptions here.
-        
+
         The side effect is that uncaught exceptions in our own thread code will _not_
         be printed out as usual, so it's our responsibility to catch them in our
-        code. 
+        code.
         """
-        
+
         try:
             super(DaemonThread, self).run()
         except SystemExit as e:
             # This exception should be bubbled up
             raise e
-        except:
+        except BaseException:
             # Exceptions might occur in daemon threads during interpreter shutdown
             pass
 
@@ -56,15 +57,15 @@ class DaemonThread(Thread):
 class FixedThreadPoolExecutor(object):
     """
     Executes tasks in a fixed thread pool.
-    
+
     Makes sure to gather all returned results and thrown exceptions in one place, in order of task
     submission.
-    
+
     Example::
-    
+
         def sum(arg1, arg2):
             return arg1 + arg2
-            
+
         executor = FixedThreadPoolExecutor(10)
         try:
             for value in range(100):
@@ -74,10 +75,10 @@ class FixedThreadPoolExecutor(object):
             executor.close()
         executor.raise_first()
         print executor.returns
-    
+
     You can also use it with the Python "with" keyword, in which case you don't need to call "close"
     explicitly::
-    
+
         with FixedThreadPoolExecutor(10) as executor:
             for value in range(100):
                 executor.submit(sum, value, value)
@@ -86,15 +87,20 @@ class FixedThreadPoolExecutor(object):
             print executor.returns
     """
 
-    _CYANIDE = object() # Special task marker used to kill worker threads.
+    _CYANIDE = object()  # Special task marker used to kill worker threads.
 
-    def __init__(self, size=multiprocessing.cpu_count() * 2 + 1, timeout=None, print_exceptions=False):
+    def __init__(self,
+                 size=multiprocessing.cpu_count() * 2 + 1,
+                 timeout=None,
+                 print_exceptions=False):
         """
         :param size: Number of threads in the pool (fixed).
-        :param timeout: Timeout in seconds for all blocking operations. (Defaults to none, meaning no timeout) 
-        :param print_exceptions: Set to true in order to print exceptions from tasks. (Defaults to false)
+        :param timeout: Timeout in seconds for all
+               blocking operations. (Defaults to none, meaning no timeout)
+        :param print_exceptions: Set to true in order to
+               print exceptions from tasks. (Defaults to false)
         """
-        
+
         self.size = size
         self.timeout = timeout
         self.print_exceptions = print_exceptions
@@ -113,29 +119,29 @@ class FixedThreadPoolExecutor(object):
             worker.start()
             self._workers.append(worker)
 
-    def submit(self, fn, *args, **kwargs):
+    def submit(self, func, *args, **kwargs):
         """
         Submit a task for execution.
-        
+
         The task will be called ASAP on the next available worker thread in the pool.
-        
+
         Will raise an :class:`ExecutorException` exception if cannot be submitted.
         """
-        
+
         try:
-            self._tasks.put((self._id_creator.next(), fn, args, kwargs), timeout=self.timeout)
+            self._tasks.put((self._id_creator.next(), func, args, kwargs), timeout=self.timeout)
         except Full:
             raise ExecutorException('cannot submit task: queue is full')
 
     def close(self):
         """
         Blocks until all current tasks finish execution and all worker threads are dead.
-        
+
         You cannot submit tasks anymore after calling this.
-        
+
         This is called automatically upon exit if you are using the "with" keyword.
         """
-        
+
         self.drain()
         while self.is_alive:
             try:
@@ -148,26 +154,26 @@ class FixedThreadPoolExecutor(object):
         """
         Blocks until all current tasks finish execution, but leaves the worker threads alive.
         """
-        
-        self._tasks.join() # oddly, the API does not support a timeout parameter
+
+        self._tasks.join()  # oddly, the API does not support a timeout parameter
 
     @property
     def is_alive(self):
         """
         True if any of the worker threads are alive.
         """
-        
+
         for worker in self._workers:
             if worker.is_alive():
                 return True
         return False
-    
+
     @property
     def returns(self):
         """
         The returned values from all tasks, in order of submission.
         """
-        
+
         return [self._returns[k] for k in sorted(self._returns)]
 
     @property
@@ -175,18 +181,18 @@ class FixedThreadPoolExecutor(object):
         """
         The raised exceptions from all tasks, in order of submission.
         """
-        
+
         return [self._exceptions[k] for k in sorted(self._exceptions)]
 
     def raise_first(self):
         """
         If exceptions were thrown by any task, then the first one will be raised.
-        
+
         This is rather arbitrary: proper handling would involve iterating all the
         exceptions. However, if you want to use the "raise" mechanism, you are
         limited to raising only one of them.
         """
-        
+
         exceptions = self.exceptions
         if exceptions:
             raise exceptions[0]
@@ -208,10 +214,10 @@ class FixedThreadPoolExecutor(object):
         self._execute_task(*task)
         return True
 
-    def _execute_task(self, task_id, fn, args, kwargs):
+    def _execute_task(self, task_id, func, args, kwargs):
         try:
-            r = fn(*args, **kwargs)
-            self._returns[task_id] = r
+            result = func(*args, **kwargs)
+            self._returns[task_id] = result
         except Exception as e:
             self._exceptions[task_id] = e
             if self.print_exceptions:
@@ -229,7 +235,7 @@ class FixedThreadPoolExecutor(object):
 class LockedList(list):
     """
     A list that supports the "with" keyword with a built-in lock.
-    
+
     Though Python lists are thread-safe in that they will not raise exceptions
     during concurrent access, they do not guarantee atomicity. This class will
     let you gain atomicity when needed.

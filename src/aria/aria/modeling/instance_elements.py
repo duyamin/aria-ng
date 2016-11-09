@@ -243,7 +243,7 @@ class Node(Element):
         return satisfied
 
     def _satisfy_capability(self, context, target_node_capability, target_node_template,
-                           requirement_template, requirement_template_index):
+                            requirement_template, requirement_template_index):
         # Find target nodes
         target_nodes = context.modeling.instance.find_nodes(target_node_template.name)
         if target_nodes:
