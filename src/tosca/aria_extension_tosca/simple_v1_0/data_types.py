@@ -1,26 +1,28 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
 #
-# Copyright (c) 2016 GigaSpaces Technologies Ltd. All rights reserved.
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License. You may obtain
-# a copy of the License at
-# 
-#      http://www.apache.org/licenses/LICENSE-2.0
-# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations
-# under the License.
-#
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-from .modeling.data_types import coerce_to_data_type_class, report_issue_for_bad_format, coerce_value
-from aria import dsl_specification
-from aria.utils import StrictDict, safe_repr
+import re
+from collections import OrderedDict
 from functools import total_ordering
 from datetime import datetime, tzinfo, timedelta
-from collections import OrderedDict
-import re
+
+from aria import dsl_specification
+from aria.utils import StrictDict, safe_repr
+
+from .modeling.data_types import (coerce_to_data_type_class, report_issue_for_bad_format,
+                                  coerce_value)
 
 class Timezone(tzinfo):
     """
@@ -28,15 +30,16 @@ class Timezone(tzinfo):
     """
 
     def __init__(self, hours=0, minutes=0):
+        super(Timezone, self).__init__()
         self._offset = timedelta(hours=hours, minutes=minutes)
 
-    def utcoffset(self, dt):
+    def utcoffset(self, dt): # pylint: disable=unused-argument
         return self._offset
 
-    def tzname(self, dt):
+    def tzname(self, dt): # pylint: disable=unused-argument
         return str(self._offset)
 
-    def dst(self, dt):
+    def dst(self, dt): # pylint: disable=unused-argument
         return Timezone._ZERO
 
     _ZERO = timedelta(0)
@@ -48,20 +51,26 @@ UTC = Timezone()
 class Timestamp(object):
     '''
     TOSCA timestamps follow the YAML specification, which in turn is a variant of ISO8601.
-    
-    Long forms and short forms (without time of day and assuming UTC timezone) are supported for parsing.
-    The canonical form (for rendering) matches the long form at the UTC timezone. 
-    
-    See the `Timestamp Language-Independent Type for YAML Version 1.1 (Working Draft 2005-01-18) <http://yaml.org/type/timestamp.html>`__
+
+    Long forms and short forms (without time of day and assuming UTC timezone) are supported for
+    parsing. The canonical form (for rendering) matches the long form at the UTC timezone.
+
+    See the `Timestamp Language-Independent Type for YAML Version 1.1 (Working Draft 2005-01-18)
+    <http://yaml.org/type/timestamp.html>`__
     '''
-    
-    RE_SHORT = r'^(?P<year>[0-9][0-9][0-9][0-9])-(?P<month>[0-9][0-9])-(?P<day>[0-9][0-9])$'
-    RE_LONG = r'^(?P<year>[0-9][0-9][0-9][0-9])-(?P<month>[0-9][0-9]?)-(?P<day>[0-9][0-9]?)([Tt]|[ \t]+)(?P<hour>[0-9][0-9]?):(?P<minute>[0-9][0-9]):(?P<second>[0-9][0-9])(?P<fraction>\.[0-9]*)?(([ \t]*)Z|(?P<tzhour>[-+][0-9][0-9])?(:(?P<tzminute>[0-9][0-9])?)?)?$'
+
+    REGULAR_SHORT = r'^(?P<year>[0-9][0-9][0-9][0-9])-(?P<month>[0-9][0-9])-(?P<day>[0-9][0-9])$'
+    REGULAR_LONG = \
+        r'^(?P<year>[0-9][0-9][0-9][0-9])-(?P<month>[0-9][0-9]?)-(?P<day>[0-9][0-9]?)' + \
+        r'([Tt]|[ \t]+)' \
+        r'(?P<hour>[0-9][0-9]?):(?P<minute>[0-9][0-9]):(?P<second>[0-9][0-9])' + \
+        r'(?P<fraction>\.[0-9]*)?' + \
+        r'(([ \t]*)Z|(?P<tzhour>[-+][0-9][0-9])?(:(?P<tzminute>[0-9][0-9])?)?)?$'
     CANONICAL = '%Y-%m-%dT%H:%M:%S'
-    
-    def __init__(self, entry_schema, constraints, value, aspect):
+
+    def __init__(self, entry_schema, constraints, value, aspect): # pylint: disable=unused-argument
         value = str(value)
-        match = re.match(Timestamp.RE_SHORT, value)
+        match = re.match(Timestamp.REGULAR_SHORT, value)
         if match is not None:
             # Parse short form
             year = int(match.group('year'))
@@ -69,7 +78,7 @@ class Timestamp(object):
             day = int(match.group('day'))
             self.value = datetime(year, month, day, tzinfo=UTC)
         else:
-            match = re.match(Timestamp.RE_LONG, value)
+            match = re.match(Timestamp.REGULAR_LONG, value)
             if match is not None:
                 # Parse long form
                 year = int(match.group('year'))
@@ -97,22 +106,26 @@ class Timestamp(object):
                     tzminute = int(tzminute)
                 else:
                     tzminute = 0
-                self.value = datetime(year, month, day, hour, minute, second, fraction, Timezone(tzhour, tzminute))
+                self.value = datetime(year, month, day, hour, minute, second, fraction,
+                                      Timezone(tzhour, tzminute))
             else:
-                raise ValueError('timestamp must be formatted as YAML ISO8601 variant or "YYYY-MM-DD": %s' % safe_repr(value))
-    
+                raise ValueError(
+                    'timestamp must be formatted as YAML ISO8601 variant or "YYYY-MM-DD": %s'
+                    % safe_repr(value))
+
     @property
     def as_datetime_utc(self):
         return self.value.astimezone(UTC)
-    
+
     @property
     def as_raw(self):
         return self.__str__()
-    
+
     def __str__(self):
-        dt = self.as_datetime_utc
-        return '%s%sZ' % (dt.strftime(Timestamp.CANONICAL), Timestamp._fraction_as_str(dt))
-    
+        the_datetime = self.as_datetime_utc
+        return '%s%sZ' \
+            % (the_datetime.strftime(Timestamp.CANONICAL), Timestamp._fraction_as_str(the_datetime))
+
     def __repr__(self):
         return repr(self.__str__())
 
@@ -123,37 +136,48 @@ class Timestamp(object):
 
     def __lt__(self, timestamp):
         return self.value < timestamp.value
-    
+
     @staticmethod
-    def _fraction_as_str(dt):
-        return '{0:g}'.format_heading(dt.microsecond / 1000000.0).lstrip('0')
-    
+    def _fraction_as_str(the_datetime):
+        return '{0:g}'.format(the_datetime.microsecond / 1000000.0).lstrip('0')
+
 @total_ordering
 @dsl_specification('3.2.2', 'tosca-simple-1.0')
 class Version(object):
     """
-    TOSCA supports the concept of "reuse" of type definitions, as well as template definitions which could be version and change over time. It is important to provide a reliable, normative means to represent a version string which enables the comparison and management of types and templates over time. Therefore, the TOSCA TC intends to provide a normative version type (string) for this purpose in future Working Drafts of this specification.
-    
-    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_VERSION>`__
+    TOSCA supports the concept of "reuse" of type definitions, as well as template definitions which
+    could be version and change over time. It is important to provide a reliable, normative means to
+    represent a version string which enables the comparison and management of types and templates
+    over time. Therefore, the TOSCA TC intends to provide a normative version type (string) for this
+    purpose in future Working Drafts of this specification.
+
+    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca
+    /TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html
+    #TYPE_TOSCA_VERSION>`__
     """
 
-    RE = r'^(?P<major>\d+)\.(?P<minor>\d+)(\.(?P<fix>\d+)((\.(?P<qualifier>\d+))(\-(?P<build>\d+))?)?)?$'
-    
+    REGULAR = \
+        r'^(?P<major>\d+)\.(?P<minor>\d+)(\.(?P<fix>\d+)' + \
+        r'((\.(?P<qualifier>\d+))(\-(?P<build>\d+))?)?)?$'
+
     @staticmethod
     def key(version):
         """
         Key method for fast sorting.
         """
         return (version.major, version.minor, version.fix, version.qualifier, version.build)
-    
-    def __init__(self, entry_schema, constraints, value, aspect):
+
+    def __init__(self, entry_schema, constraints, value, aspect): # pylint: disable=unused-argument
         str_value = str(value)
-        match = re.match(Version.RE, str_value)
+        match = re.match(Version.REGULAR, str_value)
         if match is None:
-            raise ValueError('version must be formatted as <major_version>.<minor_version>[.<fix_version>[.<qualifier>[-<build_version]]]: %s' % safe_repr(value))
-        
+            raise ValueError(
+                'version must be formatted as <major_version>.<minor_version>'
+                '[.<fix_version>[.<qualifier>[-<build_version]]]: %s'
+                % safe_repr(value))
+
         self.value = str_value
-        
+
         self.major = match.group('major')
         self.major = int(self.major)
         self.minor = match.group('minor')
@@ -174,14 +198,15 @@ class Version(object):
 
     def __str__(self):
         return self.value
-    
+
     def __repr__(self):
         return repr(self.__str__())
 
     def __eq__(self, version):
         if not isinstance(version, Version):
             return False
-        return (self.major, self.minor, self.fix, self.qualifier, self.build) == (version.major, version.minor, version.fix, version.qualifier, version.build)
+        return (self.major, self.minor, self.fix, self.qualifier, self.build) == \
+            (version.major, version.minor, version.fix, version.qualifier, version.build)
 
     def __lt__(self, version):
         if self.major < version.major:
@@ -203,32 +228,39 @@ class Version(object):
 @dsl_specification('3.2.3', 'tosca-simple-1.0')
 class Range(object):
     """
-    The range type can be used to define numeric ranges with a lower and upper boundary. For example, this allows for specifying a range of ports to be opened in a firewall.
-    
-    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_RANGE>`__
+    The range type can be used to define numeric ranges with a lower and upper boundary. For
+    example, this allows for specifying a range of ports to be opened in a firewall.
+
+    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca
+    /TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html
+    #TYPE_TOSCA_RANGE>`__
     """
 
-    def __init__(self, entry_schema, constraints, value, aspect):
+    def __init__(self, entry_schema, constraints, value, aspect): # pylint: disable=unused-argument
         if not isinstance(value, list):
             raise ValueError('range value is not a list: %s' % safe_repr(value))
         if len(value) != 2:
             raise ValueError('range value does not have exactly 2 elements: %s' % safe_repr(value))
-        
+
         def is_int(v):
             return isinstance(v, int) and (not isinstance(v, bool)) # In Python bool is an int
-        
+
         if not is_int(value[0]):
-            raise ValueError('lower bound of range is not a valid integer: %s' % safe_repr(value[0]))
+            raise ValueError('lower bound of range is not a valid integer: %s'
+                             % safe_repr(value[0]))
 
         if value[1] != 'UNBOUNDED':
             if not is_int(value[1]):
-                raise ValueError('upper bound of range is not a valid integer or "UNBOUNDED": %s' % safe_repr(value[0]))
-    
+                raise ValueError('upper bound of range is not a valid integer or "UNBOUNDED": %s'
+                                 % safe_repr(value[0]))
+
             if value[0] >= value[1]:
-                raise ValueError('upper bound of range is not greater than the lower bound: %s >= %s' % (safe_repr(value[0]), safe_repr(value[1])))
-        
+                raise ValueError(
+                    'upper bound of range is not greater than the lower bound: %s >= %s'
+                    % (safe_repr(value[0]), safe_repr(value[1])))
+
         self.value = value
-    
+
     def is_in(self, value):
         if value < self.value[0]:
             return False
@@ -243,26 +275,31 @@ class Range(object):
 @dsl_specification('3.2.4', 'tosca-simple-1.0')
 class List(list):
     """
-    The list type allows for specifying multiple values for a parameter of property. For example, if an application allows for being configured to listen on multiple ports, a list of ports could be configured using the list data type.
-    
-    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_LIST>`__
+    The list type allows for specifying multiple values for a parameter of property. For example, if
+    an application allows for being configured to listen on multiple ports, a list of ports could be
+    configured using the list data type.
+
+    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca
+    /TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html
+    #TYPE_TOSCA_LIST>`__
     """
-    
+
     @staticmethod
-    def _create(context, presentation, entry_schema, constraints, value, aspect):
+    def _create(context, presentation, entry_schema, constraints, value, aspect): # pylint: disable=unused-argument
         if not isinstance(value, list):
             raise ValueError('"list" data type value is not a list: %s' % safe_repr(value))
 
         entry_schema_type = entry_schema._get_type(context)
         entry_schema_constraints = entry_schema.constraints
 
-        r = List()
+        the_list = List()
         for v in value:
-            v = coerce_value(context, presentation, entry_schema_type, None, entry_schema_constraints, v, aspect)
+            v = coerce_value(context, presentation, entry_schema_type, None,
+                             entry_schema_constraints, v, aspect)
             if v is not None:
-                r.append(v)
+                the_list.append(v)
 
-        return r
+        return the_list
 
     # Can't define as property because it's old-style Python class
     def as_raw(self):
@@ -271,13 +308,17 @@ class List(list):
 @dsl_specification('3.2.5', 'tosca-simple-1.0')
 class Map(StrictDict):
     """
-    The map type allows for specifying multiple values for a parameter of property as a map. In contrast to the list type, where each entry can only be addressed by its index in the list, entries in a map are named elements that can be addressed by their keys.
-    
-    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_MAP>`__
+    The map type allows for specifying multiple values for a parameter of property as a map. In
+    contrast to the list type, where each entry can only be addressed by its index in the list,
+    entries in a map are named elements that can be addressed by their keys.
+
+    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca
+    /TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html
+    #TYPE_TOSCA_MAP>`__
     """
-    
+
     @staticmethod
-    def _create(context, presentation, entry_schema, constraints, value, aspect):
+    def _create(context, presentation, entry_schema, constraints, value, aspect): # pylint: disable=unused-argument
         if not isinstance(value, dict):
             raise ValueError('"map" data type value is not a dict: %s' % safe_repr(value))
 
@@ -287,13 +328,14 @@ class Map(StrictDict):
         entry_schema_type = entry_schema._get_type(context)
         entry_schema_constraints = entry_schema.constraints
 
-        r = Map()
+        the_map = Map()
         for k, v in value.iteritems():
-            v = coerce_value(context, presentation, entry_schema_type, None, entry_schema_constraints, v, aspect)
+            v = coerce_value(context, presentation, entry_schema_type, None,
+                             entry_schema_constraints, v, aspect)
             if v is not None:
-                r[k] = v
+                the_map[k] = v
 
-        return r
+        return the_map
 
     def __init__(self, items=None):
         super(Map, self).__init__(items, key_class=str)
@@ -306,9 +348,12 @@ class Map(StrictDict):
 @dsl_specification('3.2.6', 'tosca-simple-1.0')
 class Scalar(object):
     """
-    The scalar-unit type can be used to define scalar values along with a unit from the list of recognized units.
-    
-    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_SCALAR_UNIT>`__
+    The scalar-unit type can be used to define scalar values along with a unit from the list of
+    recognized units.
+
+    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca
+    /TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html
+    #TYPE_TOSCA_SCALAR_UNIT>`__
     """
 
     @staticmethod
@@ -317,10 +362,10 @@ class Scalar(object):
         Key method for fast sorting.
         """
         return scalar.value
-    
-    def __init__(self, entry_schema, constraints, value, aspect):
+
+    def __init__(self, entry_schema, constraints, value, aspect): # pylint: disable=unused-argument
         str_value = str(value)
-        match = re.match(self.RE, str_value)
+        match = re.match(self.REGULAR, str_value) # pylint: disable=no-member
         if match is None:
             raise ValueError('scalar must be formatted as <scalar> <unit>: %s' % safe_repr(value))
 
@@ -329,55 +374,58 @@ class Scalar(object):
 
         unit_lower = self.unit.lower()
         unit_size = None
-        for k, v in self.UNITS.iteritems():
+        for k, v in self.UNITS.iteritems(): # pylint: disable=no-member
             if k.lower() == unit_lower:
                 self.unit = k
                 unit_size = v
                 break
         if unit_size is None:
             raise ValueError('scalar specified with unsupported unit: %s' % safe_repr(self.unit))
-        
-        self.value = self.TYPE(self.factor * unit_size)
-    
+
+        self.value = self.TYPE(self.factor * unit_size) # pylint: disable=no-member
+
     @property
     def as_raw(self):
         return OrderedDict((
             ('value', self.value),
             ('factor', self.factor),
             ('unit', self.unit),
-            ('unit_size', self.UNITS[self.unit])))
+            ('unit_size', self.UNITS[self.unit]))) # pylint: disable=no-member
 
     def __str__(self):
-        return '%s %s' % (self.value, self.UNIT)
+        return '%s %s' % (self.value, self.UNIT) # pylint: disable=no-member
 
     def __repr__(self):
         return repr(self.__str__())
-    
+
     def __eq__(self, scalar):
         if isinstance(scalar, Scalar):
             value = scalar.value
         else:
-            value = self.TYPE(scalar)
+            value = self.TYPE(scalar) # pylint: disable=no-member
         return self.value == value
 
     def __lt__(self, scalar):
         if isinstance(scalar, Scalar):
             value = scalar.value
         else:
-            value = self.TYPE(scalar)
+            value = self.TYPE(scalar) # pylint: disable=no-member
         return self.value < value
 
 @dsl_specification('3.2.6.4', 'tosca-simple-1.0')
 class ScalarSize(Scalar):
     """
     Integer scalar for counting bytes.
-    
-    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_SCALAR_UNIT_SIZE>`__
+
+    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca
+    /TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html
+    #TYPE_TOSCA_SCALAR_UNIT_SIZE>`__
     """
 
     # See: http://www.regular-expressions.info/floatingpoint.html
-    RE = r'^(?P<scalar>[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)\s*(?P<unit>B|kB|KiB|MB|MiB|GB|GiB|TB|TiB)$'
-    
+    REGULAR = \
+        r'^(?P<scalar>[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)\s*(?P<unit>B|kB|KiB|MB|MiB|GB|GiB|TB|TiB)$'
+
     UNITS = {
         'B':               1,
         'kB':           1000,
@@ -396,12 +444,14 @@ class ScalarSize(Scalar):
 class ScalarTime(Scalar):
     """
     Floating point scalar for counting seconds.
-    
-    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_SCALAR_UNIT_TIME>`__
+
+    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca
+    /TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html
+    #TYPE_TOSCA_SCALAR_UNIT_TIME>`__
     """
-    
+
     # See: http://www.regular-expressions.info/floatingpoint.html
-    RE = r'^(?P<scalar>[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)\s*(?P<unit>ns|us|ms|s|m|h|d)$'
+    REGULAR = r'^(?P<scalar>[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)\s*(?P<unit>ns|us|ms|s|m|h|d)$'
 
     UNITS = {
         'ns':     0.000000001,
@@ -420,11 +470,13 @@ class ScalarFrequency(Scalar):
     """
     Floating point scalar for counting cycles per second (Hz).
 
-    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#TYPE_TOSCA_SCALAR_UNIT_FREQUENCY>`__
+    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca
+    /TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html
+    #TYPE_TOSCA_SCALAR_UNIT_FREQUENCY>`__
     """
-    
+
     # See: http://www.regular-expressions.info/floatingpoint.html
-    RE = r'^(?P<scalar>[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)\s*(?P<unit>Hz|kHz|MHz|GHz)$'
+    REGULAR = r'^(?P<scalar>[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)\s*(?P<unit>Hz|kHz|MHz|GHz)$'
 
     UNITS = {
         'Hz':           1.0,
@@ -439,11 +491,13 @@ class ScalarFrequency(Scalar):
 # The following are hooked in the YAML as 'coerce_value' extensions
 #
 
-def coerce_timestamp(context, presentation, the_type, entry_schema, constraints, value, aspect):
-    return coerce_to_data_type_class(context, presentation, Timestamp, entry_schema, constraints, value, aspect)
+def coerce_timestamp(context, presentation, the_type, entry_schema, constraints, value, aspect): # pylint: disable=unused-argument
+    return coerce_to_data_type_class(context, presentation, Timestamp, entry_schema, constraints,
+                                     value, aspect)
 
-def coerce_version(context, presentation, the_type, entry_schema, constraints, value, aspect):
-    return coerce_to_data_type_class(context, presentation, Version, entry_schema, constraints, value, aspect)
+def coerce_version(context, presentation, the_type, entry_schema, constraints, value, aspect): # pylint: disable=unused-argument
+    return coerce_to_data_type_class(context, presentation, Version, entry_schema, constraints,
+                                     value, aspect)
 
 def coerce_range(context, presentation, the_type, entry_schema, constraints, value, aspect):
     if aspect == 'in_range':
@@ -455,19 +509,28 @@ def coerce_range(context, presentation, the_type, entry_schema, constraints, val
         except TypeError as e:
             report_issue_for_bad_format(context, presentation, the_type, value, aspect, e)
     else:
-        return coerce_to_data_type_class(context, presentation, Range, entry_schema, constraints, value, aspect)
+        return coerce_to_data_type_class(context, presentation, Range, entry_schema, constraints,
+                                         value, aspect)
 
-def coerce_list(context, presentation, the_type, entry_schema, constraints, value, aspect):
-    return coerce_to_data_type_class(context, presentation, List, entry_schema, constraints, value, aspect)
-    
-def coerce_map_value(context, presentation, the_type, entry_schema, constraints, value, aspect):
-    return coerce_to_data_type_class(context, presentation, Map, entry_schema, constraints, value, aspect)
+def coerce_list(context, presentation, the_type, entry_schema, constraints, value, aspect): # pylint: disable=unused-argument
+    return coerce_to_data_type_class(context, presentation, List, entry_schema, constraints,
+                                     value, aspect)
 
-def coerce_scalar_unit_size(context, presentation, the_type, entry_schema, constraints, value, aspect):
-    return coerce_to_data_type_class(context, presentation, ScalarSize, entry_schema, constraints, value, aspect)
+def coerce_map_value(context, presentation, the_type, entry_schema, constraints, value, aspect): # pylint: disable=unused-argument
+    return coerce_to_data_type_class(context, presentation, Map, entry_schema, constraints, value,
+                                     aspect)
 
-def coerce_scalar_unit_time(context, presentation, the_type, entry_schema, constraints, value, aspect):
-    return coerce_to_data_type_class(context, presentation, ScalarTime, entry_schema, constraints, value, aspect)
-    
-def coerce_scalar_unit_frequency(context, presentation, the_type, entry_schema, constraints, value, aspect):
-    return coerce_to_data_type_class(context, presentation, ScalarFrequency, entry_schema, constraints, value, aspect)
+def coerce_scalar_unit_size(context, presentation, the_type, entry_schema, constraints, value, # pylint: disable=unused-argument
+                            aspect):
+    return coerce_to_data_type_class(context, presentation, ScalarSize, entry_schema, constraints,
+                                     value, aspect)
+
+def coerce_scalar_unit_time(context, presentation, the_type, entry_schema, constraints, value, # pylint: disable=unused-argument
+                            aspect):
+    return coerce_to_data_type_class(context, presentation, ScalarTime, entry_schema, constraints,
+                                     value, aspect)
+
+def coerce_scalar_unit_frequency(context, presentation, the_type, entry_schema, constraints, value, # pylint: disable=unused-argument
+                                 aspect):
+    return coerce_to_data_type_class(context, presentation, ScalarFrequency, entry_schema,
+                                     constraints, value, aspect)

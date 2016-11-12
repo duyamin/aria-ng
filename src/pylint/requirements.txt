@@ -13,16 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-group_types:
-
-  tosca.groups.Root:
-    _extensions:
-      shorthand_name: Root # ommitted in the spec (seems to be a mistake)
-      type_qualified_name: tosca:Root
-      specification: tosca-simple-1.0
-      specification_section: 5.9.1
-    description: >-
-      This is the default (root) TOSCA Group Type definition that all other TOSCA base Group Types derive from.
-    interfaces:
-      standard:
-        type: tosca.interfaces.node.lifecycle.Standard
+pylint==1.6.4
