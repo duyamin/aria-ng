@@ -86,7 +86,7 @@ def parse_implementation(context, implementation, is_workflow=False):
     if not implementation:
         plugin_name = None
         plugin_executor = None
-        operation_name = None
+        operation_name = ''
         inputs = OrderedDict()
         parsed = True
     

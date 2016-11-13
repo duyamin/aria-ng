@@ -151,6 +151,8 @@ def merge_interface(context, presentation, interface_assignment, our_interface_a
             
             if our_implementation is not None:
                 interface_assignment._raw[operation_name]['implementation'] = deepcopy_with_locators(our_implementation)
+            else:
+                interface_assignment._raw[operation_name]['implementation'] = ''
             our_executor = our_operation_template.executor
             if our_executor is not None:
                 interface_assignment._raw[operation_name]['executor'] = deepcopy_with_locators(our_executor)

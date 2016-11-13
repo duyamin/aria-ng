@@ -33,6 +33,7 @@ def raw_operation_mapping(implementation=None,
     the blueprint.
     """
 
+    implementation = implementation or ''
     inputs = inputs or {}
     result = dict(operation=implementation,
                   inputs=inputs,
@@ -56,19 +57,26 @@ def _create_operation_mapping(implementation=None,
                               retry_interval=None):
 
     operation = (
-        'create:\n'
+        'create:'
     )
+    # no op case
+    if not implementation and \
+            not inputs and \
+            not executor and \
+            not max_retries and \
+            not retry_interval:
+        operation += ' {}'
 
     if implementation:
-        operation += '          implementation: {0}\n'.format(implementation)
+        operation += '\n          implementation: {0}\n'.format(implementation)
     if executor:
-        operation += '          executor: {0}\n'.format(executor)
+        operation += '\n          executor: {0}\n'.format(executor)
     if max_retries is not None:
-        operation += '          max_retries: {0}\n'.format(max_retries)
+        operation += '\n          max_retries: {0}\n'.format(max_retries)
     if retry_interval is not None:
-        operation += '          retry_interval: {0}\n'.format(retry_interval)
+        operation += '\n          retry_interval: {0}\n'.format(retry_interval)
     if inputs:
-        operation += '          inputs:\n'
+        operation += '\n          inputs:\n'
         for inpt in inputs.keys():
             if type(inputs[inpt]) is dict:
                 operation += '            {0}:\n'.format(inpt)
