@@ -1,24 +1,24 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# Copyright (c) 2016 GigaSpaces Technologies Ltd. All rights reserved.
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License. You may obtain
-# a copy of the License at
-# 
-#      http://www.apache.org/licenses/LICENSE-2.0
-# 
+# http://www.apache.org/licenses/LICENSE-2.0
+#
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations
-# under the License.
-#
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+import os
+from collections import OrderedDict
+
+from aria.utils import safe_repr
 
 from .module import CodeModule
 from .writer import Writer, create_header, repr_assignment
-from aria.utils import safe_repr
-from collections import OrderedDict
-import os
+
 
 class CodeGenerator(object):
     def __init__(self):
@@ -33,31 +33,32 @@ class CodeGenerator(object):
             'integer': 'int',
             'boolean': 'bool'}
         self.common_module_name = 'common'
-    
+
     def get_class(self, name, create=True):
         return self.module.find_class(name, create)
 
     def get_classname(self, name):
         if name in self.translate_classes:
-            r = self.translate_classes[name]
-            return r if isinstance(r, str) else r.fullname
+            cls_name = self.translate_classes[name]
+            return cls_name if isinstance(cls_name, str) else cls_name.fullname
         return name
 
     def link_classes(self):
-        for c in self.module.all_classes:
-            if isinstance(c.base, str):
-                b = self.get_class(c.base, False)
-                if b:
-                    c.base = b
-        for c in self.module.all_classes:
-            if not c.module.name:
-                del c.module.classes[c.name]
+        for class_ in self.module.all_classes:
+            if isinstance(class_.base, str):
+                base_class = self.get_class(class_.base, False)
+                if base_class:
+                    class_.base = base_class
+        for class_ in self.module.all_classes:
+            if not class_.module.name:
+                del class_.module.classes[class_.name]
                 root = self.module.get_module(self.common_module_name)
-                c.module = root
-                root.classes[c.name] = c
-                self.translate_classes[c.name] = c
-    
-    def write_file(self, the_file, content):
+                class_.module = root
+                root.classes[class_.name] = class_
+                self.translate_classes[class_.name] = class_
+
+    @staticmethod
+    def write_file(the_file, content):
         try:
             os.makedirs(os.path.dirname(the_file))
         except OSError as e:
@@ -65,93 +66,108 @@ class CodeGenerator(object):
                 raise e
         with open(the_file, 'w') as f:
             f.write(str(content))
-    
+
     def write(self, root):
         self.link_classes()
-        for m in self.module.all_modules:
-            if m.name:
-                the_file = os.path.join(root, m.file)
-                self.write_file(the_file, m)
+        for module in self.module.all_modules:
+            if module.name:
+                the_file = os.path.join(root, module.file)
+                self.write_file(the_file, module)
         the_file = os.path.join(root, 'service.py')
         self.write_file(the_file, self.service)
 
     @property
     def service(self):
-        with Writer() as w:
-            w.write(create_header())
-            for m in self.module.all_modules:
-                if m.fullname:
-                    w.write('import %s' % m.fullname)
-            w.write()
-            w.write('class Service(object):')
-            w.i()
+        with Writer() as writer:
+            writer.write(create_header())
+            for module in self.module.all_modules:
+                if module.fullname:
+                    writer.write('import %s' % module.fullname)
+            writer.write()
+            writer.write('class Service(object):')
+            writer.add_indent()
             if self.description or self.inputs:
-                w.write('"""')
-                if self.description:
-                    w.write(self.description.strip())
-                if self.inputs:
-                    if self.description:
-                        w.write()
-                    for i in self.inputs.itervalues():
-                        w.write(i.docstring)
-                w.write('"""')
+                self._handle_description_and_inputs(writer)
             if self.inputs or self.outputs or self.nodes or self.workflows:
-                w.write()
-                w.write('# Metadata')
-                if self.inputs:
-                    w.write('INPUTS = %s' % safe_repr(tuple(self.inputs.keys())))
-                if self.outputs:
-                    w.write('OUTPUTS = %s' % safe_repr(tuple(self.outputs.keys())))
-                if self.nodes:
-                    w.write('NODES = %s' % safe_repr(tuple(self.nodes.keys())))
-                if self.workflows:
-                    w.write('WORKFLOWS = %s' % safe_repr(tuple(self.workflows.keys())))
-                w.write()
-            w.put_indent()
-            w.put('def __init__(self, context')
+                self._handle_metadata(writer)
+            writer.put_indent()
+            writer.put('def __init__(self, context')
             if self.inputs:
                 for i in self.inputs.itervalues():
-                    w.put(', %s' % i.signature)
-            w.put('):\n')
-            w.i()
-            w.write('self.context = context')
-            w.write('self.context.service = self')
+                    writer.put(', %s' % i.signature)
+            writer.put('):\n')
+            writer.add_indent()
+            writer.write('self.context = context')
+            writer.write('self.context.service = self')
             if self.inputs:
-                w.write()
-                w.write('# Inputs')
+                writer.write()
+                writer.write('# Inputs')
                 for i in self.inputs:
-                    w.write('self.%s = %s' % (i, i))
+                    writer.write('self.%s = %s' % (i, i))
             if self.nodes:
-                w.write()
-                for n in self.nodes.itervalues():
-                    w.write(n.description or 'Node: %s' % n.name, prefix='# ')
-                    w.write(n)
-                has_relationships = False
-                for n in self.nodes.itervalues():
-                    if n.relationships:
-                        has_relationships = True
-                        break
-                if has_relationships:
-                    w.write('# Relationships')
-                    for n in self.nodes.itervalues():
-                        n.relate(w)
-            w.o()
+                self._handle_nodes(writer)
+            writer.remove_indent()
             if self.outputs:
-                w.write()
-                w.write('# Outputs')
-                for o in self.outputs.itervalues():
-                    w.write()
-                    w.write('@property')
-                    w.write('def %s(self):' % o.name)
-                    w.i()
-                    if o.description:
-                        w.write_docstring(o.description)
-                    w.write('return %s' % repr_assignment(o.value))
-                    w.o()
+                self._handle_outputs(writer)
             if self.workflows:
-                w.write()
-                w.write('# Workflows')
-                for workflow in self.workflows.itervalues():
-                    w.write()
-                    w.write(str(workflow))
-            return str(w)
+                self._handle_workflows(writer)
+            return str(writer)
+
+    def _handle_description_and_inputs(self, writer):
+        writer.write('"""')
+        if self.description:
+            writer.write(self.description.strip())
+        if self.inputs:
+            if self.description:
+                writer.write()
+            for i in self.inputs.itervalues():
+                writer.write(i.docstring)
+        writer.write('"""')
+
+    def _handle_metadata(self, writer):
+        writer.write()
+        writer.write('# Metadata')
+        if self.inputs:
+            writer.write('INPUTS = %s' % safe_repr(tuple(self.inputs.keys())))
+        if self.outputs:
+            writer.write('OUTPUTS = %s' % safe_repr(tuple(self.outputs.keys())))
+        if self.nodes:
+            writer.write('NODES = %s' % safe_repr(tuple(self.nodes.keys())))
+        if self.workflows:
+            writer.write('WORKFLOWS = %s' % safe_repr(tuple(self.workflows.keys())))
+        writer.write()
+
+    def _handle_nodes(self, writer):
+        writer.write()
+        for node in self.nodes.itervalues():
+            writer.write(node.description or 'Node: %s' % node.name, prefix='# ')
+            writer.write(node)
+        has_relationships = False
+        for node in self.nodes.itervalues():
+            if node.relationships:
+                has_relationships = True
+                break
+        if has_relationships:
+            writer.write('# Relationships')
+            for node in self.nodes.itervalues():
+                node.relate(writer)
+
+    def _handle_outputs(self, writer):
+        writer.write()
+        writer.write('# Outputs')
+        for output in self.outputs.itervalues():
+            writer.write()
+            writer.write('@property')
+            writer.write('def %s(self):' % output.name)
+            writer.add_indent()
+            if output.description:
+                writer.write_docstring(output.description)
+            writer.write('return %s' % repr_assignment(output.value))
+            writer.remove_indent()
+
+    def _handle_workflows(self, writer):
+        writer.write()
+        writer.write('# Workflows')
+        for workflow in self.workflows.itervalues():
+            writer.write()
+            writer.write(str(workflow))
