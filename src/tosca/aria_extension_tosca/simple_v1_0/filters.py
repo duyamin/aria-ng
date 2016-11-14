@@ -1,25 +1,26 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
 #
-# Copyright (c) 2016 GigaSpaces Technologies Ltd. All rights reserved.
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License. You may obtain
-# a copy of the License at
-# 
-#      http://www.apache.org/licenses/LICENSE-2.0
-# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations
-# under the License.
-#
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from aria import dsl_specification
+from aria.utils import cachedmethod
+from aria.presentation import (has_fields, object_sequenced_list_field, field_validator)
 
 from .misc import ConstraintClause
 from .presentation.extensible import ExtensiblePresentation
-from .presentation.field_validators import node_filter_properties_validator, node_filter_capabilities_validator
-from aria import dsl_specification
-from aria.presentation import has_fields, object_sequenced_list_field, field_validator
-from aria.utils import cachedmethod
+from .presentation.field_validators import (node_filter_properties_validator,
+                                            node_filter_capabilities_validator)
 
 @has_fields
 class CapabilityFilter(ExtensiblePresentation):
@@ -47,9 +48,12 @@ class CapabilityFilter(ExtensiblePresentation):
 @dsl_specification('3.5.4', 'tosca-simple-1.0')
 class NodeFilter(ExtensiblePresentation):
     """
-    A node filter definition defines criteria for selection of a TOSCA Node Template based upon the template's property values, capabilities and capability properties.
-    
-    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_ELEMENT_NODE_FILTER_DEFN>`__
+    A node filter definition defines criteria for selection of a TOSCA Node Template based upon the
+    template's property values, capabilities and capability properties.
+
+    See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca
+    /TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html
+    #DEFN_ELEMENT_NODE_FILTER_DEFN>`__
     """
 
     @field_validator(node_filter_properties_validator)
@@ -57,10 +61,14 @@ class NodeFilter(ExtensiblePresentation):
     @dsl_specification('3.5.3', 'tosca-simple-1.0')
     def properties(self):
         """
-        An optional sequenced list of property filters that would be used to select (filter) matching TOSCA entities (e.g., Node Template, Node Type, Capability Types, etc.) based upon their property definitions' values.
+        An optional sequenced list of property filters that would be used to select (filter)
+        matching TOSCA entities (e.g., Node Template, Node Type, Capability Types, etc.) based upon
+        their property definitions' values.
 
-        See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca/TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html#DEFN_ELEMENT_PROPERTY_FILTER_DEFN>`__
-        
+        See the `TOSCA Simple Profile v1.0 cos01 specification <http://docs.oasis-open.org/tosca
+        /TOSCA-Simple-Profile-YAML/v1.0/cos01/TOSCA-Simple-Profile-YAML-v1.0-cos01.html
+        #DEFN_ELEMENT_PROPERTY_FILTER_DEFN>`__
+
         :rtype: list of (str, :class:`ConstraintClause`)
         """
 
@@ -68,8 +76,10 @@ class NodeFilter(ExtensiblePresentation):
     @object_sequenced_list_field(CapabilityFilter)
     def capabilities(self):
         """
-        An optional sequenced list of property filters that would be used to select (filter) matching TOSCA entities (e.g., Node Template, Node Type, Capability Types, etc.) based upon their capabilities' property definitions' values.
-        
+        An optional sequenced list of property filters that would be used to select (filter)
+        matching TOSCA entities (e.g., Node Template, Node Type, Capability Types, etc.) based upon
+        their capabilities' property definitions' values.
+
         :rtype: list of (str, :class:`CapabilityDefinition`)
         """
 
@@ -87,5 +97,5 @@ class NodeFilter(ExtensiblePresentation):
             properties = node_type._get_properties(context)
             prop = properties.get(name)
             return prop._get_type(context) if prop is not None else None
-        
+
         return None
