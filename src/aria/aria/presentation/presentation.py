@@ -40,6 +40,7 @@ class PresentationBase(HasCachedMethods):
         self._name = name
         self._raw = raw
         self._container = container
+        super(PresentationBase, self).__init__()
 
     @property
     def as_raw(self):

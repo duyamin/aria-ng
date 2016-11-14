@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ..utils import safe_repr, colored, indent
+from ..utils import safe_repr, Colored, indent
 
 
 class Style(object):
@@ -26,24 +26,24 @@ class Style(object):
 
     @staticmethod
     def section(value):
-        return colored.cyan(value, bold=True)
+        return Colored.cyan(value, bold=True)
 
     @staticmethod
     def type(value):
-        return colored.blue(value, bold=True)
+        return Colored.blue(value, bold=True)
 
     @staticmethod
     def node(value):
-        return colored.red(value, bold=True)
+        return Colored.red(value, bold=True)
 
     @staticmethod
     def property(value):
-        return colored.magenta(value, bold=True)
+        return Colored.magenta(value, bold=True)
 
     @staticmethod
     def literal(value):
-        return colored.yellow(safe_repr(value), bold=True)
+        return Colored.yellow(safe_repr(value), bold=True)
 
     @staticmethod
     def meta(value):
-        return colored.green(value)
+        return Colored.green(value)
