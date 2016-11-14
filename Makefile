@@ -48,7 +48,7 @@ test-requirements:
 lint: lint-requirements
 	pylint \
 		--rcfile="$(PYLINT_SRC)/pylintrc" \
-		--disable=missing-docstring,fixme,protected-access,redefined-variable-type \
+		--disable=missing-docstring,fixme,locally-disabled \
 		"$(ARIA_SRC)/aria" \
 		"$(TOSCA_SRC)/aria_extension_tosca" \
 		"$(GENERATOR_SRC)/aria_extension_generator"
