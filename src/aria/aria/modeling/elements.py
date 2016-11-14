@@ -1,73 +1,76 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
 #
-# Copyright (c) 2016 GigaSpaces Technologies Ltd. All rights reserved.
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License. You may obtain
-# a copy of the License at
-# 
-#      http://www.apache.org/licenses/LICENSE-2.0
-# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations
-# under the License.
-#
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-from .utils import coerce_value
-from .. import UnimplementedFunctionalityError
-from ..utils import StrictDict, full_type_name, puts
 from collections import OrderedDict
+
+from ..utils import StrictDict, puts
+from .utils import coerce_value
+
 
 class Function(object):
     """
     An intrinsic function.
-    
+
     Serves as a placeholder for a value that should eventually be derived
     by calling the function.
     """
-    
+
     @property
     def as_raw(self):
-        raise UnimplementedFunctionalityError(full_type_name(self) + '.as_raw')
+        raise NotImplementedError
 
     def _evaluate(self, context, container):
-        raise UnimplementedFunctionalityError(full_type_name(self) + '._evaluate')
+        raise NotImplementedError
 
     def __deepcopy__(self, memo):
         # Circumvent cloning in order to maintain our state
         return self
 
+
 class Element(object):
     """
     Base class for :class:`ServiceInstance` elements.
-    
+
     All elements support validation, diagnostic dumping, and representation as
     raw data (which can be translated into JSON or YAML) via :code:`as_raw`.
     """
-    
+
     @property
     def as_raw(self):
-        raise UnimplementedFunctionalityError(full_type_name(self) + '.as_raw')
+        raise NotImplementedError
 
     def validate(self, context):
         pass
 
     def coerce_values(self, context, container, report_issues):
         pass
-    
+
     def dump(self, context):
         pass
+
 
 class ModelElement(Element):
     """
     Base class for :class:`ServiceModel` elements.
-    
-    All model elements can be instantiated into :class:`ServiceInstance` elements. 
+
+    All model elements can be instantiated into :class:`ServiceInstance` elements.
     """
 
     def instantiate(self, context, container):
-        pass
+        raise NotImplementedError
+
 
 class Parameter(ModelElement):
     """
@@ -75,7 +78,7 @@ class Parameter(ModelElement):
 
     This class is used by both service model and service instance elements.
     """
-    
+
     def __init__(self, type_name, value, description):
         self.type_name = type_name
         self.value = value
@@ -95,6 +98,7 @@ class Parameter(ModelElement):
         if self.value is not None:
             self.value = coerce_value(context, container, self.value, report_issues)
 
+
 class Metadata(ModelElement):
     """
     Custom values associated with the deployment template and its plans.
@@ -102,10 +106,10 @@ class Metadata(ModelElement):
     This class is used by both service model and service instance elements.
 
     Properties:
-    
+
     * :code:`values`: Dict of custom values
     """
-    
+
     def __init__(self):
         self.values = StrictDict(key_class=basestring)
 
@@ -114,13 +118,12 @@ class Metadata(ModelElement):
         return self.values
 
     def instantiate(self, context, container):
-        r = Metadata()
-        r.values.update(self.values)
-        return r
+        metadata = Metadata()
+        metadata.values.update(self.values)
+        return metadata
 
     def dump(self, context):
         puts('Metadata:')
         with context.style.indent:
             for name, value in self.values.iteritems():
                 puts('%s: %s' % (name, context.style.meta(value)))
-

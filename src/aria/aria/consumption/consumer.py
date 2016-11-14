@@ -1,36 +1,37 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
 #
-# Copyright (c) 2016 GigaSpaces Technologies Ltd. All rights reserved.
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License. You may obtain
-# a copy of the License at
-# 
-#      http://www.apache.org/licenses/LICENSE-2.0
-# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations
-# under the License.
-#
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 from .. import AriaException
 from ..validation import Issue
 from ..utils import print_exception
 
+
 class Consumer(object):
     """
     Base class for ARIA consumers.
-    
+
     Consumers provide useful functionality by consuming presentations.
     """
-    
+
     def __init__(self, context):
         self.context = context
-    
+
     def consume(self):
         pass
-    
+
     def dump(self):
         pass
 
@@ -42,11 +43,12 @@ class Consumer(object):
         if not isinstance(e, AriaException):
             print_exception(e)
 
+
 class ConsumerChain(Consumer):
     """
     ARIA consumer chain.
-    
-    Calls consumers in order, handling exception by calling `_handle_exception` on them, 
+
+    Calls consumers in order, handling exception by calling `_handle_exception` on them,
     and stops the chain if there are any validation issues.
     """
 
@@ -57,7 +59,7 @@ class ConsumerChain(Consumer):
         if consumer_classes:
             for consumer_class in consumer_classes:
                 self.append(consumer_class)
-    
+
     def append(self, *consumer_classes):
         for consumer_class in consumer_classes:
             self.consumers.append(consumer_class(self.context))
@@ -66,10 +68,19 @@ class ConsumerChain(Consumer):
         for consumer in self.consumers:
             try:
                 consumer.consume()
-            except Exception as e:
+            except BaseException as e:
                 if self.handle_exceptions:
-                    consumer._handle_exception(e)
+                    handle_exception(consumer, e)
                 else:
                     raise e
             if self.context.validation.has_issues:
                 break
+
+
+def handle_exception(consumer, e):
+    if isinstance(e, AriaException) and e.issue:
+        consumer.context.validation.report(issue=e.issue)
+    else:
+        consumer.context.validation.report(exception=e)
+    if not isinstance(e, AriaException):
+        print_exception(e)

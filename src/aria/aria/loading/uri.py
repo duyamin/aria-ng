@@ -1,26 +1,26 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
 #
-# Copyright (c) 2016 GigaSpaces Technologies Ltd. All rights reserved.
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License. You may obtain
-# a copy of the License at
-# 
-#      http://www.apache.org/licenses/LICENSE-2.0
-# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations
-# under the License.
-#
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
+import os
+from urlparse import urljoin
+
+from ..utils import StrictList, as_file
 from .loader import Loader
 from .file import FileTextLoader
 from .request import RequestTextLoader
 from .exceptions import DocumentNotFoundException
-from ..utils import StrictList, as_file
-from urlparse import urljoin
-import os
 
 URI_LOADER_PREFIXES = StrictList(value_class=basestring)
 
@@ -29,15 +29,15 @@ class UriTextLoader(Loader):
     Base class for ARIA URI loaders.
 
     See :class:`aria.loading.UriLocation`.
-    
+
     Supports a list of search prefixes that are tried in order if the URI cannot be found.
     They will be:
-    
+
     * If :code:`origin_location` is provided its prefix will come first.
     * Then the prefixes in the :class:`LoadingContext` will be added.
     * Finally, the global prefixes specified in :code:`URI_LOADER_PREFIXES` will be added.
     """
-    
+
     def __init__(self, context, location, origin_location=None):
         self.context = context
         self.location = location
@@ -54,7 +54,7 @@ class UriTextLoader(Loader):
 
         if origin_location is not None:
             add_prefix(origin_location.prefix)
-        
+
         add_prefixes(context.prefixes)
         add_prefixes(URI_LOADER_PREFIXES)
 

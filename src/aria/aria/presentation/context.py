@@ -1,25 +1,26 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
 #
-# Copyright (c) 2016 GigaSpaces Technologies Ltd. All rights reserved.
-# 
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License. You may obtain
-# a copy of the License at
-# 
-#      http://www.apache.org/licenses/LICENSE-2.0
-# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations
-# under the License.
-#
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 from .source import DefaultPresenterSource
+
 
 class PresentationContext(object):
     """
     Properties:
-    
+
     * :code:`presenter`: The generated presenter instance
     * :code:`location`: From where we will generate the presenter
     * :code:`presenter_source`: For finding presenter classes
@@ -29,15 +30,15 @@ class PresentationContext(object):
     * :code:`timeout`: Timeout in seconds for loading data
     * :code:`print_exceptions`: Whether to print exceptions while reading data
     """
-    
+
     def __init__(self):
         self.presenter = None
         self.location = None
         self.presenter_source = DefaultPresenterSource()
-        self.presenter_class = None # overrides
+        self.presenter_class = None  # overrides
         self.import_profile = True
-        self.threads = 8 # reasonable default for networking multithreading
-        self.timeout = 10 # in seconds
+        self.threads = 8  # reasonable default for networking multithreading
+        self.timeout = 10  # in seconds
         self.print_exceptions = False
 
     def get(self, *names):

@@ -10,8 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ..utils import OpenClose, full_type_name
-from .. import UnimplementedFunctionalityError
+from ..utils import OpenClose
 from .exceptions import ReaderException, AlreadyReadException
 
 
@@ -42,4 +41,4 @@ class Reader(object):
             return data
 
     def read(self):
-        raise UnimplementedFunctionalityError(full_type_name(self) + '.read')
+        raise NotImplementedError
