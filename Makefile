@@ -18,6 +18,7 @@ DOCS=docs
 
 ARIA_SRC=$(SRC)/aria
 TOSCA_SRC=$(SRC)/tosca
+GENERATOR_SRC=$(SRC)/generator
 CLOUDIFY_SRC=$(SRC)/cloudify
 PYLINT_SRC=$(SRC)/pylint
 SPHINX_SRC=$(SRC)/sphinx
@@ -45,9 +46,12 @@ test-requirements:
 	pip install --upgrade --requirement "$(TESTS_SRC)/requirements.txt"
 
 lint: lint-requirements
-	#pip install pylint==1.6.4
-	#pylint --rcfile=.pylintrc --disable=fixme "$(ARIA_SRC)/aria" "$(TOSCA_SRC)/aria_extension_tosca"
-	pylint --rcfile="$(PYLINT_SRC)/pylintrc" --disable=missing-docstring,fixme,protected-access,redefined-variable-type "$(TOSCA_SRC)/aria_extension_tosca"
+	pylint \
+		--rcfile="$(PYLINT_SRC)/pylintrc" \
+		--disable=missing-docstring,fixme,protected-access,redefined-variable-type \
+		"$(ARIA_SRC)/aria" \
+		"$(TOSCA_SRC)/aria_extension_tosca" \
+		"$(GENERATOR_SRC)/aria_extension_generator"
 
 docs: docs-requirements requirements
 	rm -rf "$(DOCS)"
