@@ -57,8 +57,8 @@ node_templates:
             dsl_string=yaml,
             issue_messages=["field \"node_templates\" in "
                             "\"aria_extension_cloudify.v1_0.templates.ServiceTemplate\" is not a "
-                            "dict: [OrderedDict([('test_node', OrderedDict([('type', 'test_type'), "
-                            "('properties', OrderedDict([('key', 'val')]))]))])]"])
+                            "dict: [{'test_node': {'type': 'test_type', "
+                            "'properties': {'key': 'val'}}}]"])
 
     def test_name_field_under_node_templates(self):
         yaml = """
@@ -82,7 +82,7 @@ node_types:
     test_type:
         properties:
             key:
-                default: 'default'
+                default: default
 node_templates:
     test_node:
         type: test_type
@@ -206,7 +206,7 @@ imports:
             dsl_string=yaml,
             issue_messages=["field \"imports\" in "
                             "\"aria_extension_cloudify.v1_0.templates.ServiceTemplate\" "
-                            "is not a list: OrderedDict([('first_file', 'fake-file.yaml')])"])
+                            "is not a list: {'first_file': 'fake-file.yaml'}"])
 
     def test_import_bad_syntax3(self):
         yaml = """
@@ -355,7 +355,7 @@ relationships:
             """
         self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["field \"extra_prop\" is not supported in \"test_node\""])
+            issue_messages=["field \"extra_prop\" is not supported in \"relationships\""])
 
     def test_instance_relationships_relationship_with_derived_from_field(self):
         # derived_from field is not valid under an instance relationship
@@ -372,7 +372,7 @@ relationships:
             """
         self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["field \"derived_from\" is not supported in \"test_node\""])
+            issue_messages=["field \"derived_from\" is not supported in \"relationships\""])
 
     def test_instance_relationships_relationship_object(self):
         # trying to use a dictionary instead of an array
@@ -387,9 +387,8 @@ relationships:
             dsl_string=yaml,
             issue_messages=["field \"relationships\" in "
                             "\"aria_extension_cloudify.v1_0.templates.NodeTemplate\" "
-                            "is not a list: OrderedDict([('test_relationship', "
-                            "OrderedDict([('type', 'fake_relationship'), "
-                            "('target', 'fake_node'), ('derived_from', 'relationship')]))])"])
+                            "is not a list: {'test_relationship': {'type': 'fake_relationship', "
+                            "'target': 'fake_node', 'derived_from': 'relationship'}}"])
 
     def test_multiple_instances_with_extra_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -399,15 +398,7 @@ relationships:
             """
         self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["field \"extra_prop\" is not supported in \"test_node\""])
-
-    def test_multiple_instances_without_deploy_property(self):
-        yaml = self.MINIMAL_BLUEPRINT + """
-        instances: {}
-            """
-        self.assert_parser_issue_messages(
-            dsl_string=yaml,
-            issue_messages=["f"])
+            issue_messages=["field \"extra_prop\" is not supported in \"instances\""])
 
     def test_multiple_instances_string_value(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -491,7 +482,7 @@ workflows:
             dsl_string=yaml,
             issue_messages=["field \"parameters\" in"
                             " \"aria_extension_cloudify.v1_0.definitions.WorkflowDefinition\" "
-                            "is not a dict: [OrderedDict([('key', 'value')])]"])
+                            "is not a dict: [{'key': 'value'}]"])
 
     def test_workflow_parameters_extra_property(self):
         yaml = self.BLUEPRINT_WITH_INTERFACES_AND_PLUGINS + """
@@ -530,13 +521,14 @@ node_types:
                 install:
                   implementation: test_plugin.install
                   inputs:
-                      key: 'value'
-                  unknown: 'bla'
+                      key: value
+                  unknown: bla
 """
         self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["field \"unknown\" is not supported in \"install\"",
-                            "short form not allowed for field \"key\""])
+            issue_messages=["short form not allowed for field \"key\"",
+                            "field \"unknown\" is not supported in \"install\"",
+                            "assignment to undefined property \"key\" in \"test_node\""])
 
     def test_type_properties_simple_dictionary_schema_format(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + """
@@ -572,7 +564,7 @@ node_types:
             dsl_string=yaml,
             issue_messages=["field \"properties\" in "
                             "\"aria_extension_cloudify.v1_0.types.NodeType\" "
-                            "is not a dict: [OrderedDict([('key', 'value')])]"])
+                            "is not a dict: [{'key': 'value'}]"])
 
     def test_type_properties_extra_property(self):
         yaml = self.BASIC_NODE_TEMPLATES_SECTION + """
@@ -622,7 +614,7 @@ relationships:
             dsl_string=yaml,
             issue_messages=["field \"properties\" in "
                             "\"aria_extension_cloudify.v1_0.types.RelationshipType\" "
-                            "is not a dict: [OrderedDict([('key', 'value')])]"])
+                            "is not a dict: [{'key': 'value'}]"])
 
     def test_relationship_properties_extra_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -675,7 +667,7 @@ policy_types:
             dsl_string=yaml,
             issue_messages=["field \"properties\" in "
                             "\"aria_extension_cloudify.v1_0.types.PolicyType\" "
-                            "is not a dict: [OrderedDict([('key', 'value')])]"])
+                            "is not a dict: [{'key': 'value'}]"])
 
     def test_policy_type_properties_extra_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -773,7 +765,7 @@ policy_triggers:
             dsl_string=yaml,
             issue_messages=["field \"parameters\" in "
                             "\"aria_extension_cloudify.v1_0.types.GroupPolicyTriggerType\" "
-                            "is not a dict: [OrderedDict([('key', 'value')])]"])
+                            "is not a dict: [{'key': 'value'}]"])
 
     def test_policy_triggers_parameters_extra_property(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -931,7 +923,7 @@ policy_types:
         source: source
 groups:
     group:
-        members: [1]
+        members: [no_node]
         policies:
             policy:
                 type: type
@@ -939,7 +931,7 @@ groups:
         self.assert_parser_issue_messages(
             dsl_string=yaml,
             issue_messages=["\"members\" refers to an unknown node template "
-                            "or group in \"group\": [u'1']"])
+                            "in \"group\": ['no_node']"])
 
     def test_group_members_bad_type2(self):
         yaml = self.MINIMAL_BLUEPRINT + """
@@ -972,13 +964,13 @@ groups:
         members: [vm]
         policies:
             policy:
-                type: 1
+                type: fake_type
                 properties:
                     key: value
 """
         self.assert_parser_issue_messages(
             dsl_string=yaml,
-            issue_messages=["\"type\" refers to an unknown policy type in \"policy\": u'1'",
+            issue_messages=["\"type\" refers to an unknown policy type in \"policy\": 'fake_type'",
                             "assignment to undefined property \"key\" in \"policy\""])
 
     def test_group_policy_type_bad_properties(self):
@@ -1035,12 +1027,12 @@ node_types:
         self.assert_parser_issue_messages(
             dsl_string=yaml,
             issue_messages=["\"type\" refers to an unknown data type "
-                            "in \"key\": u\'unknown-type\'"])
+                            "in \"key\": \'unknown-type\'"])
 
     def test_invalid_version_field_format(self):
-        yaml = self.MINIMAL_BLUEPRINT + """
+        yaml = """
 tosca_definitions_version: [cloudify_dsl_1_0]
-    """
+    """ + self.MINIMAL_BLUEPRINT
         self.assert_parser_issue_messages(
             dsl_string=yaml,
             issue_messages=["s"])
