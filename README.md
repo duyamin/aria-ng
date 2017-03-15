@@ -1,3 +1,11 @@
+Migration Notice:
+=================
+
+ARIA-TOSCA proejct was accepted as an incubation project, development is now moved to https://github.com/apache/incubator-ariatosca 
+
+
+
+
 ARIA
 ====
 
