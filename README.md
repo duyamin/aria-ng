@@ -1,7 +1,7 @@
-Migration Notice:
-=================
+REPOSITORY MIGRATION NOTICE:
+============================
 
-ARIA-TOSCA proejct was accepted as an incubation project, development is now moved to https://github.com/apache/incubator-ariatosca 
+ARIA-TOSCA proejct was accepted as an Apache Software Foundation(ASF) Incubation project, development is now moved to https://github.com/apache/incubator-ariatosca 
 
 
 
